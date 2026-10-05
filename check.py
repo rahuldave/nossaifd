@@ -86,7 +86,8 @@ def plain(text: str) -> str:  # Prose with inline code as one word, link text ke
 
 def sentences(text: str) -> list[str]:  # The sentences of a block
     "Split after a full stop, question mark or exclamation mark that ends a sentence."
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-Z\"(])", text) if s.strip()]
+    # A new sentence can start in lower case, as with a name like "timewalk" or "git".
+    return [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-Za-z\"(])", text) if s.strip()]
 
 
 def check(path: Path) -> tuple[list[str], list[str]]:  # Hard problems, soft notes
