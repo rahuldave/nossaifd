@@ -3,6 +3,8 @@
 **Not so shitty AI first drafts.** A writing guide, and a checker, for documentation and other prose that
 an AI model writes and a person reads.
 
+The site is at https://rahuldave.com/nossaifd/.
+
 The name comes from ["Shitty First Drafts"](https://wrd.as.uky.edu/sites/default/files/1-Shitty%20First%20Drafts.pdf),
 the essay in Anne Lamott's *Bird by Bird*. Lamott says that
 every good piece of writing starts as a bad first draft. An AI model writes first drafts fast, and they
@@ -13,8 +15,9 @@ the draft.
 
 | File | What it is |
 |---|---|
-| `GUIDE.md` | The writing rules: words, sentences, instructions, paragraphs, tone, punctuation and formatting |
-| `check.py` | A program that checks Markdown against the rules that a program can measure |
+| [`GUIDE.md`](GUIDE.md) | The writing rules: words, sentences, instructions, paragraphs, tone, punctuation and formatting |
+| [`check.py`](check.py) | A program that checks Markdown against the rules that a program can measure. See [the checker](docs/checker.md) |
+| `docs/` | The site: `build.py` builds it from this README, `GUIDE.md` and `docs/checker.md` |
 
 ## How to use it
 
