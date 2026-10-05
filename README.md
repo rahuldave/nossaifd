@@ -32,9 +32,14 @@ The checker needs only Python 3.11 or later, with no other packages.
 
 ## Where the rules come from
 
-The guide joins two sources. ASD-STE100, Simplified Technical English, gives the rules for words,
-sentences, instructions and paragraphs. The plain-writing skill from docwriter-org gives the rules for
-tone, punctuation and the patterns of AI writing. `GUIDE.md` lists the sources and the changes.
+The guide joins two sources, and `GUIDE.md` lists the changes it makes to them.
+
+- **ASD-STE100, Simplified Technical English.** Aircraft makers write their maintenance manuals in it.
+  Andrej Karpathy suggested on X that the same rules suit text that AI models write. It gives the rules
+  for words, sentences, instructions and paragraphs.
+- **The plain-writing skill by Shreya Shankar**, at
+  https://github.com/docwriter-org/plain-writing-skill, under the MIT licence. It gives the rules for
+  tone, punctuation and the patterns of AI writing.
 
 ## Licence
 

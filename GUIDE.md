@@ -130,10 +130,12 @@ The program cannot judge meaning, tone or a missing definition. Read every page 
 
 ## Sources
 
-- ASD-STE100, Simplified Technical English, from the AeroSpace and Defence Industries Association of
-  Europe (ASD). The rules for words, sentences, instructions and paragraphs come from it. Its dictionary of
-  approved words is not part of this guide.
-- The plain-writing skill, https://github.com/docwriter-org/plain-writing-skill, under the MIT licence. The
-  rules for tone, punctuation and the patterns of AI writing come from it. This guide states the rules in
-  its own words. It also changes two of them. It forbids contractions in documentation, and it allows bold
-  at the start of a list item.
+- **ASD-STE100, Simplified Technical English**, from the AeroSpace and Defence Industries Association of
+  Europe (ASD). Aircraft makers write their maintenance manuals in it, so that readers who are not native
+  English speakers understand them. Andrej Karpathy suggested on X that the same rules suit text that AI
+  models write. The rules for words, sentences, instructions and paragraphs come from it. Its dictionary
+  of approved words is not part of this guide.
+- **The plain-writing skill by Shreya Shankar**, https://github.com/docwriter-org/plain-writing-skill,
+  under the MIT licence, copyright (c) 2026 Shreya Shankar. The rules for tone, punctuation and the
+  patterns of AI writing come from it. This guide states the rules in its own words. It also changes two
+  of them. It forbids contractions in documentation, and it allows bold at the start of a list item.
