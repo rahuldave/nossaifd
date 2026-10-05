@@ -3,8 +3,9 @@
     python3 check.py page.md [page.md ...]      report each page; exit 1 if a hard rule is broken
     python3 check.py -v page.md                 also show the soft notes, for a person to judge
 
-The checks read prose only. Code blocks, inline code, link targets, image lines and text in straight double
-quotes are not checked: Markdown comes first, and quoted words are examples being talked about. A program cannot judge meaning, tone or a missing definition, so read the page too.
+The checks read prose only: paragraphs, list items and headings. Code blocks, inline code, tables, link
+targets, URLs, image lines, HTML and text in straight double quotes are not checked. Markdown comes first,
+and quoted words are examples that the text talks about. A program cannot judge meaning, tone or a missing definition, so read the page too.
 """
 
 import re
@@ -37,7 +38,7 @@ CLAUSE = re.compile(r",\s+(and|but|so|which|because|while|when|where|if|or)\b|\b
 
 
 def blocks(text: str) -> list[tuple[int, str, str]]:  # (line, text, kind) with kind "para", "item", "cell" or "head"
-    "Read the prose of a page: paragraphs, list items, table cells and headings, without code."
+    "Read the prose of a page: paragraphs, list items and headings. Code and tables are left out."
     out, block, start, in_code, kind = [], [], 0, False, "para"
 
     def flush() -> None:
@@ -61,9 +62,7 @@ def blocks(text: str) -> list[tuple[int, str, str]]:  # (line, text, kind) with 
             continue
         if stripped.startswith("|"):
             flush()
-            if not re.fullmatch(r"\|[\s\-|:]+\|", stripped):
-                out.extend((number, cell.strip(), "cell") for cell in stripped.strip("|").split("|") if cell.strip())
-            continue
+            continue  # tables are exempt: a cell can be a short phrase, a fragment or a value
         item = re.match(r"^\s*(?:[-*+]|\d+\.)\s+(.*)", line)
         if item:
             flush()

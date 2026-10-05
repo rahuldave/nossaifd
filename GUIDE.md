@@ -10,9 +10,19 @@ Give this file to the model with the task, together with a glossary of the proje
 
 ## Markdown comes first
 
-The rules apply to prose. Markdown syntax always wins over a rule. For example, a fenced code block, inline
-code, a table, a list marker, a link target and an image path stay as Markdown needs them. Do not change
-the text inside code. A rule about colons or dashes does not apply to a colon or a dash inside code.
+The rules apply to the prose of a page, which is its paragraphs, list items, headings and image captions.
+Markdown syntax always wins over a rule. The rules do not apply to these constructs:
+
+- **Fenced code blocks and inline code.** Commands, code, file names and program output stay exactly as
+  they are, with their own punctuation.
+- **Tables.** A table cell can be a short phrase, a fragment or a value. Write the prose around the table
+  by the rules.
+- **Link targets, URLs and image paths.** The text of a link follows the rules, but its target does not.
+- **Quoted examples.** Words in straight double quotes are words that the text talks about. They keep their
+  own form, as in the list of words to avoid.
+- **Front matter, HTML and comments.** Metadata at the top of a file, and HTML tags, keep their own syntax.
+
+A rule about colons, dashes or quotes never applies to a character inside one of these constructs.
 
 ## Words
 
