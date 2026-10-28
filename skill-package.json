@@ -9,32 +9,18 @@
   "skills": [
     {
       "name": "nossaifd",
-      "path": ".agents/skills/nossaifd",
-      "installer": "scripts/install.sh"
-    }
-  ],
-  "installers": [
-    {
-      "path": "scripts/install.sh",
-      "description": "Copy the nossaifd skill into a target repository and record the source revision in .agents/nossaifd-install.json.",
-      "checks_prerequisites": true
+      "path": ".agents/skills/nossaifd"
     }
   ],
   "executables": {
     "required": [
       {
-        "name": "python3",
-        "check": "python3 --version",
-        "description": "Runs the checker, which needs Python 3.11 or later."
+        "name": "uv",
+        "check": "uv --version",
+        "description": "Runs the checker with Python 3.11 or later: uv run --no-project python check.py page.md."
       }
     ],
-    "optional": [
-      {
-        "name": "git",
-        "check": "git --version",
-        "description": "Records the source revision of an install."
-      }
-    ]
+    "optional": []
   },
   "npx": {
     "supported": true,

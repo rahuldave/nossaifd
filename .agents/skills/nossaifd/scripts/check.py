@@ -1,7 +1,7 @@
 """Check Markdown prose against the measurable rules in GUIDE.md.
 
-    python3 check.py page.md [page.md ...]      report each page; exit 1 if a hard rule is broken
-    python3 check.py -v page.md                 also show the soft notes, for a person to judge
+    uv run --no-project python check.py page.md [page.md ...]   report each page; exit 1 if a hard rule is broken
+    uv run --no-project python check.py -v page.md              also show the soft notes, for a person to judge
 
 The checks read prose only: paragraphs, list items and headings. Front matter, code blocks, inline code,
 tables, link targets, URLs, image lines, HTML and text in straight double quotes are not checked. Markdown comes first,

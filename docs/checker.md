@@ -8,8 +8,8 @@ of the guide that a program can measure. It needs Python 3.11 or later, and no o
 Give the checker one or more Markdown files:
 
 ```
-python3 check.py docs/*.md
-python3 check.py -v docs/page.md
+uv run --no-project python check.py docs/*.md
+uv run --no-project python check.py -v docs/page.md
 ```
 
 The first command shows the hard problems on each page. The `-v` option also shows the soft notes. The
@@ -73,7 +73,7 @@ the project's terms beside them. A recipe can run the checker on every page:
 ```just
 # Check the pages against the writing guide. -v also shows the soft notes
 style *args:
-    python3 docs/style/check.py docs/*.md {{ args }}
+    uv run --no-project python docs/style/check.py docs/*.md {{ args }}
 ```
 
 If the guide changes in this repository, copy both files into the project again.

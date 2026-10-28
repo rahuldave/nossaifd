@@ -21,7 +21,7 @@ who is not a native speaker.
 4. Run the checker on the page, and fix each hard problem:
 
    ```bash
-   python3 .agents/skills/nossaifd/scripts/check.py page.md
+   uv run --no-project python .agents/skills/nossaifd/scripts/check.py page.md
    ```
 
 5. Run the checker with `-v` to see the soft notes. Fix each note that makes
@@ -30,7 +30,7 @@ who is not a native speaker.
    definition.
 
 The checker skips front matter, code, tables, link targets and quoted words.
-It needs only Python 3.11 or later.
+It needs only Python 3.11 or later, which `uv run` provides.
 
 ## Files in this skill
 
