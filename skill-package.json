@@ -1,0 +1,43 @@
+{
+  "schema": "https://rahuldave.github.io/agent_skill_package_maker/schema/skill-package.v1.json",
+  "version": 1,
+  "repository": {
+    "owner": "rahuldave",
+    "name": "nossaifd",
+    "url": "https://github.com/rahuldave/nossaifd"
+  },
+  "skills": [
+    {
+      "name": "nossaifd",
+      "path": ".agents/skills/nossaifd",
+      "installer": "scripts/install.sh"
+    }
+  ],
+  "installers": [
+    {
+      "path": "scripts/install.sh",
+      "description": "Copy the nossaifd skill into a target repository and record the source revision in .agents/nossaifd-install.json.",
+      "checks_prerequisites": true
+    }
+  ],
+  "executables": {
+    "required": [
+      {
+        "name": "python3",
+        "check": "python3 --version",
+        "description": "Runs the checker, which needs Python 3.11 or later."
+      }
+    ],
+    "optional": [
+      {
+        "name": "git",
+        "check": "git --version",
+        "description": "Records the source revision of an install."
+      }
+    ]
+  },
+  "npx": {
+    "supported": true,
+    "install": "npx skills add rahuldave/nossaifd -a codex --skill nossaifd -y"
+  }
+}

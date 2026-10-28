@@ -18,6 +18,7 @@ the draft.
 | [`GUIDE.md`](GUIDE.md) | The writing rules: words, sentences, instructions, paragraphs, tone, punctuation and formatting |
 | [`check.py`](check.py) | A program that checks Markdown against the rules that a program can measure. See [the checker](docs/checker.md) |
 | `docs/` | The site: `build.py` builds it from this README, `GUIDE.md` and `docs/checker.md` |
+| `.agents/skills/nossaifd/` | The agent skill, with copies of the guide and the checker |
 
 ## How to use it
 
@@ -33,6 +34,27 @@ the draft.
 4. Read the result. The checker cannot judge meaning or tone.
 
 The checker needs only Python 3.11 or later, with no other packages.
+
+## Install the skill in a repository
+
+The repository is also an agent skill package. The skill
+`.agents/skills/nossaifd/` holds copies of `GUIDE.md` and `check.py`, and a
+`SKILL.md` that tells an agent how to use them.
+
+The usual way to install it is the stack installer of jnterfaces, which asks
+about nossaifd with the answer yes as the default. To install only this skill,
+run its own installer from a clone:
+
+```
+scripts/install.sh ../my-project --dry-run
+scripts/install.sh ../my-project
+```
+
+The installer records the source revision in `.agents/nossaifd-install.json`
+in the target. It never overwrites a file that you edited after an install.
+
+After you change `GUIDE.md` or `check.py`, run `just sync` to copy them into
+the skill. `just check` fails while the copies differ.
 
 ## Where the rules come from
 
