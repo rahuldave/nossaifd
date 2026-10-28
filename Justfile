@@ -3,6 +3,9 @@
 # Each word after a recipe's name reaches its commands whole, as "$1", "$2" and so on; "$@" is all of them
 set positional-arguments
 
+# Python comes from uv, so the machine needs just and uv only
+python := "uv run --no-project --quiet python"
+
 [private]
 default:
     @just --list --unsorted
@@ -14,17 +17,16 @@ sync:
 
 # Check the Python and the JSON for syntax
 lint:
-    bash -n scripts/install.sh
-    python3 -m py_compile check.py scripts/*.py tests/*.py docs/build.py
-    python3 -m json.tool skill-package.json > /dev/null
+    {{python}} -m py_compile check.py tests/*.py docs/build.py
+    {{python}} -m json.tool skill-package.json > /dev/null
 
 # Run the tests. Extra arguments go to unittest: just test tests.test_skill
 test *args:
-    python3 -m unittest discover -s tests -q "$@"
+    {{python}} -m unittest discover -s tests -q "$@"
 
 # Check the Markdown of this repository with its own checker
 prose:
-    python3 check.py README.md GUIDE.md docs/checker.md .agents/skills/nossaifd/SKILL.md
+    {{python}} check.py README.md GUIDE.md docs/checker.md .agents/skills/nossaifd/SKILL.md
 
 # Check skill-package.json with skill-package-maker at a fixed commit
 package-lint:
@@ -42,10 +44,6 @@ check:
     just test
     just prose
 
-# Install the skill into a target repository. Extra arguments go to the installer: just install ../app --dry-run
-install target *args:
-    scripts/install.sh "$@"
-
 # Check that each link to a skill of another package has a fallback, with the checker of a jnterfaces clone: just links ../jnterfaces
 links jnterfaces="../jnterfaces":
-    find .agents/skills -type f \( -name '*.md' -o -name '*.sh' -o -name '*.py' -o -name '*.yaml' \) -exec python3 "$1/scripts/check_skill_links.py" --package . --resolve "$1" {} +
+    find .agents/skills -type f \( -name '*.md' -o -name '*.sh' -o -name '*.py' -o -name '*.yaml' \) -exec {{python}} "$1/scripts/check_skill_links.py" --package . --resolve "$1" {} +

@@ -1,9 +1,7 @@
-"""Check the nossaifd skill, its copies of the guide and the checker, and its installer."""
-import hashlib
+"""Check the nossaifd skill and its copies of the guide and the checker. jnterfaces installs the skill."""
 import json
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -11,12 +9,6 @@ import unittest
 
 REPO = Path(__file__).resolve().parents[1]
 SKILL = REPO / '.agents/skills/nossaifd'
-RECORD = Path('.agents/nossaifd-install.json')
-
-
-def git(path, *args):
-    return subprocess.run(['git', '-C', str(path), '-c', 'user.name=T', '-c', 'user.email=t@example.invalid', *args],
-                          check=True, capture_output=True, text=True).stdout.strip()
 
 
 def check(text):
@@ -31,6 +23,13 @@ class SkillTest(unittest.TestCase):
         self.assertEqual((SKILL / 'references/GUIDE.md').read_bytes(), (REPO / 'GUIDE.md').read_bytes(),
                          'run just sync')
         self.assertEqual((SKILL / 'scripts/check.py').read_bytes(), (REPO / 'check.py').read_bytes(), 'run just sync')
+
+    def test_the_package_has_no_installer_and_needs_only_uv(self):
+        manifest = json.loads((REPO / 'skill-package.json').read_text())
+        self.assertNotIn('installers', manifest)
+        self.assertEqual([e['name'] for e in manifest['executables']['required']], ['uv'])
+        self.assertFalse((REPO / 'scripts').exists())
+        self.assertNotIn('python3 ', (SKILL / 'SKILL.md').read_text())
 
     def test_the_skill_names_itself_says_when_to_use_it_and_names_its_licence(self):
         text = (SKILL / 'SKILL.md').read_text()
@@ -71,49 +70,6 @@ class SkillTest(unittest.TestCase):
     def test_a_rule_line_later_in_the_page_is_not_front_matter(self):
         result = check('Short text.\n\n---\n\n' + ' '.join(['word'] * 30) + '.\n\n---\n')
         self.assertIn('30 words', result.stdout)
-
-
-class InstallTest(unittest.TestCase):
-    def setUp(self):
-        temp = tempfile.TemporaryDirectory()
-        self.addCleanup(temp.cleanup)
-        root = Path(temp.name)
-        self.source = root / 'source'
-        shutil.copytree(REPO, self.source, ignore=shutil.ignore_patterns('.git', '__pycache__', '_site'))
-        git(self.source, 'init', '-q')
-        git(self.source, 'add', '-A')
-        git(self.source, 'commit', '-q', '-m', 'source')
-        self.target = root / 'target'
-        self.target.mkdir()
-        git(self.target, 'init', '-q')
-
-    def install(self, *args):
-        return subprocess.run(['bash', self.source / 'scripts/install.sh', *args, self.target], capture_output=True, text=True)
-
-    def test_installs_the_skill_and_records_the_revision(self):
-        self.assertEqual(self.install('--dry-run').returncode, 0)
-        self.assertFalse((self.target / '.agents').exists())
-        run = self.install()
-        self.assertEqual(run.returncode, 0, run.stderr)
-        installed = self.target / '.agents/skills/nossaifd'
-        self.assertEqual((installed / 'scripts/check.py').read_bytes(), (REPO / 'check.py').read_bytes())
-        record = json.loads((self.target / RECORD).read_text())
-        self.assertEqual(record['package'], 'nossaifd')
-        self.assertEqual(record['source_revision'], git(self.source, 'rev-parse', 'HEAD'))
-        digest = hashlib.sha256((installed / 'SKILL.md').read_bytes()).hexdigest()
-        self.assertEqual(record['managed_files']['.agents/skills/nossaifd/SKILL.md'], digest)
-        self.assertFalse(any(name.startswith('.agents/skills/nossaifd/../') for name in record['managed_files']))
-
-    def test_never_overwrites_a_file_that_the_user_edited(self):
-        self.assertEqual(self.install().returncode, 0)
-        guide = self.target / '.agents/skills/nossaifd/references/GUIDE.md'
-        guide.write_text(guide.read_text() + 'my rule\n')
-        (self.source / '.agents/skills/nossaifd/references/GUIDE.md').write_text('new guide\n')
-        git(self.source, 'commit', '-q', '-am', 'change')
-        run = self.install()
-        self.assertNotEqual(run.returncode, 0)
-        self.assertIn('differs from source', run.stderr)
-        self.assertIn('my rule', guide.read_text())
 
 
 if __name__ == '__main__':

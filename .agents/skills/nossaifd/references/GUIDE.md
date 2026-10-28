@@ -121,8 +121,8 @@ A rule about colons, dashes or quotes never applies to a character inside one of
 `check.py` measures the rules that a program can measure:
 
 ```
-python3 check.py page.md [page.md ...]       # hard problems fail the check
-python3 check.py -v page.md                  # also show the soft notes, for a person to judge
+uv run --no-project python check.py page.md [page.md ...]   # hard problems fail the check
+uv run --no-project python check.py -v page.md              # also show the soft notes, for a person to judge
 ```
 
 The hard checks find these problems:
