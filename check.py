@@ -3,8 +3,8 @@
     python3 check.py page.md [page.md ...]      report each page; exit 1 if a hard rule is broken
     python3 check.py -v page.md                 also show the soft notes, for a person to judge
 
-The checks read prose only: paragraphs, list items and headings. Code blocks, inline code, tables, link
-targets, URLs, image lines, HTML and text in straight double quotes are not checked. Markdown comes first,
+The checks read prose only: paragraphs, list items and headings. Front matter, code blocks, inline code,
+tables, link targets, URLs, image lines, HTML and text in straight double quotes are not checked. Markdown comes first,
 and quoted words are examples that the text talks about. A program cannot judge meaning, tone or a missing definition, so read the page too.
 """
 
@@ -47,7 +47,17 @@ def blocks(text: str) -> list[tuple[int, str, str]]:  # (line, text, kind) with 
             out.append((start, " ".join(block), kind))
         block = []
 
-    for number, line in enumerate(text.split("\n"), 1):
+    lines = text.split("\n")
+    if lines and lines[0].strip() == "---":
+        # Front matter keeps its own syntax: skip it to its closing line, so the line numbers stay the same.
+        # Only YAML counts as front matter. A page can also start with a --- rule, and its prose is checked.
+        end = next((i for i in range(1, len(lines)) if lines[i].strip() in ("---", "...")), None)
+        body = lines[1:end] if end is not None else []
+        yaml = re.compile(r"^(?:[A-Za-z0-9_-]+:(?:\s|$)|\s+\S|-\s|#)")
+        key = re.compile(r"^[A-Za-z0-9_-]+:(?:\s|$)")
+        if end is not None and body and key.match(body[0]) and all(yaml.match(line) for line in body if line.strip()):
+            lines[: end + 1] = [""] * (end + 1)
+    for number, line in enumerate(lines, 1):
         stripped = line.strip()
         mark = re.match(r"^(`{3,}|~{3,})", stripped)
         if fence:
