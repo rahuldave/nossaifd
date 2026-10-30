@@ -12,6 +12,11 @@
       "path": ".agents/skills/nossaifd"
     }
   ],
+  "install_extras": {
+    "files": [
+      ".agents/just/roles/nossaifd.just"
+    ]
+  },
   "executables": {
     "required": [
       {
