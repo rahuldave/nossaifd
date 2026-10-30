@@ -56,8 +56,9 @@ takes the skill out again. This repository has no installer of its own.
 
 The role also brings the recipe `just prose`, from
 `.agents/just/roles/nossaifd.just`. Alone, it checks every Markdown file that
-git tracks, outside `.agents`, `.claude` and `.codex`. With names, it checks
-those pages. `-v` also shows the soft notes. A project that jnterfaces did not
+git tracks, outside `.agents`, `.claude` and `.codex`. It leaves out
+`AGENTS.md` and `CLAUDE.md`, which are instructions for agents. With names, it
+checks those pages, also `AGENTS.md`. `-v` also shows the soft notes. A project that jnterfaces did not
 start adds the recipe with the line `import? '.agents/just/roles/nossaifd.just'`
 in its Justfile.
 
