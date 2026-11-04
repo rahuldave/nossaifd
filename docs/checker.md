@@ -23,25 +23,33 @@ note marks something that a person must judge, because the program cannot tell i
 
 | Hard problem | Rule in the guide |
 |---|---|
-| A sentence of more than 25 words, or an instruction of more than 20 words | 8 and 14 |
-| A paragraph of more than six sentences | 17 |
+| A sentence of more than 25 words, or an instruction of more than 20 words | 8 and 16 |
+| A paragraph of more than six sentences | 19 |
 | A contraction, for example "don't" | 6 |
-| An em dash, an en dash or a middle dot | 25 |
-| A curly quote | 27 |
-| A colon between two clauses | 26 |
+| An em dash, an en dash or a middle dot | 39 |
+| A curly quote | 41 |
+| A colon between two clauses | 40 |
 | "e.g.", "i.e." or "etc." | 4 |
-| "not just" or "not only" | 21 |
-| A count at the start of a paragraph or a heading | 24 |
-| A sentence that starts with a vague "This is" or "That means" | 23 |
-| Two questions in a row | 22 |
+| "not just" or "not only" | 35 |
+| A count at the start of a paragraph or a heading, before a noun that announces what comes, as in "Three things to know." | 38 |
+| A sentence that starts with a vague "This is" or "That means" | 37 |
+| Two questions in a row | 36 |
 
 | Soft note | Why a person must judge it |
 |---|---|
-| A word that ends in -ing | It can be a verb form, or a noun such as "working copy" |
-| A possible passive | "is" with a past participle can also be an adjective |
+| A word that ends in -ing | It can be a verb form, a noun such as "working copy", or the title of work in progress, which rule 45 allows |
+| A possible passive | "is" with a past participle can also be an adjective. Rule 9 also allows a passive that puts the known information first |
+| A noun that names an action, followed by "of", for example "a measurement of" | Rule 9 allows such a noun when it names the action of the sentence before |
 | A semicolon | Two sentences are usually clearer |
 | A sentence that may have three clauses | The program counts commas and joining words, not grammar |
 | A word with a simpler alternative | "allow" is sometimes the right word |
+
+The note for a noun that names an action checks a rule of Rosalind Reid. She asks the writer to put each
+action in a verb, in
+[Rosalind Reid, written reports, pages 13 and 14](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf).
+The checker looks for a word that ends in -tion, -sion, -ment, -ance or -ence before "of". It leaves out common nouns
+that name a thing, such as "section" and "version". It also leaves out a word with a capital letter in the
+middle of a sentence. Such a word starts a name, as in "the Association of Europe".
 
 ## What it does not check
 

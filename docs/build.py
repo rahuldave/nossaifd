@@ -2,13 +2,14 @@
 # requires-python = ">=3.11"
 # dependencies = ["markdown-it-py>=3", "pygments>=2.17"]
 # ///
-"""Build the nossaifd site from README.md, GUIDE.md and the pages in docs/.
+"""Build the nossaifd site from README.md, GUIDE.md, TALKS.md and the pages in docs/.
 
     uv run docs/build.py            writes docs/_site
     uv run docs/build.py --serve    and serves it at http://127.0.0.1:8000 to look at
 
-GUIDE.md and README.md stay at the top of the repository, because people and models read them there. The
-build reads them from there, so each text has one source. Links between the files are written as file names,
+GUIDE.md, TALKS.md and README.md stay at the top of the repository, because people and models read them there.
+The build reads them from there, so each text has one source. The source PDFs in sources/ are not copied to the
+site: the pages link to them on GitHub. Links between the files are written as file names,
 so they also work on GitHub, and the build turns them into links between pages.
 """
 
@@ -20,27 +21,35 @@ import re
 import shutil
 from pathlib import Path
 
-from markdown_it import MarkdownIt
-from pygments import highlight
-from pygments.formatters import HtmlFormatter
-from pygments.lexers import get_lexer_by_name
-from pygments.util import ClassNotFound
+# markdown-it and Pygments are imported where they are used, so that the tests can import the table of links
+# without them.
 
 DOCS = Path(__file__).resolve().parent
 ROOT = DOCS.parent
 OUT = DOCS / "_site"
 REPO = "https://github.com/rahuldave/nossaifd"
 
-# The pages, in the order of the sidebar: the source file, the page it becomes, the title in the sidebar.
+# The pages, in the order of the sidebar: the group, the source file, the page it becomes, the title in the sidebar.
+# The site has two parts with the same shape, one for reports and one for talks.
 PAGES = [
-    (ROOT / "README.md", "index.html", "Overview"),
-    (ROOT / "GUIDE.md", "guide.html", "The guide"),
-    (DOCS / "checker.md", "checker.html", "The checker"),
+    ("", ROOT / "README.md", "index.html", "Overview"),
+    ("Reports", ROOT / "GUIDE.md", "guide.html", "The guide"),
+    ("Reports", DOCS / "checker.md", "checker.html", "The checker"),
+    ("Talks", ROOT / "TALKS.md", "talks.html", "The talk guide"),
+    ("Talks", DOCS / "check-talk.md", "check-talk.html", "The talk checker"),
+    ("About", DOCS / "sources.md", "sources.html", "Sources and credit"),
+    ("About", DOCS / "why.md", "why.html", "Why the rules"),
 ]
-# Links in the sources that point to other files: a page of the site, or the file on GitHub.
-LINKS = {"README.md": "index.html", "GUIDE.md": "guide.html", "../GUIDE.md": "guide.html", "../README.md": "index.html",
-         "checker.md": "checker.html", "docs/checker.md": "checker.html", "check.py": f"{REPO}/blob/main/check.py",
-         "../check.py": f"{REPO}/blob/main/check.py", "LICENSE": f"{REPO}/blob/main/LICENSE"}
+# Links in the sources that point to other files: a page of the site, or the file on GitHub. A source can name a
+# page by its file name, by its path from the top of the repository, by its path from docs/, or by its URL on
+# GitHub, as TALKS.md does, because the skill ships TALKS.md without the other pages.
+LINKS = {}
+for _, _source, _out, _ in PAGES:
+    _path = _source.relative_to(ROOT).as_posix()
+    for _name in {_source.name, _path, "../" + _path, f"{REPO}/blob/main/{_path}"}:
+        LINKS[_name] = _out
+for _file in ("check.py", "check_talk.py", "LICENSE"):
+    LINKS[_file] = LINKS["../" + _file] = f"{REPO}/blob/main/{_file}"
 
 
 def code_block(
@@ -49,6 +58,11 @@ def code_block(
     attrs: str,  # Unused fence attributes
 ) -> str:  # Highlighted HTML, or empty to let markdown-it escape it plainly
     "Highlight a fenced block with Pygments when it names a language that Pygments knows."
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import get_lexer_by_name
+    from pygments.util import ClassNotFound
+
     try:
         lexer = get_lexer_by_name(language) if language else None
     except ClassNotFound:
@@ -64,18 +78,26 @@ def slug(
     return re.sub(r"[^\w\- ]", "", text).strip().replace(" ", "-")
 
 
-def render(
-    text: str,  # The Markdown of a page
-) -> tuple[str, str, list[tuple[str, str]]]:  # Its title, its HTML, and its sections as (id, title)
-    "Turn one page into HTML: tables, highlighted code, ids on headings, links between pages."
-    md = MarkdownIt("commonmark", {"html": True, "highlight": code_block}).enable("table")
-    body = md.render(text)
+def relink(
+    body: str,  # The HTML of a page
+) -> str:  # The HTML, with each link to another page of the site pointed at that page
+    "Point each link that names a source file, or its URL on GitHub, at its page of the site. Keep the #fragment."
 
     def link(match: re.Match) -> str:  # The link, pointed at a page of the site where there is one
         target, fragment = match.group(1), match.group(2) or ""
         return f'href="{LINKS.get(target, target)}{fragment}"'
 
-    body = re.sub(r'href="([\w./\-]+?)(#[^"]*)?"', link, body)
+    return re.sub(r'href="([^"#]+)(#[^"]*)?"', link, body)
+
+
+def render(
+    text: str,  # The Markdown of a page
+) -> tuple[str, str, list[tuple[str, str]]]:  # Its title, its HTML, and its sections as (id, title)
+    "Turn one page into HTML: tables, highlighted code, ids on headings, links between pages."
+    from markdown_it import MarkdownIt
+
+    md = MarkdownIt("commonmark", {"html": True, "highlight": code_block}).enable("table")
+    body = relink(md.render(text))
     body = re.sub(r"<(h[23])>(.*?)</\1>", lambda m: f'<{m.group(1)} id="{slug(m.group(2))}"><a class="anchor" href="#{slug(m.group(2))}">{m.group(2)}</a></{m.group(1)}>', body)
     body = body.replace("<pre><code", '<pre class="hl"><code')
     sections = [(m.group(1), re.sub(r"<[^>]+>", "", m.group(2))) for m in re.finditer(r'<h2 id="([^"]+)"><a class="anchor"[^>]*>(.*?)</a></h2>', body)]
@@ -106,6 +128,8 @@ TEMPLATE = """<!doctype html>
 
 def build() -> int:  # How many pages were written
     "Write every page and the stylesheet to docs/_site."
+    from pygments.formatters import HtmlFormatter
+
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir()
@@ -113,10 +137,13 @@ def build() -> int:  # How many pages were written
     light = HtmlFormatter(style="friendly").get_style_defs(".hl")
     dark = "@media (prefers-color-scheme: dark) {\n" + HtmlFormatter(style="github-dark").get_style_defs(".hl") + "\n}"
     (OUT / "site.css").write_text(css + "\n/* code, from Pygments */\n" + light + "\n" + dark + "\n", encoding="utf-8")
-    for index, (source, out, label) in enumerate(PAGES):
+    for index, (_, source, out, label) in enumerate(PAGES):
         title, body, sections = render(source.read_text(encoding="utf-8"))
-        nav = ""
-        for _, other, other_label in PAGES:
+        nav, group = "", ""
+        for other_group, _, other, other_label in PAGES:
+            if other_group != group:
+                group = other_group
+                nav += f'<li class="group">{html.escape(group)}</li>'
             here = other == out
             nav += f'<li><a href="{other}"{" aria-current=page" if here else ""}>{html.escape(other_label)}</a>'
             if here and len(sections) > 2:
@@ -125,8 +152,8 @@ def build() -> int:  # How many pages were written
             nav += "</li>"
         before = PAGES[index - 1] if index > 0 else None
         after = PAGES[index + 1] if index + 1 < len(PAGES) else None
-        pager = (f'<a class="prev" href="{before[1]}">&larr; {html.escape(before[2])}</a>' if before else "<span></span>") + \
-                (f'<a class="next" href="{after[1]}">{html.escape(after[2])} &rarr;</a>' if after else "<span></span>")
+        pager = (f'<a class="prev" href="{before[2]}">&larr; {html.escape(before[3])}</a>' if before else "<span></span>") + \
+                (f'<a class="next" href="{after[2]}">{html.escape(after[3])} &rarr;</a>' if after else "<span></span>")
         page_title = "nossaifd" if out == "index.html" else f"{title} | nossaifd"
         (OUT / out).write_text(TEMPLATE.format(title=html.escape(page_title), nav=nav, body=body, pager=pager, repo=REPO), encoding="utf-8")
     return len(PAGES)

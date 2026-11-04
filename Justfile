@@ -10,14 +10,17 @@ python := "uv run --no-project --quiet python"
 default:
     @just --list --unsorted
 
-# Copy GUIDE.md and check.py into the skill, which ships copies of them
+# Copy the guides and the checkers into the skills, which ship copies of them
 sync:
     cp GUIDE.md .agents/skills/nossaifd/references/GUIDE.md
     cp check.py .agents/skills/nossaifd/scripts/check.py
+    mkdir -p .agents/skills/presentations/references .agents/skills/presentations/scripts
+    cp TALKS.md .agents/skills/presentations/references/TALKS.md
+    cp check_talk.py check.py .agents/skills/presentations/scripts/
 
 # Check the Python and the JSON for syntax
 lint:
-    {{python}} -m py_compile check.py tests/*.py docs/build.py
+    {{python}} -m py_compile check.py check_talk.py tests/*.py docs/build.py
     {{python}} -m json.tool skill-package.json > /dev/null
 
 # Run the tests. Extra arguments go to unittest: just test tests.test_skill
@@ -26,7 +29,9 @@ test *args:
 
 # Check the Markdown of this repository with its own checker
 prose:
-    {{python}} check.py README.md GUIDE.md docs/checker.md .agents/skills/nossaifd/SKILL.md
+    {{python}} check.py README.md GUIDE.md TALKS.md docs/checker.md docs/check-talk.md docs/sources.md docs/why.md \
+        .agents/skills/nossaifd/SKILL.md .agents/skills/presentations/SKILL.md
+    {{python}} check_talk.py tests/fixtures/deck.md
 
 # Check skill-package.json with skill-package-maker at a fixed commit
 package-lint:

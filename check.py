@@ -31,9 +31,21 @@ PASSIVE = re.compile(r"\b(is|are|was|were|be|been|being)\s+(\w+ed|made|shown|kep
 COMMAND = re.compile(r"^(add|ask|change|check|choose|click|close|copy|delete|do|give|go|keep|look|make|move|open|"
                      r"press|put|read|remove|restart|run|see|select|send|set|show|start|stop|take|tell|try|type|use|"
                      r"write|edit|install|clone|follow|name|point|rehearse|drag|pass|leave)\b", re.I)
-COUNT = re.compile(r"^(two|three|four|five|six|seven|several|a few)\s+\w+(\s+\w+)?[.:]", re.I)
+# A count that announces what comes, as in "Three things to know." or "Two cautions:". The noun after the count
+# must be one that announces, so that a sentence of fact such as "Two tests timed out." is not a count.
+ANNOUNCE = (r"things|ways|points|notes|steps|reasons|tips|questions|cautions|warnings|rules|parts|ideas|facts|"
+            r"problems|changes|options|lessons|takeaways|caveats|items|issues|considerations|benefits|goals")
+COUNT = re.compile(r"^(two|three|four|five|six|seven|several|a few)\s+(?:\w+\s+)?(?:" + ANNOUNCE + r")(?:\s+to\s+\w+)?[.:]",
+                   re.I)
 VAGUE = re.compile(r"^(this|that|these|those)\s+(is|was|are|were|means|meant|makes|made|lets|shows|gives|keeps|"
                    r"says|does|did|can|will|would|should|matters|helps)\b", re.I)
+# A noun that names an action, followed by "of", as in "a measurement of the latency". Rule 9 of the guide,
+# from Rosalind Reid, asks for the verb. Some such nouns name a thing and not an action, so they are left out.
+ACTION_NOUN = re.compile(r"\b([A-Za-z]+(?:tion|sion|ment|ance|ence))\s+of\b", re.I)
+ACTION_OK = {"action", "section", "version", "question", "position", "function", "condition", "edition", "portion",
+             "proportion", "fraction", "nation", "station", "mention", "dimension", "element", "segment",
+             "moment", "document", "comment", "environment", "department", "instance", "distance", "sentence",
+             "sequence", "audience", "evidence", "importance", "difference", "reference", "experience", "science"}
 CLAUSE = re.compile(r",\s+(and|but|so|which|because|while|when|where|if|or)\b|\b(because|which|while|whereas)\b", re.I)
 
 
@@ -156,6 +168,12 @@ def check(path: Path) -> tuple[list[str], list[str]]:  # Hard problems, soft not
                 soft.append(f"{where}: '{word}': try {SIMPLER[key]}")
             if key.endswith("ing") and key not in ING_OK and len(key) > 4:
                 soft.append(f"{where}: an -ing form: {word}")
+        for match in ACTION_NOUN.finditer(text):
+            before = text[: match.start()].rstrip()
+            if match.group(1)[0].isupper() and before and before[-1] not in ".!?:;(":
+                continue  # a capital in the middle of a sentence starts a name, as in "Association of"
+            if match.group(1).lower() not in ACTION_OK:
+                soft.append(f"{where}: maybe an action in a noun, try a verb: {match.group(0)}")
         for match in PASSIVE.finditer(text):
             soft.append(f"{where}: maybe passive: {match.group(0)}")
         if ";" in text:

@@ -7,14 +7,28 @@ license: MIT, copyright (c) 2026 Rahul Dave. The full text is in the LICENSE fil
 # nossaifd
 
 nossaifd is a writing guide for prose that an AI model writes and a person
-reads. Its rules come from Simplified Technical English and from a skill for
-plain writing. They make the text short, literal and easy to read for a reader
-who is not a native speaker.
+reads. Its rules come from four sources:
+
+- Simplified Technical English, ASD-STE100.
+- The plain-writing skill by Shreya Shankar.
+- "Communicating Your Work", a tutorial by Rosalind Reid on written reports and
+  talks. It gives the order of a long document, several rules for sentences,
+  and the rules for figures. Rosalind Reid lets this project use her work on
+  one condition. Each place that uses it credits her. Text that comes from
+  her work must keep its credit to Rosalind Reid, in every copy and in every
+  changed version of this skill. Her PDFs are not under the MIT licence.
+- "Five Principles for Generating Readable AI Text in Bulk", a post by Shreya
+  Shankar. It gives the rules for short items that a person skims.
+
+The rules make the text short, literal and easy to read for a reader who is not
+a native speaker. Each rule in the guide names its source.
 
 ## Steps
 
 1. Read `references/GUIDE.md` before you write. Follow its rules for words,
-   sentences, instructions, paragraphs, tone and punctuation.
+   sentences, instructions, paragraphs, long documents, figures, tone,
+   punctuation and short items. A short item is a title, a notification or
+   a row that a person skims.
 2. Use one term for one thing. If the project has a glossary, use its terms. If
    not, define each technical term the first time that it appears on a page.
 3. Write the page.
