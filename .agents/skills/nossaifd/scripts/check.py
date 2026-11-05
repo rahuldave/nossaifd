@@ -25,7 +25,11 @@ SIMPLER = {
 }
 ING_OK = {"during", "nothing", "something", "anything", "everything", "thing", "things", "string", "strings",
           "bring", "ring", "spring", "morning", "evening", "heading", "headings", "setting", "settings",
-          "warning", "warnings", "padding", "missing", "pending", "ending"}
+          "warning", "warnings", "padding", "missing", "pending", "ending",
+          # Nouns that end in -ing. They name a thing or a field, so they are not verb forms.
+          "writing", "meaning", "meanings", "drawing", "drawings", "reading", "feeling", "feelings", "learning",
+          "opening", "finding", "findings", "listening", "speaking", "building", "buildings", "training",
+          "handwriting", "recording", "recordings", "meeting", "meetings", "spelling", "wording", "timing"}
 PASSIVE = re.compile(r"\b(is|are|was|were|be|been|being)\s+(\w+ed|made|shown|kept|read|written|run|done|given|taken|"
                      r"seen|set|put|built|sent|found|left|thrown|known|held|drawn|told|hidden)\b", re.I)
 COMMAND = re.compile(r"^(add|ask|change|check|choose|click|close|copy|delete|do|give|go|keep|look|make|move|open|"
@@ -46,6 +50,9 @@ ACTION_OK = {"action", "section", "version", "question", "position", "function",
              "proportion", "fraction", "nation", "station", "mention", "dimension", "element", "segment",
              "moment", "document", "comment", "environment", "department", "instance", "distance", "sentence",
              "sequence", "audience", "evidence", "importance", "difference", "reference", "experience", "science"}
+# A sentence is usually 25 words at most, and an instruction 20. A longer sentence is a soft note, because an
+# occasional long sentence is fine when its punctuation makes it clear. Past this limit it is a hard problem.
+LONGEST = 40
 CLAUSE = re.compile(r",\s+(and|but|so|which|because|while|when|where|if|or)\b|\b(because|which|while|whereas)\b", re.I)
 
 
@@ -117,8 +124,10 @@ def plain(text: str) -> str:  # Prose with inline code as one word, link text ke
 
 def sentences(text: str) -> list[str]:  # The sentences of a block
     "Split after a full stop, question mark or exclamation mark that ends a sentence."
-    # A new sentence can start in lower case, as with a name like "timewalk" or "git".
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-Za-z\"(])", text) if s.strip()]
+    # A new sentence can start in lower case, as with a name like "timewalk" or "git". The full stops of "e.g."
+    # and "i.e." do not end a sentence, so they are hidden while the text is split, and then put back.
+    hidden = re.sub(r"\b(?:e\.g|i\.e)\.", lambda m: m.group(0).replace(".", "\0"), text, flags=re.I)
+    return [s.strip().replace("\0", ".") for s in re.split(r"(?<=[.!?])\s+(?=[A-Za-z\"(])", hidden) if s.strip()]
 
 
 def check(path: Path) -> tuple[list[str], list[str]]:  # Hard problems, soft notes
@@ -143,30 +152,39 @@ def check(path: Path) -> tuple[list[str], list[str]]:  # Hard problems, soft not
         questions = 0
         for sentence in found:
             words = re.findall(r"[A-Za-z0-9][\w'\-./]*", sentence)
-            limit = 20 if COMMAND.match(sentence) else 25
-            if len(words) > limit:
-                hard.append(f"{where}: {len(words)} words (at most {limit}): {sentence[:80]}")
+            limit = 20 if COMMAND.match(sentence) else 25   # usually; an occasional longer sentence is fine
+            if len(words) > LONGEST:
+                hard.append(f"{where}: {len(words)} words (at most {LONGEST}): {sentence[:80]}")
+            elif len(words) > limit:
+                soft.append(f"{where}: {len(words)} words (usually at most {limit}): {sentence[:80]}")
             if VAGUE.match(sentence):
                 hard.append(f"{where}: a vague demonstrative: {sentence[:60]}")
-            colon = re.search(r"^(.*?):\s+\S", sentence)
-            if colon and len(colon.group(1).split()) > 3 and kind != "cell":
-                hard.append(f"{where}: a colon between clauses: {sentence[:80]}")
+            # Each colon counts, not only the first. The text before a colon, back to the colon before it,
+            # is a short label when it has 3 words or fewer, as in "Note: the parser reads the file."
+            start = 0
+            for colon in re.finditer(r":(?=\s+\S)", sentence):
+                if len(sentence[start:colon.start()].split()) > 3 and kind != "cell":
+                    hard.append(f"{where}: a colon between clauses: {sentence[:80]}")
+                    break
+                start = colon.end()
             if len(CLAUSE.findall(sentence)) >= 2:
                 soft.append(f"{where}: maybe three clauses: {sentence[:80]}")
             questions = questions + 1 if sentence.endswith("?") else 0
             if questions == 2:
-                hard.append(f"{where}: two questions in a row")
+                soft.append(f"{where}: two questions in a row: answer them, or keep them only to build tension")
         for word in re.findall(r"\b[A-Za-z]+n't\b|\b[A-Za-z]+'(?:re|ll|ve|d|m)\b|\b(?:it|that|there|here|what|who)'s\b", text, re.I):
             hard.append(f"{where}: a contraction: {word}")
-        for word in re.findall(r"\b(?:e\.g|i\.e|etc)\b\.?", text):
-            hard.append(f"{where}: write 'for example' or say it in words, not {word}")
+        for word in re.findall(r"\b(?:i\.e|etc)\b\.?", text):
+            hard.append(f"{where}: say it in words, not {word}")
         if re.search(r"\bnot (just|only)\b", text, re.I):
             hard.append(f"{where}: 'not just' or 'not only': state what the thing is")
         for word in re.findall(r"\b[A-Za-z]+\b", text):
             key = word.lower()
             if key in SIMPLER:
                 soft.append(f"{where}: '{word}': try {SIMPLER[key]}")
-            if key.endswith("ing") and key not in ING_OK and len(key) > 4:
+            if key.endswith("ing") and key not in ING_OK and len(key) > 4 and not (word[0].isupper() and
+                                                                                re.search(rf"[a-z,] {word}\b", text)):
+                # A capitalized -ing word in the middle of a sentence is part of a name, as in "Communicating Your Work"
                 soft.append(f"{where}: an -ing form: {word}")
         for match in ACTION_NOUN.finditer(text):
             before = text[: match.start()].rstrip()

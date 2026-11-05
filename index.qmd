@@ -1,0 +1,6 @@
+---
+# The title is "nossaifd", the first heading of README.md. A title here would show that heading twice.
+description: A writing guide and a checker for text that an AI model writes and a person reads.
+---
+
+{{< include README.md >}}

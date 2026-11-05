@@ -16,7 +16,18 @@ Each rule names its source and links to the place in it. A rule that comes from 
 own, and it says so. The section "Sources" lists each place where this guide differs from a source.
 
 Give this file to the model with the task, together with a glossary of the project's terms. Then run
-`check.py` on the result, and read the result yourself.
+`check.py` on the result, and read the result yourself. [The worked examples](EXAMPLES.md) show
+many of the rules on real text from the sources.
+
+## When to break a rule
+
+Most rules of this guide are preferences. The hard problems of `check.py` are the few limits. A writer can
+break a preference when the story needs it. For example, several questions in a row can build tension, and
+a report on a bug hunt can keep the cause for the end. Think hard before you break a rule, and break it only
+for the story.
+
+When Rosalind Reid and Shreya Shankar disagree about the same kind of text, this guide follows Rosalind
+Reid. These two principles are the project's own, and [Why the rules](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md) gives each choice.
 
 ## Markdown comes first
 
@@ -63,8 +74,11 @@ section is this guide's own.
 
    From: Shankar's skill, [rule 2](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L32)
    and [rule 6](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L56).
-4. **Write "for example".** Do not write "e.g.", "i.e." or "etc.". If a list is not complete, say so in
-   words. The rule is this guide's own. Shankar's skill writes "e.g.", so this guide changes it.
+4. **Write "e.g." or "for example" before an example.** Do not write "i.e." or "etc.". If a list is not
+   complete, say so in words.
+
+   From: [Shankar's skill, rule 11](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L105), which writes "e.g." before examples in a sentence. The
+   words on "i.e." and "etc." are this guide's own.
 5. **Do not add empty emphasis.** Remove a word that adds force but no fact. Examples are "really",
    "simply", "just", "actually", "crucial", "pivotal", "robust", "seamless", "powerful" and "matters". Also
    avoid the words that AI writing overuses, for example "delve", "leverage", "landscape", "tapestry",
@@ -73,8 +87,8 @@ section is this guide's own.
    From: Shankar's skill, [rule 1](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L26)
    and [rule 3](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L40).
 6. **Do not use contractions in documentation.** Write "do not" and "it is". A reader who is not a native
-   speaker reads the full form more easily. The rule is this guide's own. Shankar's skill allows
-   contractions, so this guide changes it.
+   speaker reads the full form more easily. The rule is this guide's own. Shankar's skill lets a
+   writer use contractions, so this guide changes it.
 
 ## Sentences
 
@@ -82,14 +96,17 @@ section is this guide's own.
    a table cell, a short list item or a label.
 
    From: [Shankar's skill, rule 8](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L74).
-8. **Keep a sentence to 25 words or fewer, and to one or two clauses.** If a sentence needs three clauses,
-   make two sentences, or use a list. But do not cut one thought into a stack of short sentences. Join two
-   related clauses with "and", "but", "because" or "so".
+8. **Keep a sentence to about 20 to 25 words, and to one or two clauses.** An occasional longer sentence is
+   fine when its punctuation makes it clear. If a sentence needs three clauses, make two sentences, or use
+   a list. But do not cut one thought into a stack of short sentences. Join two related clauses with
+   "and", "but", "because" or "so". `check.py` notes a sentence of more than 25 words. It fails one of more
+   than 40, which is this guide's own limit.
 
    From: the writing rules of [STE](https://www.asd-ste100.org/about.html) for the 25 words, and Shankar's
    skill, [rule 11](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L105)
    and [rule 12](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L118).
-9. **Prefer the active voice and simple verb forms, and put each action in a verb.** Write "the server
+9. **Use mostly the active voice, mix in the passive where it helps, and put each action in a verb.** Rosalind
+   Reid says that a mix of active and passive sentences can help. Prefer simple verb forms. Write "the server
    reads the file" and not "the file is read by the server". Write "runs" and not "is running". Write "we
    measured the latency" and not "a measurement of the latency was made". A passive, an -ing form or a
    noun for an action is not wrong when it does a job:
@@ -97,12 +114,13 @@ section is this guide's own.
      when the actor is unknown.
    - A noun for an action is correct when it names the action of the sentence before, as in "The
      measurement showed a delay".
-   - An -ing form is correct only when the simple form is unclear.
+   - An -ing form is allowed anywhere, but prefer the simple form.
 
    From: the writing rules of [STE](https://www.asd-ste100.org/about.html), and Rosalind Reid, written
    reports, [pages 13 and 14](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)
    for actions in verbs and [page 15](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)
-   for the voice. The passive for an unknown actor is this guide's own.
+   for the voice. The passive for an unknown actor is this guide's own. STE asks for the active voice, and
+   this guide follows Rosalind Reid.
 10. **Put not more than three nouns in a row.** Break a longer group with "of", "for" or "in". Write "the
     size of the terminal font" and not "the terminal font size setting".
 
@@ -167,7 +185,7 @@ section is this guide's own.
 ## Long documents
 
 These rules are for a document that a reader takes in whole and in order, for example a report, a
-proposal or a design document. They come from the tutorial by Rosalind Reid. Her written reports say that
+proposal or a design document. A report can be a blog post, and its style can be conversational. They come from the tutorial by Rosalind Reid. Her written reports say that
 a report tells the same story as a talk, with more detail. So this guide takes the parts of the story from
 her tutorial deck. A rule that adds advice of this guide's own says so.
 
@@ -183,8 +201,11 @@ Some documents have another order:
 The order of a README is this guide's own. It is not Rosalind Reid's.
 
 20. **Tell the story of a problem and how it was solved.** Give the document these parts, in this order:
-    - **Summary.** In a long report, a few sentences that state the result. The summary is this guide's
-      own rule, and not Rosalind Reid's.
+    - **Summary.** A few sentences at the start of every report. Usually they state the result. A report
+      can be a story with a climax, such as a bug hunt with wrong paths. Then the summary states the
+      problem and hints at the path. It does not give away the climax. Write "We tried three fixes for
+      the slow build, and each one failed. Read on to see how we found the cause." The summary is this
+      guide's own rule, and not Rosalind Reid's.
     - **Motivation.** Why the reader should care about the work.
     - **Description.** The problem in detail, and how the work broke it into parts.
     - **Approach.** What was done, and why.
@@ -269,15 +290,19 @@ The rules in this section also come from Rosalind Reid.
 
 ## Tone
 
-32. **Keep the writing boring, literal and descriptive.** Do not write a catchy heading, a slogan or a
-    clever label. A heading says what the section is about, for example "Moving with edits" and not "The
-    point of no return".
+32. **Write literal headings.** Do not write a catchy heading, a slogan or a clever label. A heading says
+    what the section is about, for example "Moving with edits" and not "The point of no return". The text
+    under the heading can be conversational.
 
     From: [Shankar's skill, rule 7](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L63).
-33. **Do not use analogies or metaphors.** Describe the real thing in literal words.
+33. **Use an analogy, a metaphor or humor when it explains the work.** Rosalind Reid recommends them for
+    written, visual and spoken work
+    ([Rosalind Reid, tutorial deck, page 40](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf)).
+    State the literal fact in the next sentence, for a reader who is not a native speaker. Remove a
+    metaphor that adds no fact, because an AI model often writes one.
 
-    From: [Shankar's skill, rule 21](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L222).
-    Rosalind Reid recommends analogy, metaphor and humor. The section "Sources" says why this guide does not.
+    From: Rosalind Reid. The literal fact after the analogy is this guide's own.
+    [Shankar's skill, rule 21](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L222) forbids analogy and metaphor, and this guide follows Rosalind Reid.
 34. **Do not give objects fake agency.** A tool can return, write or read. But do not write as if a system
     decides or intends something, when a person or a process is the real actor.
 
@@ -285,10 +310,12 @@ The rules in this section also come from Rosalind Reid.
 35. **State what a thing is.** Do not write "not just X, but Y" or "not only X, it is Y".
 
     From: [Shankar's skill, rule 22](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L230).
-36. **Do not ask rhetorical questions.** State the problem.
+36. **Answer a rhetorical question close by.** A question can lead the reader to the next point. Start to
+    answer it in the next sentences. Prefer one question at a time. Several in a row can build tension in
+    a story.
 
     From: [Shankar's skill, rule 23](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L240),
-    which forbids two or more in a row. This guide forbids every rhetorical question.
+    which forbids two or more in a row. This guide lets a writer ask them for the story.
 37. **Do not start a sentence with a vague "This", "That", "These" or "Those".** Name the thing. Write "The
     flag lets a move discard edits" and not "This lets a move discard edits".
 
@@ -304,12 +331,13 @@ The rules in this section also come from Rosalind Reid.
     dot as a separator. Write a range with "to", as in "10 to 20 seconds".
 
     From: [Shankar's skill, rule 15](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L163).
-40. **Do not join two clauses with a colon or a semicolon in prose.** Write two sentences. A colon is
-    correct before a list, and after a short label such as "Summary:" or "Note:".
+40. **Do not join two clauses with a colon in prose.** Write two sentences. A colon is correct before a list,
+    and after a short label such as "Summary:" or "Note:". A semicolon is correct between the steps of a
+    sequence, and nowhere else in prose.
 
     From: Shankar's skill, [rule 8](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L74)
     and [rule 16](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L170).
-    Shankar's rule 9 allows a semicolon between the steps of a sequence, and this guide does not.
+    The semicolon between steps comes from Shankar's rule 9.
 41. **Use straight quotes**, " and ', not curly quotes.
 
     From: [Shankar's skill, rule 17](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L181).
@@ -340,7 +368,7 @@ them. The rules come from the post by Shreya Shankar, and this guide states them
     next verb as the action. Write "The agent fixed the login bug" and not "Login bug fixed by the agent".
     If every item has the same subject, leave it out and start with the verb. Put the verb in the tense
     that the reader expects. For the title of work in progress, the -ing form is correct, as in "Measuring
-    the latency". Rule 9 still holds in prose.
+    the latency". Elsewhere, rule 9 prefers the simple form.
 
     From: [Shankar's post, principle 1](https://fsdatalab.github.io/blog/agent-text-at-scale/#1-match-how-human-readers-parse-sentences).
 46. **Put first the words that make an item different.** Find the words that tell the item apart from the
@@ -359,9 +387,9 @@ them. The rules come from the post by Shreya Shankar, and this guide states them
     open it.
 
     From: [Shankar's post, principle 4](https://fsdatalab.github.io/blog/agent-text-at-scale/#4-use-variation-only-to-show-a-meaningful-difference).
-49. **Choose verbs whose feeling shows the purpose of the list.** In a list of complaints, write "Users
-    complain that the app freezes". In a list of praise, write "Users love the new course". Rule 5 still
-    holds. In an item that reports how people feel, the feeling is the fact.
+49. **Choose verbs whose feeling shows the purpose of the text.** In a list of complaints, write "Users
+    complain that the app freezes". In a list of praise, write "Users love the new course". The rule also
+    holds in prose. Rule 5 still removes a word that adds force but no fact.
 
     From: [Shankar's post, principle 5](https://fsdatalab.github.io/blog/agent-text-at-scale/#5-align-the-connotation-of-verbs-with-the-purpose-of-the-dashboard).
 
@@ -376,14 +404,16 @@ uv run --no-project python check.py -v page.md              # also show the soft
 
 The hard checks find these problems:
 
-- a sentence or a paragraph that is too long
+- a sentence of more than 40 words, or a paragraph of more than six sentences
 - a contraction, a dash, a middle dot or a curly quote
 - a colon between two clauses
-- an abbreviation such as "e.g.", or a "not just" construction
-- a count at the start of a paragraph, a vague "This is", or two questions in a row
+- "i.e.", "etc.", or a "not just" construction
+- a count at the start of a paragraph, or a vague "This is"
 
-The soft notes are for a person to judge. They show -ing forms, possible passives, nouns that name an
-action, semicolons, sentences that may have three clauses, and words with a simpler alternative.
+The soft notes are for a person to judge. They show a sentence of more than 25 words, or an instruction of
+more than 20. They also show two questions in a row, -ing forms, possible passives and semicolons. The last
+notes are nouns that name an action, sentences that may have three clauses, and words with a simpler
+alternative.
 
 The program cannot judge meaning, tone or a missing definition. Read every page after it passes.
 
@@ -400,18 +430,18 @@ The program cannot judge meaning, tone or a missing definition. Read every page 
 - **The plain-writing skill by Shreya Shankar**,
   https://github.com/docwriter-org/plain-writing-skill, at commit f0d3630, under the MIT licence, copyright
   (c) 2026 Shreya Shankar. The rules for tone, punctuation and the patterns of AI writing come from it,
-  and several rules for words and sentences. This guide states the rules in its own words. It changes five
+  and several rules for words and sentences. This guide states the rules in its own words. It changes four
   of them:
-  - Rule 6 forbids contractions in documentation. Shankar's rule 5 allows them.
-  - Rule 4 forbids "e.g.". Shankar's rule 11 writes "e.g." before examples in a sentence.
-  - Rule 8 keeps a sentence to 25 words. Shankar's rule 12 prefers long sentences. Both rules forbid a
-    stack of short sentences.
-  - Rule 36 forbids every rhetorical question. Shankar's rule 23 forbids two or more in a row.
-  - Rule 40 forbids a semicolon in prose. Shankar's rule 9 allows one between the steps of a sequence.
+  - Rule 6 forbids contractions in documentation. Shankar's rule 5 lets a writer use them.
+  - Rule 8 keeps a sentence to about 20 to 25 words. Shankar's rule 12 prefers long sentences. Both rules
+    forbid a stack of short sentences.
+  - Rule 36 lets a writer ask several rhetorical questions in a row for the story. Shankar's rule 23 forbids them.
+  - Rule 33 follows Rosalind Reid. Shankar's rule 21 forbids analogy and metaphor, and her rule 7 keeps
+    the writing boring. Rule 32 keeps only the headings literal.
 - **"Five Principles for Generating Readable AI Text in Bulk", a post by Shreya Shankar**, 29 October
   2026, at https://fsdatalab.github.io/blog/agent-text-at-scale/. Rules 45 to 49 come from its five
-  principles. The post shows them on lists of titles, emails, summaries and dashboards. Rule 49 keeps the
-  verbs with a strong feeling to short items, and rule 5 still holds in prose.
+  principles. The post shows them on lists of titles, emails, summaries and dashboards. Rule 49 also lets
+  a writer use the verbs with a strong feeling in prose.
 - **"Communicating Your Work", a tutorial by Rosalind Reid**, which she taught in the course AC297r at the
   Institute for Applied Computational Science at Harvard in March 2015. Rosalind Reid was the editor of
   American Scientist magazine from 1992 to 2008. She gave permission to use her material, on the
@@ -427,14 +457,14 @@ The program cannot judge meaning, tone or a missing definition. Read every page 
     59 pages, 25 March 2015. It gives the parts of the story on pages 15 to 39, and advice on figures on
     pages 30, 31 and 51 to 54.
 
-  Rules 9, 12, 13 and 20 to 31 use her work. This guide differs from her in three places:
+  Rules 9, 12, 13, 20 to 31 and 33 use her work. Where she and Shankar disagree, this guide follows
+  Rosalind Reid:
   - **Analogy, metaphor and humor.** Rosalind Reid recommends analogy, an informal style, metaphor and
     humor for written, visual and spoken work. She gives them on pages 40 to 57 of the tutorial deck, and
-    on pages 19 and 20 of the written reports. Rules 32 and 33 keep a document literal. A literal
-    sentence is easier for a reader who is not a native speaker. Also, an AI model often writes a metaphor
-    that adds no fact.
-  - **The place of the result.** Her story ends with the result. This guide starts a README with what the
-    project does, and a long report with a short summary of the result.
+    on pages 19 and 20 of the written reports. Rule 33 lets a writer use them, with the literal fact in the next
+    sentence.
   - **The voice.** She prefers the active voice, and she says that a mix of active and passive sentences
-    can help. Rule 9 also prefers the active voice. It allows a passive that puts the known information
-    first.
+    can help. Rule 9 follows her.
+
+  This guide differs from Rosalind Reid in one place. Her story ends with the result. This guide starts
+  every report with a summary, and a README with what the project does.

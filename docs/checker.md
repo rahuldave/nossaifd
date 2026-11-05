@@ -23,24 +23,25 @@ note marks something that a person must judge, because the program cannot tell i
 
 | Hard problem | Rule in the guide |
 |---|---|
-| A sentence of more than 25 words, or an instruction of more than 20 words | 8 and 16 |
+| A sentence of more than 40 words | 8 |
 | A paragraph of more than six sentences | 19 |
 | A contraction, for example "don't" | 6 |
 | An em dash, an en dash or a middle dot | 39 |
 | A curly quote | 41 |
 | A colon between two clauses | 40 |
-| "e.g.", "i.e." or "etc." | 4 |
+| "i.e." or "etc." | 4 |
 | "not just" or "not only" | 35 |
 | A count at the start of a paragraph or a heading, before a noun that announces what comes, as in "Three things to know." | 38 |
 | A sentence that starts with a vague "This is" or "That means" | 37 |
-| Two questions in a row | 36 |
 
 | Soft note | Why a person must judge it |
 |---|---|
-| A word that ends in -ing | It can be a verb form, a noun such as "working copy", or the title of work in progress, which rule 45 allows |
+| A sentence of more than 25 words, or an instruction of more than 20 words | Rule 8 allows an occasional longer sentence when its punctuation makes it clear |
+| Two questions in a row | Rule 36 allows several questions in a row when they build tension in a story |
+| A word that ends in -ing | It can be a noun such as "working copy". Rule 9 allows an -ing form anywhere, and prefers the simple form |
 | A possible passive | "is" with a past participle can also be an adjective. Rule 9 also allows a passive that puts the known information first |
 | A noun that names an action, followed by "of", for example "a measurement of" | Rule 9 allows such a noun when it names the action of the sentence before |
-| A semicolon | Two sentences are usually clearer |
+| A semicolon | Rule 40 allows one only between the steps of a sequence |
 | A sentence that may have three clauses | The program counts commas and joining words, not grammar |
 | A word with a simpler alternative | "allow" is sometimes the right word |
 
@@ -71,7 +72,8 @@ The checker splits a block of prose into sentences after a full stop, a question
 mark. A sentence can start in lower case, as with a name like "timewalk". Inline code counts as one word.
 
 A sentence that starts with a common command verb, such as "Open", "Run" or "Use", counts as an
-instruction. An instruction has a limit of 20 words. Any other sentence has a limit of 25 words.
+instruction. An instruction usually has 20 words at most, and any other sentence 25 words. A longer
+sentence is a soft note. A sentence of more than 40 words is a hard problem.
 
 ## Use it in a project
 

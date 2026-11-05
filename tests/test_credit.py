@@ -1,10 +1,9 @@
 """Rosalind Reid lets this project use her material on one condition: every place that uses it credits her.
 
-These tests fail when a page that uses her work does not name her in full, when a rule of GUIDE.md or TALKS.md
-links to her PDFs and does not name her in full in that rule, when a page drops the notice that her credit must
-stay, and when a page publishes her PDFs on the site in place of linking to them on GitHub.
+These tests fail when a page that uses her work does not name her in full, when a rule of GUIDE.md or an
+example of EXAMPLES.md links to her PDFs and does not name her in full in that block, when a page drops the
+notice that her credit must stay, and when the site would publish her PDFs in place of linking to them on GitHub.
 """
-import importlib.util
 from pathlib import Path
 import re
 import subprocess
@@ -14,13 +13,13 @@ import unittest
 REPO = Path(__file__).resolve().parents[1]
 TEXT = {'.md', '.py', '.yaml', '.yml', '.json', '.just'}
 # The pages that must name her whether or not they mention her by surname: each one is built on her work.
-MUST = ['README.md', 'GUIDE.md', 'TALKS.md', 'docs/sources.md', 'docs/why.md', 'docs/check-talk.md', 'check_talk.py',
-        'docs/checker.md', 'check.py',
-        '.agents/skills/nossaifd/SKILL.md', '.agents/skills/presentations/SKILL.md',
-        '.agents/skills/presentations/agents/openai.yaml']
+MUST = ['README.md', 'GUIDE.md', 'EXAMPLES.md', 'docs/sources.md', 'docs/why.md', 'docs/checker.md', 'check.py',
+        '.agents/skills/nossaifd/SKILL.md']
 GITHUB = 'https://github.com/rahuldave/nossaifd/blob/main/sources/reid/'
 # The pages that carry the notice that text from her work keeps its credit, and that her PDFs are not under MIT
-NOTICE = ['README.md', 'GUIDE.md', 'TALKS.md', '.agents/skills/nossaifd/SKILL.md', '.agents/skills/presentations/SKILL.md']
+NOTICE = ['README.md', 'GUIDE.md', 'EXAMPLES.md', '.agents/skills/nossaifd/SKILL.md']
+# The pages whose every rule, example and paragraph that links to her PDFs must name her in that block
+BLOCKS = ['GUIDE.md', 'EXAMPLES.md', 'docs/why.md']
 
 
 def rule_blocks(text):  # [(first line, text)] of each rule, list item and paragraph of a guide
@@ -44,34 +43,40 @@ def uncredited(text):  # The first line of each block that links to her PDFs and
     return [line for line, block in rule_blocks(text) if 'sources/reid/' in block and 'Rosalind Reid' not in block]
 
 
-# Phrases that mark one of her rules in a step or a checklist item of the presentations skill
-MARKERS = ('five parts', '90 to 120', 'minute test', '20 seconds', 'movie', 'video', 'still image', 'background',
-           'thank', 'the occasion', 'the questions', 'plain words', 'says what it means')
-PRESENTATIONS = '.agents/skills/presentations/SKILL.md'
-
-
-def list_items(text):  # [(first line, text)] of each list item, with its indented lines
-    "Split a page into its list items. An item runs until a blank line or a line with no indent."
-    out, item = [], None
-    for number, line in enumerate(text.split('\n'), 1):
-        if re.match(r'^(\d+\.|[-*+])\s', line):
-            item = [number, line]
-            out.append(item)
-        elif item and line.startswith(' ') and line.strip():
-            item[1] += '\n' + line
-        else:
-            item = None
-    return [(line, ' '.join(text.split())) for line, text in out]
-
-
-def uncredited_items(text):  # The first line of each item that uses one of her rules and does not name her
-    "Each step and checklist item that carries a rule of Rosalind Reid must name her in that item."
-    return [line for line, item in list_items(text)
-            if any(marker in item.lower() for marker in MARKERS) and 'Rosalind Reid' not in item]
+def uncredited_examples(text):  # The heading of each example from her work that does not name her in its own block
+    "Each example of EXAMPLES.md whose letter is W comes from her work, and must name her in its block."
+    found, heading, block, fence = [], None, [], False
+    for line in text.split('\n') + ['### END']:
+        if line.startswith('```'):
+            fence = not fence
+        if not fence and re.match(r'^#{1,3} ', line):
+            if heading and 'Rosalind Reid' not in '\n'.join(block):
+                found.append(heading)
+            heading, block = (line if re.match(r'^### [WDP]\d+\. ', line) else None), []
+        block.append(line)
+    return found
 
 
 def unnamed(text):  # The first line of each block that says "Reid" and not "Rosalind Reid"
     return [line for line, block in rule_blocks(text) if re.search(r'\bReid\b', block) and 'Rosalind Reid' not in block]
+
+
+def render_list(text):  # The entries under project.render of a _smalldocs.yml, read without a YAML package
+    "Read the list under the key render, as one value on its line or as the lines of a list below it."
+    lines, out = text.split('\n'), []
+    for i, line in enumerate(lines):
+        match = re.match(r'^(\s*)render:\s*(.*)$', line)
+        if not match:
+            continue
+        if match.group(2):
+            return [v.strip().strip('"\'') for v in match.group(2).strip('[]').split(',') if v.strip()]
+        for item in lines[i + 1:]:
+            if not item.strip() or item.lstrip().startswith('#'):
+                continue
+            if len(item) - len(item.lstrip()) <= len(match.group(1)) or not item.lstrip().startswith('- '):
+                break
+            out.append(item.lstrip()[2:].strip().strip('"\''))
+    return out
 
 
 def files():  # Every text file in the repository that git tracks or would add, outside tests/
@@ -97,12 +102,12 @@ class CreditTest(unittest.TestCase):
                     self.assertIn('Rosalind Reid', text)
 
     def test_each_rule_that_links_to_her_pdfs_names_her_in_full(self):
-        for name in ('GUIDE.md', 'TALKS.md'):
+        for name in BLOCKS:
             with self.subTest(page=name):
                 self.assertEqual(uncredited((REPO / name).read_text(encoding='utf-8')), [])
 
     def test_a_copy_with_the_credit_of_one_rule_removed_fails(self):
-        for name, rule in (('TALKS.md', '9. **'), ('GUIDE.md', '12. **'), ('TALKS.md', '68. **')):
+        for name, rule in (('GUIDE.md', '12. **'), ('GUIDE.md', '13. **')):
             with self.subTest(page=name, rule=rule), tempfile.TemporaryDirectory() as temp:
                 text = (REPO / name).read_text(encoding='utf-8')
                 start = text.index(rule)
@@ -116,31 +121,40 @@ class CreditTest(unittest.TestCase):
                 self.assertEqual(len(found), 1, found)
                 self.assertTrue(copy.read_text(encoding='utf-8').split('\n')[found[0] - 1].lstrip().startswith(rule))
 
+    def test_a_copy_of_the_examples_with_one_credit_removed_fails(self):
+        text = (REPO / 'EXAMPLES.md').read_text(encoding='utf-8')
+        start = text.index('### W4. ')
+        end = text.index('\n### ', start + 1)
+        credit = text.index('Credit: [Rosalind Reid', start)
+        self.assertLess(credit, end)
+        copy = text[:start] + text[start:end].replace('Rosalind Reid', 'Reid') + text[end:]
+        found = uncredited(copy)
+        self.assertEqual(len(found), 1, found)
+        self.assertTrue(copy.split('\n')[found[0] - 1].startswith('Credit: [Reid'))
+
+    def test_each_example_from_her_work_names_her_in_its_own_block(self):
+        for name in ('EXAMPLES.md', '.agents/skills/nossaifd/references/EXAMPLES.md'):
+            with self.subTest(page=name):
+                text = (REPO / name).read_text(encoding='utf-8')
+                self.assertGreaterEqual(len(re.findall(r'(?m)^### W\d+\. ', text)), 10)
+                self.assertEqual(uncredited_examples(text), [])
+
+    def test_a_copy_of_the_examples_with_one_credit_line_removed_fails(self):
+        text = (REPO / 'EXAMPLES.md').read_text(encoding='utf-8')
+        start = text.index('### W8. ')
+        end = text.index('\n### ', start + 1)
+        block = text[start:end]
+        self.assertIn('Rosalind Reid', block)
+        with tempfile.TemporaryDirectory() as temp:
+            copy = Path(temp) / 'EXAMPLES.md'
+            copy.write_text(text[:start] + block.replace('Rosalind Reid', 'the author') + text[end:], encoding='utf-8')
+            self.assertEqual(uncredited_examples(copy.read_text(encoding='utf-8')), [block.split('\n')[0]])
+
     def test_each_rule_that_says_reid_names_her_in_full(self):
-        for name in ('GUIDE.md', 'TALKS.md'):
+        for name in BLOCKS:
             with self.subTest(page=name):
                 self.assertEqual(unnamed((REPO / name).read_text(encoding='utf-8')), [])
         self.assertEqual(unnamed("41. **Rule.** Reid's note is advice.\n42. **Next.** Rosalind Reid says so.\n"), [1])
-
-    def test_each_item_of_the_presentations_skill_that_uses_her_rules_names_her(self):
-        text = (REPO / PRESENTATIONS).read_text(encoding='utf-8')
-        found = list_items(text)
-        self.assertGreaterEqual(sum(any(m in item.lower() for m in MARKERS) for _, item in found), 8, found)
-        self.assertEqual(uncredited_items(text), [])
-
-    def test_a_copy_with_the_credit_of_one_item_removed_fails(self):
-        text = (REPO / PRESENTATIONS).read_text(encoding='utf-8')
-        for start in ('- **Each movie**', '3. Write the story'):
-            with self.subTest(item=start), tempfile.TemporaryDirectory() as temp:
-                begin = text.index(start)
-                end = text.index('\n- ' if start.startswith('-') else '\n4. ', begin)
-                self.assertIn('Rosalind Reid', text[begin:end])
-                copy = Path(temp) / 'SKILL.md'
-                copy.write_text(text[:begin] + text[begin:end].replace(' of Rosalind Reid', '')
-                                .replace(' The rule is from Rosalind Reid.', '') + text[end:], encoding='utf-8')
-                found = uncredited_items(copy.read_text(encoding='utf-8'))
-                self.assertEqual(len(found), 1, found)
-                self.assertTrue(copy.read_text(encoding='utf-8').split('\n')[found[0] - 1].startswith(start))
 
     def test_the_pages_say_that_her_credit_must_stay(self):
         flat = lambda text: ' '.join(text.split())   # the notice can wrap across lines
@@ -149,8 +163,6 @@ class CreditTest(unittest.TestCase):
                 text = flat((REPO / name).read_text(encoding='utf-8'))
                 self.assertIn('must keep its credit to Rosalind Reid', text)
                 self.assertIn('not under the MIT licence', text)
-        top = (REPO / 'TALKS.md').read_text(encoding='utf-8').split('\n## ')[0]
-        self.assertIn('must keep its credit to Rosalind Reid', flat(top))
         sources = (REPO / 'GUIDE.md').read_text(encoding='utf-8').split('\n## Sources')[1]
         self.assertIn('must keep its credit to Rosalind Reid', flat(sources))
         licence = (REPO / 'README.md').read_text(encoding='utf-8').split('\n## Licence')[1]
@@ -160,27 +172,35 @@ class CreditTest(unittest.TestCase):
         for name, text in files():
             with self.subTest(page=name):
                 self.assertNotRegex(text, r'rahuldave\.com/nossaifd/sources/')
-        for pdf in (REPO / 'sources/reid').glob('*.pdf'):
+
+    def test_each_of_her_pdfs_is_linked_by_its_github_url_from_a_page(self):
+        pages = ['README.md'] + [p for p in render_list((REPO / '_smalldocs.yml').read_text(encoding='utf-8'))
+                                 if p.endswith('.md')]
+        self.assertIn('GUIDE.md', pages)
+        text = ' '.join((REPO / page).read_text(encoding='utf-8') for page in pages)
+        pdfs = sorted((REPO / 'sources/reid').glob('*.pdf'))
+        self.assertGreaterEqual(len(pdfs), 2)
+        for pdf in pdfs:
             with self.subTest(pdf=pdf.name):
-                self.assertTrue(any(GITHUB + pdf.name in text for _, text in files()), f'nothing links to {pdf.name}')
+                self.assertIn(GITHUB + pdf.name, text, f'no page links to {pdf.name}')
+        self.assertNotIn(GITHUB + 'not-a-file.pdf', text)
 
-    def test_the_site_turns_a_github_link_to_a_page_into_a_link_to_the_site(self):
-        spec = importlib.util.spec_from_file_location('nossaifd_build', REPO / 'docs/build.py')
-        build = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(build)   # build.py imports markdown-it only to render, so this needs no package
-        for _, source, out, _ in build.PAGES:
-            path = source.relative_to(REPO).as_posix()
-            self.assertEqual(build.LINKS[f'https://github.com/rahuldave/nossaifd/blob/main/{path}'], out, path)
-        html = ('<a href="https://github.com/rahuldave/nossaifd/blob/main/GUIDE.md">x</a>'
-                '<a href="https://github.com/rahuldave/nossaifd/blob/main/docs/check-talk.md#run-it">y</a>'
-                '<a href="https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-presentation-tips.pdf">z</a>')
-        self.assertEqual(build.relink(html), '<a href="guide.html">x</a><a href="check-talk.html#run-it">y</a>'
-                         '<a href="https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-presentation-tips.pdf">z</a>')
+    def test_the_site_builds_no_file_of_sources_and_no_pdf(self):
+        config = (REPO / '_smalldocs.yml').read_text(encoding='utf-8')
+        render = render_list(config)
+        self.assertIn('index.qmd', render)
+        for entry in render:
+            with self.subTest(entry=entry):
+                self.assertFalse(entry.startswith(('sources', '!')), entry)
+                self.assertNotIn('*', entry)   # a glob could reach her PDFs
+                self.assertRegex(entry, r'\.(md|qmd)$')
+                self.assertTrue((REPO / entry).is_file(), entry)
+        self.assertNotRegex(config, r'sources/|\.pdf')   # nor in resources, which copies files as they are
 
-    def test_the_site_does_not_copy_her_files(self):
-        build = (REPO / 'docs/build.py').read_text(encoding='utf-8')
-        self.assertNotIn('copytree', build)
-        self.assertNotRegex(build, r'["\']sources["\']\s*\)?\s*,\s*OUT')
+    def test_the_render_list_reader_finds_a_pdf(self):
+        self.assertEqual(render_list('project:\n  render:\n    - a.md\n    - sources/reid/x.pdf\nwebsite:\n'),
+                         ['a.md', 'sources/reid/x.pdf'])
+        self.assertEqual(render_list('project:\n  render: [a.md, "sources/**"]\n'), ['a.md', 'sources/**'])
 
 
 if __name__ == '__main__':

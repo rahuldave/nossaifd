@@ -4,8 +4,9 @@ In this page, "Reid" means Rosalind Reid, and each use of her material is cited 
 
 **A record of the first drafts.** This register describes the first drafts of the guides and of the skill
 for talks. Later work replaced those drafts. The files `slides.md`, `story.md` and `delivery.md` are gone,
-and the line numbers of `SKILL.md` and of the other files no longer match. Read `GUIDE.md`, `TALKS.md` and
-the page `docs/why.md` for the current rules.
+and the line numbers of `SKILL.md` and of the other files no longer match. Read `GUIDE.md` and the page
+`docs/why.md` for the current rules for reports. The guide for talks, `TALKS.md`, and the skill for talks
+moved to https://github.com/rahuldave/nossaifd-talks.
 
 The PDFs of Rosalind Reid now live in `sources/reid/`, under new names:
 
@@ -13,7 +14,7 @@ The PDFs of Rosalind Reid now live in `sources/reid/`, under new names:
 |---|---|
 | `AC297r tutorial March 2015-writing.pdf` | `sources/reid/reid-2015-written-reports.pdf` |
 | `AC297r-presentation-slides.pdf` | `sources/reid/reid-2015-communicating-your-work-deck.pdf` |
-| `Presentation_tips.pdf` | `sources/reid/reid-presentation-tips.pdf` |
+| `Presentation_tips.pdf` | `sources/reid/reid-presentation-tips.pdf` in https://github.com/rahuldave/nossaifd-talks |
 
 This register lists each conflict between the sources of the writing guide. It also lists each place where
 a draft says something that its source does not say. The drafts are `GUIDE.md`, with the new material from

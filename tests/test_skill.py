@@ -23,11 +23,15 @@ class SkillTest(unittest.TestCase):
         self.assertEqual((SKILL / 'references/GUIDE.md').read_bytes(), (REPO / 'GUIDE.md').read_bytes(),
                          'run just sync')
         self.assertEqual((SKILL / 'scripts/check.py').read_bytes(), (REPO / 'check.py').read_bytes(), 'run just sync')
+        self.assertEqual((SKILL / 'references/EXAMPLES.md').read_bytes(), (REPO / 'EXAMPLES.md').read_bytes(),
+                         'run just sync')
 
     def test_the_package_has_no_installer_and_needs_only_uv(self):
         manifest = json.loads((REPO / 'skill-package.json').read_text())
         self.assertNotIn('installers', manifest)
         self.assertEqual([e['name'] for e in manifest['executables']['required']], ['uv'])
+        self.assertEqual(manifest['skills'], [{'name': 'nossaifd', 'path': '.agents/skills/nossaifd'}])
+        self.assertEqual(sorted(p.name for p in (REPO / '.agents/skills').iterdir()), ['nossaifd'])
         self.assertFalse((REPO / 'scripts').exists())
         self.assertNotIn('python3 ', (SKILL / 'SKILL.md').read_text())
 
@@ -52,24 +56,24 @@ class SkillTest(unittest.TestCase):
         self.assertNotIn('words (at most', result.stdout)
 
     def test_the_checker_reads_a_page_whose_front_matter_does_not_close(self):
-        result = check('---\n\n' + ' '.join(['word'] * 30) + '.\n')
+        result = check('---\n\n' + ' '.join(['word'] * 45) + '.\n')
         self.assertEqual(result.returncode, 1)
-        self.assertIn('30 words', result.stdout)
+        self.assertIn('45 words', result.stdout)
 
     def test_a_page_that_starts_with_a_rule_is_still_checked(self):
-        long = ' '.join(['word'] * 30)
+        long = ' '.join(['word'] * 45)
         result = check(f'---\n\n{long} and we utilize it.\n\n---\n')
-        self.assertIn('words (at most 25)', result.stdout)
+        self.assertIn('words (at most 40)', result.stdout)
         result = check(f'---\nThis is prose and not YAML at all.\n---\n\n{long}.\n')
-        self.assertIn('words (at most 25)', result.stdout)
+        self.assertIn('words (at most 40)', result.stdout)
         result = check(f'---\n- Note: {long} that we utilize.\n---\n')
-        self.assertIn('words (at most 25)', result.stdout)
+        self.assertIn('words (at most 40)', result.stdout)
         result = check('---\nname: x\nmetadata:\n  type: user\nitems:\n- a\n---\n\nShort text.\n')
         self.assertIn('0 hard, 0 soft', result.stdout)
 
     def test_a_rule_line_later_in_the_page_is_not_front_matter(self):
-        result = check('Short text.\n\n---\n\n' + ' '.join(['word'] * 30) + '.\n\n---\n')
-        self.assertIn('30 words', result.stdout)
+        result = check('Short text.\n\n---\n\n' + ' '.join(['word'] * 45) + '.\n\n---\n')
+        self.assertIn('45 words', result.stdout)
 
 
 if __name__ == '__main__':

@@ -27,13 +27,19 @@ class HardRules(unittest.TestCase):
         hard, _ = run(text)
         self.assertEqual(hard, [])
 
-    def test_a_sentence_of_more_than_25_words(self):
-        self.assertHard(' '.join(['word'] * 26) + '.\n', '26 words (at most 25)')
-        self.assertClean(' '.join(['word'] * 25) + '.\n')
+    def test_a_sentence_of_more_than_40_words(self):
+        self.assertHard(' '.join(['word'] * 41) + '.\n', '41 words (at most 40)')
+        self.assertClean(' '.join(['word'] * 40) + '.\n')
 
-    def test_an_instruction_of_more_than_20_words(self):
-        self.assertHard('Open ' + ' '.join(['word'] * 20) + '.\n', '21 words (at most 20)')
-        self.assertClean('Open ' + ' '.join(['word'] * 19) + '.\n')
+    def test_a_sentence_of_26_to_40_words_is_a_soft_note(self):
+        hard, soft = run(' '.join(['word'] * 26) + '.\n')
+        self.assertEqual(hard, [])
+        self.assertTrue(any('26 words (usually at most 25)' in s for s in soft), soft)
+        hard, soft = run('Open ' + ' '.join(['word'] * 20) + '.\n')
+        self.assertEqual(hard, [])
+        self.assertTrue(any('21 words (usually at most 20)' in s for s in soft), soft)
+        _, soft = run(' '.join(['word'] * 25) + '.\n')
+        self.assertFalse(any('words (usually' in s for s in soft), soft)
 
     def test_a_paragraph_of_more_than_six_sentences(self):
         self.assertHard('The cat sat. ' * 7 + '\n', 'a paragraph of 7 sentences')
@@ -54,9 +60,36 @@ class HardRules(unittest.TestCase):
         self.assertHard('The parser reads the file: the feature fires.\n', 'a colon between clauses')
         self.assertClean('Note: the parser reads the file.\n')
 
+    def test_a_colon_between_clauses_after_a_label(self):
+        self.assertHard('Note: the parser reads the file: the feature fires.\n', 'a colon between clauses')
+        self.assertHard('What it shows: the cache works well here: the build is fast.\n', 'a colon between clauses')
+        self.assertClean('Rule: GUIDE.md rule 8.\n')
+        self.assertClean('Source: page 4. Rule: rule 20.\n')
+
     def test_latin_abbreviations(self):
-        for word in ('e.g.', 'i.e.', 'etc.'):
-            self.assertHard(f'The tool reads files, {word} the guide.\n', "write 'for example'")
+        for word in ('i.e.', 'etc.'):
+            self.assertHard(f'The tool reads files, {word} the guide.\n', 'say it in words')
+
+    def test_eg_is_allowed(self):
+        self.assertClean('The tool reads files, e.g., the guide.\n')
+
+    def test_eg_with_no_comma_does_not_end_a_sentence(self):
+        self.assertEqual(checker.sentences('Use a format, e.g. Markdown, for notes.'),
+                         ['Use a format, e.g. Markdown, for notes.'])
+        self.assertClean('Use a format, e.g. Markdown, for notes. ' * 4 + '\n')   # 4 sentences, not 8
+        self.assertClean('Write a short note, e.g. this is the kind of note we want here.\n')
+        hard, _ = run('The tool reads files, i.e. the guide.\n')
+        self.assertEqual(len(hard), 1, hard)   # i.e. is a problem once, and it does not split the sentence
+
+    def test_an_instruction_of_21_to_40_words_is_soft_and_of_41_is_hard(self):
+        hard, soft = run('Open ' + ' '.join(['word'] * 30) + '.\n')
+        self.assertEqual(hard, [])
+        self.assertTrue(any('31 words (usually at most 20)' in s for s in soft), soft)
+        self.assertHard('Open ' + ' '.join(['word'] * 40) + '.\n', '41 words (at most 40)')
+
+    def test_three_questions_in_a_row_give_one_note(self):
+        _, soft = run('Is it fast? Is it safe? Is it cheap?\n')
+        self.assertEqual(sum('two questions in a row' in s for s in soft), 1, soft)
 
     def test_not_just_and_not_only(self):
         self.assertHard('It is not just a parser.\n', "'not just' or 'not only'")
@@ -80,9 +113,12 @@ class HardRules(unittest.TestCase):
         self.assertHard('The tool reads files. This is fast.\n', 'a vague demonstrative')
         self.assertClean('The tool reads files. This flag is fast.\n')
 
-    def test_two_questions_in_a_row(self):
-        self.assertHard('Is it fast? Is it safe?\n', 'two questions in a row')
-        self.assertClean('Is it fast? The tests say yes.\n')
+    def test_two_questions_in_a_row_are_a_soft_note(self):
+        hard, soft = run('Is it fast? Is it safe?\n')
+        self.assertEqual(hard, [])
+        self.assertTrue(any('two questions in a row' in s for s in soft), soft)
+        _, soft = run('Is it fast? The tests say yes.\n')
+        self.assertFalse(any('two questions' in s for s in soft), soft)
 
     def test_the_exit_status(self):
         import subprocess, sys
@@ -93,6 +129,14 @@ class HardRules(unittest.TestCase):
             run_ = lambda p: subprocess.run([sys.executable, REPO / 'check.py', p], capture_output=True, text=True)
             self.assertEqual(run_(bad).returncode, 1)
             self.assertEqual(run_(good).returncode, 0)
+
+
+class IngNouns(unittest.TestCase):
+    def test_an_ing_noun_or_name_is_not_an_ing_form(self):
+        _, soft = run('The writing has a clear meaning. She taught Communicating Your Work at Harvard.\n')
+        self.assertFalse(any('-ing form' in s for s in soft), soft)
+        _, soft = run('The server is running. Parsing the file takes time.\n')
+        self.assertEqual(sum('-ing form' in s for s in soft), 2, soft)
 
 
 class Exemptions(unittest.TestCase):
@@ -150,7 +194,7 @@ class SoftNotes(unittest.TestCase):
 
 
 class SharedFunctions(unittest.TestCase):
-    "The talk checker imports blocks(), plain() and sentences(), so their behavior must stay the same."
+    "The checker of nossaifd-talks keeps its own copy of blocks(), plain() and sentences(). Keep the two copies the same."
 
     def test_blocks(self):
         found = checker.blocks('# Title\n\nOne line\nand two.\n\n- An item.\n\n```\ncode\n```\n')

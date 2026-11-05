@@ -6,21 +6,21 @@ set positional-arguments
 # Python comes from uv, so the machine needs just and uv only
 python := "uv run --no-project --quiet python"
 
+# smalldocs builds the site. The version is fixed, so that each build is the same
+smalldocs := "smalldocs==0.5.5"
+
 [private]
 default:
     @just --list --unsorted
 
-# Copy the guides and the checkers into the skills, which ship copies of them
+# Copy the guide, the examples and the checker into the skill, which ships copies of them
 sync:
-    cp GUIDE.md .agents/skills/nossaifd/references/GUIDE.md
+    cp GUIDE.md EXAMPLES.md .agents/skills/nossaifd/references/
     cp check.py .agents/skills/nossaifd/scripts/check.py
-    mkdir -p .agents/skills/presentations/references .agents/skills/presentations/scripts
-    cp TALKS.md .agents/skills/presentations/references/TALKS.md
-    cp check_talk.py check.py .agents/skills/presentations/scripts/
 
 # Check the Python and the JSON for syntax
 lint:
-    {{python}} -m py_compile check.py check_talk.py tests/*.py docs/build.py
+    {{python}} -m py_compile check.py tests/*.py
     {{python}} -m json.tool skill-package.json > /dev/null
 
 # Run the tests. Extra arguments go to unittest: just test tests.test_skill
@@ -29,9 +29,7 @@ test *args:
 
 # Check the Markdown of this repository with its own checker
 prose:
-    {{python}} check.py README.md GUIDE.md TALKS.md docs/checker.md docs/check-talk.md docs/sources.md docs/why.md \
-        .agents/skills/nossaifd/SKILL.md .agents/skills/presentations/SKILL.md
-    {{python}} check_talk.py tests/fixtures/deck.md
+    {{python}} check.py README.md GUIDE.md EXAMPLES.md docs/*.md .agents/skills/nossaifd/SKILL.md
 
 # Check skill-package.json with skill-package-maker at a fixed commit
 package-lint:
@@ -43,11 +41,16 @@ package-lint:
     git -C "$tool_root/package-maker" checkout --quiet 6a5938c49ca71c374dc1a234a4d15134c484a741
     uv run --no-project python "$tool_root/package-maker/skills/skill-package-maker/scripts/lint_skill_bundle.py" .
 
-# Everything a commit must pass: the lint, the tests and the prose
+# Build the site into _site with smalldocs and the theme Folio
+site:
+    uvx --from {{smalldocs}} smalldocs render .
+
+# Everything a commit must pass: the lint, the tests, the prose and the links of the site
 check:
     just lint
     just test
     just prose
+    uvx --from {{smalldocs}} smalldocs check .
 
 # Check that each link to a skill of another package has a fallback, with the checker of a jnterfaces clone: just links ../jnterfaces
 links jnterfaces="../jnterfaces":

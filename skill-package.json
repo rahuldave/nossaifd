@@ -10,10 +10,6 @@
     {
       "name": "nossaifd",
       "path": ".agents/skills/nossaifd"
-    },
-    {
-      "name": "presentations",
-      "path": ".agents/skills/presentations"
     }
   ],
   "install_extras": {

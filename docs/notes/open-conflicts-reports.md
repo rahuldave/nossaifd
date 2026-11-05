@@ -1,5 +1,7 @@
 # Open conflicts in the guide for documents
 
+This page is a record of the first drafts. The project's author has since decided every entry, and [Why the rules](../why.md) gives the decisions. The rule numbers on this page are those of the first drafts.
+
 In this page, "Reid" means Rosalind Reid, and each use of her material is cited by the page of her PDF.
 
 This page lists each conflict between the sources of `GUIDE.md` that the user has not yet decided. For each
@@ -36,7 +38,8 @@ work that a heading cannot do. Reid's questions are slide titles in a talk.
 - The guide's rule 6 forbids contractions in documentation.
 
 **What I chose.** I kept rule 6 for documents, and I marked it as the guide's own. The section "Sources"
-lists it as a change to Shankar's skill. A spoken script is the work of the talk guide, not this one.
+lists it as a change to Shankar's skill. A spoken script is the work of the guide for talks, now in
+nossaifd-talks, not this one.
 
 **Why.** The register recommends no contractions in a document. A reader who is not a native speaker reads
 the full form more easily.
