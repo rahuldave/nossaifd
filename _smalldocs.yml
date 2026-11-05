@@ -1,0 +1,41 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - GUIDE.md
+    - EXAMPLES.md
+    - docs/checker.md
+    - docs/sources.md
+    - docs/why.md
+website:
+  title: nossaifd
+  site-url: https://rahuldave.com/nossaifd/
+  repo-url: https://github.com/rahuldave/nossaifd
+  navbar:
+    right:
+      - text: Talks
+        href: https://rahuldave.com/nossaifd-talks/
+      - icon: github
+        href: https://github.com/rahuldave/nossaifd
+        aria-label: The repository on GitHub
+  sidebar:
+    contents:
+      - text: Overview
+        href: index.qmd
+      - section: Reports
+        contents:
+          - text: The guide
+            href: GUIDE.md
+          - text: The checker
+            href: docs/checker.md
+          - text: The examples
+            href: EXAMPLES.md
+      - section: About
+        contents:
+          - text: Sources and credit
+            href: docs/sources.md
+          - text: Why the rules
+            href: docs/why.md
+theme: folio
+toc: true

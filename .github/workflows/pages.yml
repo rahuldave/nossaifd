@@ -1,10 +1,20 @@
-# Build the site from docs/ and publish it to GitHub Pages, on every push to main that touches it.
+# Build the site with smalldocs and publish it to GitHub Pages, on every push to main that touches it.
 name: site
 
 on:
   push:
     branches: [main]
-    paths: ["docs/**", "README.md", "GUIDE.md", ".github/workflows/pages.yml"]
+    paths:
+      - index.qmd
+      - README.md
+      - GUIDE.md
+      - EXAMPLES.md
+      - docs/checker.md
+      - docs/sources.md
+      - docs/why.md
+      - _smalldocs.yml
+      - "_extensions/**"
+      - .github/workflows/pages.yml
   workflow_dispatch:
 
 permissions:
@@ -22,10 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - run: uv run docs/build.py
+      - run: uvx --from smalldocs==0.5.5 smalldocs render . --strict
+      - name: Fail if the site holds a PDF, because Rosalind Reid's PDFs stay on GitHub
+        run: test -z "$(find _site -iname '*.pdf')"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_site
+          path: _site
 
   deploy:
     needs: build
