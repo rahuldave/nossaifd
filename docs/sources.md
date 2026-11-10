@@ -1,8 +1,8 @@
 # Sources and credit
 
-The rules on this site come from five sources. This page says who wrote each one and where to read it. It
-also says which part of the site uses each one. Each rule in [the guide](../GUIDE.md) also names its source
-and links to the exact page.
+The rules on this site come from five sources. This page says who wrote each source, where to read it,
+and which part of the site uses it. Each rule in [the guide](../GUIDE.md) also names its source and links
+to the exact page.
 
 ## Rosalind Reid
 
@@ -14,21 +14,22 @@ from 2010 to 2013. In 2015 she was the executive director of the
 [Council for the Advancement of Science Writing](https://casw.org/).
 
 Rosalind Reid gave permission to use her material, on one condition. Every place that uses her work
-credits her. The test file `tests/test_credit.py` checks the credit in three ways:
+credits her. The test file `tests/test_credit.py` checks the credit. Among its checks are these:
 
 - It fails when a page built on her work does not name her in full. The list of these pages has the README,
-  the guide, the examples and the checker. It also has this page, the pages on the checker and on the rules,
-  and the file of the skill.
+  the guide, the examples and the checker. It also has this page, the page on the checker, the page "Why
+  the rules", and the file `SKILL.md` of the skill.
 - It fails when any other file names "Reid" or links to `sources/reid/` and does not name her in full.
 - It checks each rule and each paragraph of GUIDE.md, and each paragraph of EXAMPLES.md and of
   docs/why.md. It fails when one links to her PDFs and does not name her in full.
 - It checks each example of EXAMPLES.md that comes from her work. It fails when the example does not
   name her in its own block.
 
-The test cannot tell if a page uses her advice with no link and no name. A person must check that.
+The test cannot tell if a page uses her advice with no link and no name. A person must check such a
+page.
 
 The guide states her advice in its own words. The examples quote her slides word for word, and each
-example names her and links to the page. This site does not hold her PDFs. It links to them in the
+example names her and links to the page. This site does not hold her PDFs, and it links to them in the
 repository on GitHub. Her material, as she gave it:
 
 | File | What it holds | Pages | Used in |
@@ -80,6 +81,7 @@ says how to use it with the guide, and it lists the sources that the README of t
 
 ## Where the sources disagree
 
-The sources do not always agree. A spoken sentence puts the news first, and a written one puts it last.
-Some sources ask for metaphor and humor, and others forbid them. [Why the rules](why.md) lists each
+The sources do not always agree, and some advice holds for one kind of text only. Rosalind Reid puts the
+news first in a spoken sentence and last in a written one. Some sources ask for metaphor and humor, and
+others forbid them. [Why the rules](why.md) lists each
 disagreement, what each source says, and what this site chose.
