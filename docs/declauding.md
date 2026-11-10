@@ -2,9 +2,9 @@
 
 The declauding skill by Oskar Austegard revises a draft that reads as if an AI model wrote it. It finds
 the sentences that sound like a model, and it rewrites them as plain technical prose. Then it checks that
-the revision kept each claim of the draft. Its main file, `references/register.md`, lists the patterns of
-model prose, and this site calls that file the register. The name comes from linguistics, where it means
-the style of a piece of prose.
+the revision kept each claim of the draft. The file `references/register.md` of the skill lists the
+patterns of model prose, and the skill calls that file the register. The name comes from linguistics,
+where it means the style of a piece of prose.
 
 nossaifd ships the skill by Oskar Austegard in `.agents/skills/declauding/`, next to its own skill. Rules 50 to 55 of
 [the guide](../GUIDE.md) come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of it.
@@ -19,41 +19,46 @@ licence. `just declauding` copies the skill again from that commit.
 
 ## How to use it with the guide
 
-1. Write the draft by the guide. Do not read the register of the skill before you write, as the skill
-   asks.
+1. Write the draft by the guide. The skill asks you to write the draft without the skill, so do not read
+   its register before you write.
 2. Run `check.py` on the draft, and fix each hard problem.
-3. Keep a copy of the draft, and revise the page by the file `SKILL.md` of the declauding skill. Its
-   register gives each pattern, the reason that it marks model prose, and the fix. Its linter marks the
-   patterns that a program can find:
+3. Keep a copy of the draft. Then revise the page by the steps in the file `SKILL.md` of the declauding
+   skill. For each pattern, its register gives the reason that the pattern marks model prose, and the
+   fix. Its linter marks the patterns that a program can find:
 
    ```
    uv run --no-project python .agents/skills/declauding/scripts/declaude_lint.py --skip-quoted page.md
    ```
 
-4. Run its diff on the copy of the draft and the revision. It lists each number, name, quote, ranking and
-   hedge that the revision lost or added:
+4. Run its diff on the copy of the draft and on the revision. The diff lists each number, name, quote,
+   ranking and hedge that the revision lost or added:
 
    ```
    uv run --no-project python .agents/skills/declauding/scripts/declaude_diff.py draft.md page.md
    ```
 
-5. Run `check.py` again. Where the skill and the guide disagreed, the project's author chose, and
-   [Why the rules](why.md) lists each choice. A sample of the author's writing wins over the register,
-   but not over the hard limits of the guide.
+5. Run `check.py` again. Where the skill and the guide disagreed, the project's author chose, and the
+   guide holds each choice, so follow the guide. [Why the rules](why.md) lists the choices. A sample of
+   your own writing wins over the register, but not over the hard limits of the guide, which are the hard
+   problems of `check.py`.
 6. Read the page yourself.
 
-The description of the skill tells an agent to load it at the start of every task that writes prose. A
-project that installs both skills of this package gets that instruction too. Follow the steps above, and
-read the register only after the draft is written.
+The description of the skill gives two instructions together. It tells an agent to load the skill at the
+start of every task that writes prose, and it tells the agent to write the draft first without the skill
+in context. A project that installs both skills of this package gets that description too. Follow the
+steps above, and read the register only after the draft is written.
 
 ## The patterns
 
 The register of the skill lists 56 patterns in five families. For most patterns it gives a pair of
 sentences from real text, before and after the revision. A sentence is staged when it makes the reader
-feel that a finding arrives and does not give the finding. The examples DC2 to DC56 of
-[the examples](../EXAMPLES.md) quote the pairs word for word, or the tell and the fix of an entry that
-has no pair. Read them also in the register on GitHub, together with
-the cases where a pattern is correct:
+feel that a finding arrives and does not give the finding.
+
+The examples DC2 to DC56 of
+[the examples](../EXAMPLES.md) quote the pairs word for word. The letters DC stand for the declauding
+skill, and each number is the number of an entry of the register. Entry 1 has no example. For an entry that has no pair, they quote
+its tell, which is the sign of the pattern, and its fix. Read them also in the register on GitHub,
+together with the cases where a pattern is correct:
 
 - [The register by Oskar Austegard](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md),
   with the 56 patterns and their examples.
@@ -85,8 +90,8 @@ needs Python 3.9 or later.
 | `fresh_eyes.py` | It writes a file of the changed pages for a reader who did not see the old version | Only the standard library |
 
 `declaude_review.py` sends parts of the draft to Gemini when `GEMINI_API_KEY` is set. Without that key,
-it sends them to Anthropic when `ANTHROPIC_API_KEY` is set. Do not run it on a draft that must stay private. With
-`--emit-prompt`, it sends nothing.
+it sends them to Anthropic when `ANTHROPIC_API_KEY` is set. Do not run it on a draft that must stay
+private. With `--emit-prompt`, it sends nothing.
 
 The skill also has a hook for Claude Code, in `hooks/hooks.json`. The hook works only when the skill is
 installed as a plugin, so it does not run from this repository. The README of the skill links to two other

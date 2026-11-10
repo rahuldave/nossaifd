@@ -5,13 +5,14 @@ Each example gives a piece of text from a source, the lesson in one sentence, an
 shows. The rules are in [GUIDE.md](https://github.com/rahuldave/nossaifd/blob/main/GUIDE.md).
 
 The examples for talks are in [the examples of nossaifd-talks](https://github.com/rahuldave/nossaifd-talks/blob/main/EXAMPLES.md), the repository of the guide for talks.
-Many of them come from Rosalind Reid's slides. Some of them hold for reports too, and this file names them
+Many of the examples for talks come from Rosalind Reid's slides. Some of them hold for reports too, and this file names them
 where they fit.
 
 ## How to use the file
 
 Apply a rule from GUIDE.md, and read the examples that name that rule. Each example ends with a
-line "Rule", so a search for "GUIDE.md rule 13" finds every example of rule 13. Then write your own text. Do
+line "Rule", so a search for "GUIDE.md rule 13" finds the examples of rule 13. A line can name several
+rules, as in "GUIDE.md rules 13 and 28", so also search for "rules 13 and" and for "and 13". Then write your own text. Do
 not copy an example into your text.
 
 The examples follow the sections of GUIDE.md.
@@ -26,8 +27,9 @@ Each example has the same parts:
 - **What it shows**, the lesson in one sentence.
 - **Rule**, the rule of GUIDE.md that the example shows.
 
-Some examples forbid something that the project now lets a writer do. They stay in the file, because the rest of the
-example still teaches. A line "The project now" says what the project does, and it names the rule.
+Some examples forbid something that the project lets a writer do. They stay in the file, because the rest
+of each such example still shows a lesson. A line "The project now" says what the project does, and it
+names the rule.
 
 The letter of an example names its source:
 
@@ -56,8 +58,8 @@ The examples come from four works:
   of https://github.com/oaustegard/claude-skills. This repository ships the skill in
   `.agents/skills/declauding/`.
 
-GUIDE.md also draws on ASD-STE100, Simplified Technical English. It gives no examples here, because no copy
-of the standard was available.
+GUIDE.md also draws on ASD-STE100, Simplified Technical English. This file has no examples from it,
+because no copy of the standard was available.
 
 ## Credit and licence
 

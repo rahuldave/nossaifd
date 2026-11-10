@@ -1,6 +1,6 @@
 # Not so shitty AI first drafts
 
-A writing guide for documentation, READMEs and other prose that an AI model writes and a person reads. It
+This guide is for documentation, READMEs and other prose that an AI model writes and a person reads. It
 joins five sources:
 
 - **ASD-STE100, Simplified Technical English.** Aerospace manuals use it, so that readers who are not
@@ -23,13 +23,14 @@ many of the rules on real text from the sources.
 
 ## When to break a rule
 
-Most rules of this guide are preferences. The hard problems of `check.py` are the few limits. A writer can
-break a preference when the story needs it. For example, several questions in a row can build tension, and
-a report on a bug hunt can keep the cause for the end. Think hard before you break a rule, and break it only
-for the story.
+Most rules of this guide are preferences. The few limits are the problems that `check.py` reports as
+hard, for example a sentence of more than 40 words. A writer can break a preference when the story needs
+it. For example, several questions in a row can build tension, and a report on a bug hunt can keep the
+cause for the end. Think hard before you break a rule, and break it only for the story.
 
 When Rosalind Reid and Shreya Shankar disagree about the same kind of text, this guide follows Rosalind
-Reid. These two principles are the project's own, and [Why the rules](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md) gives each choice.
+Reid. Both principles of this section are the project's own, the story before a rule and Rosalind Reid
+before Shreya Shankar. [Why the rules](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md) gives each choice.
 
 ## Markdown comes first
 
@@ -195,8 +196,9 @@ section is this guide's own.
 ## Long documents
 
 These rules are for a document that a reader takes in whole and in order, for example a report, a
-proposal or a design document. A report can be a blog post, and its style can be conversational. They come from the tutorial by Rosalind Reid. Her written reports say that
-a report tells the same story as a talk, with more detail. So this guide takes the parts of the story from
+proposal or a design document. A report can be a blog post, and its style can be conversational. The
+rules come from the tutorial by Rosalind Reid. Her written reports say that a report tells the same story
+as a talk, with more detail. So this guide takes the parts of the story from
 her tutorial deck. A rule that adds advice of this guide's own says so.
 
 Some documents have another order:
@@ -430,10 +432,11 @@ them. The rules come from the post by Shreya Shankar, and this guide states them
 These rules are for the revision of a draft. An AI model writes some sentences to sound like a finding,
 and not to give one. The rules come from the declauding skill by Oskar Austegard.
 
-The register of the skill by Oskar Austegard lists 56 patterns. For most patterns it gives a pair of sentences from real
-text, before and after the revision. This guide states the rules in its own words. The register, with all
-its examples, is in `.agents/skills/declauding/references/register.md`. Read it after you write the draft,
-and not before, as the skill asks.
+The skill by Oskar Austegard lists 56 patterns in a file that it calls the register. For most patterns
+the register gives a pair of sentences from real text, before and after the revision. This guide states
+the rules in its own words. The register, with all its examples, is in
+`.agents/skills/declauding/references/register.md`. Read it after you write the draft, and not before,
+as the skill asks.
 
 50. **State a finding, and do not stage it.** A staged sentence makes the reader feel that a finding
     arrives. A stated sentence gives the finding. Ask of each sentence whether it states the finding or
@@ -568,11 +571,11 @@ again on the revision. Then read every page yourself.
   every report with a summary, and a README with what the project does.
 - **The declauding skill by Oskar Austegard**, in https://github.com/oaustegard/claude-skills, folder
   `declauding`, version 0.14.0 at commit 6baa729, under the MIT licence, copyright (c) 2025 Oskar
-  Austegard. Rules 50 to 55 come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of it. This repository ships the skill without changes in
-  `.agents/skills/declauding/`, with its licence. Its register gives a pair of sentences, before and after,
-  for most patterns. The README of the skill names its sources, which are the Wikipedia page "Signs of AI
-  writing", the humanizer skill, Louis Abraham, Simon Willison, and Clark, Martin and Mahowald. Where the
-  skill and a rule above disagreed, the project's author chose, and several rules above now take the
-  skill's advice. [Why the rules](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md) lists each
-  choice. A sample of an author's writing wins over the register, but not over the hard limits of this
+  Austegard. Rules 50 to 55 come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of
+  it. This repository ships the skill without changes in `.agents/skills/declauding/`, with its licence.
+  Its register gives a pair of sentences, before and after, for most patterns. The README of the skill
+  names its sources, which are the Wikipedia page "Signs of AI writing", the humanizer skill, Louis
+  Abraham, Simon Willison, and Clark, Martin and Mahowald. Where the skill and an earlier version of a rule
+  above disagreed, the project's author chose. [Why the rules](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md)
+  lists each choice. A sample of an author's writing wins over the register, but not over the hard limits of this
   guide.

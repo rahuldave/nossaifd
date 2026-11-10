@@ -19,7 +19,7 @@ means continuous integration, a service that runs checks on every change to a re
 ## What it checks
 
 The checker sorts what it finds into hard problems and soft notes. A hard problem breaks a rule. A soft
-note marks something that a person must judge, because the program cannot tell if it is wrong.
+note marks a place that a person must judge, because the program cannot tell if it is wrong.
 
 | Hard problem | Rule in the guide |
 |---|---|
@@ -38,7 +38,7 @@ note marks something that a person must judge, because the program cannot tell i
 |---|---|
 | A sentence of more than 25 words, or an instruction of more than 20 words | Rule 8 allows an occasional longer sentence when its punctuation makes it clear |
 | Two questions in a row | Rule 36 allows several questions in a row when they build tension in a story |
-| A word that ends in -ing | It can be a noun such as "working copy". Rule 9 allows an -ing form anywhere, and prefers the simple form |
+| A word that ends in -ing | It can be a noun such as "working copy". Rule 9 allows an -ing form and prefers the simple form. At the end of a sentence, an -ing clause must add a fact |
 | A possible passive | "is" with a past participle can also be an adjective. Rule 9 also allows a passive that puts the known information first |
 | A noun that names an action, followed by "of", for example "a measurement of" | Rule 9 allows such a noun when it names the action of the sentence before |
 | A semicolon | Rule 40 allows one only between the steps of a sequence |
@@ -54,14 +54,21 @@ middle of a sentence. Such a word starts a name, as in "the Association of Europ
 
 ## What it does not check
 
-The checker reads only prose, which is paragraphs, list items and headings. It skips everything that
-the guide exempts, because Markdown comes first:
+The checker reads only prose, which is paragraphs, list items and headings. It skips these parts of a
+page:
 
+- front matter in YAML at the top of a page
 - fenced code blocks and inline code
 - tables
-- link targets, URLs and image lines
-- HTML
+- the lines of a fenced div, such as `::: notes`
+- link targets and URLs
+- each line that starts with `![`, which is an image, with its caption
+- each line that starts with `<`, such as an HTML tag or the first line of a comment
 - words in straight double quotes, which are examples that the text talks about
+
+The section "Markdown comes first" of the guide exempts a little less and a little more. The guide checks
+the caption of an image, and the checker does not. The guide exempts all HTML and comments, and the
+checker still reads HTML inside a line of prose and the later lines of a comment.
 
 The checker cannot judge meaning, tone, or a term that a page uses before it defines it. Read every page
 after it passes.
@@ -81,7 +88,7 @@ sentence is a soft note. A sentence of more than 40 words is a hard problem.
 ## Use it in a project
 
 Copy `GUIDE.md` and `check.py` into the project, for example into `docs/style/`. Then add a glossary of
-the project's terms beside them. A recipe can run the checker on every page:
+the project's terms beside them. A recipe of `just` can run the checker on every page:
 
 ```just
 # Check the pages against the writing guide. -v also shows the soft notes

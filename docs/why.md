@@ -4,7 +4,8 @@ The sources of this site do not always agree. This page lists each disagreement 
 source says, and what [the guide](../GUIDE.md) chose. [Sources and credit](sources.md) says who wrote each
 source.
 
-Most disagreements go away when you ask how a person takes in the text. There are three ways:
+Most disagreements go away when you ask how a person takes in the text. A person takes it in one of
+three ways:
 
 - **Reading** a long document in order, such as a report or a README. The reader can go back.
 - **Skimming** many short items, such as titles, list items, notifications or the rows of a dashboard.
@@ -17,15 +18,15 @@ A rule that is right for one way can be wrong for another. This page gives the c
 skimming. The choices for listening, such as slide titles, thanks and speaking time, are on
 [the page "Why the rules" of nossaifd-talks](https://github.com/rahuldave/nossaifd-talks/blob/main/docs/why.md).
 
-## Two principles
+## Rosalind Reid before Shankar, and the story before a rule
 
-The project's author set these two principles. They decide most of the choices below.
+The project's author set these two principles. Most of the choices below follow from them.
 
 1. **Rosalind Reid's advice comes before Shankar's.** When the two disagree about the same kind of text,
    the guide follows Rosalind Reid. She edited *American Scientist* from 1992 to 2008, and she taught her
    tutorial at Harvard. Shankar's advice stays where Rosalind Reid gives none, such as for status notes,
    pull requests and short items read in bulk.
-2. **A rule can give way to the story.** A writer can break a rule when the narrative needs it. For example,
+2. **A rule can give way to the story.** A writer can break a rule when the story needs it. For example,
    several questions in a row can build tension, and a story about a bug hunt can hold back the cause until
    the end. Think hard before you break a rule, and break it only for the story. Most rules on this site
    are preferences, and a few are hard limits.
@@ -47,19 +48,19 @@ answer.
 | Where does the new fact go in a sentence? | Rosalind Reid puts it last in a written sentence and first in a spoken one ([Rosalind Reid, written reports, pages 5 to 7](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)). Shankar's post puts the words that set an item apart first ([principle 2](https://fsdatalab.github.io/blog/agent-text-at-scale/#2-put-the-most-important-words-first)) | Reading: last. Skimming: the words that set the item apart go first |
 | Where does the result go? | Rosalind Reid ends a report and a talk with the result ([Rosalind Reid, tutorial deck, page 16](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf)). Shankar's skill starts with the main conclusion for a busy reader | Every report starts with a summary, whatever its length. A report can be a blog post, and its style can be conversational. When the report is a story with a climax, the summary states the problem and gives the reader the puzzle, and not the climax. For example: "The build slowed from 4 minutes to 40 over one week, and the log of that week shows no commit to the build files. We tried three fixes, and each one failed." A teaser such as "Read on to see how we found the cause" is not a summary. Otherwise the summary states the result, as in "Threads make the build three times faster" |
 | Contractions | Shankar's skill allows them. The guide forbids them for readers who are not native speakers | Not in a document |
-| Rhetorical questions in a document | Shankar's skill forbids several in a row. The guide forbade every one | Allowed when the reader has the question. Answer it in full sentences, as the choices about the declauding skill below say |
-| The length of a sentence | ASD-STE100 keeps an instruction to 20 words and a description to 25. Shankar's skill sets no limit | Usually 20 to 25 words at most. An occasional longer sentence is fine when its punctuation makes it clear |
-| "e.g." and semicolons | Shankar's skill writes "e.g." before examples, and it allows a semicolon between the steps of a sequence. The guide forbade both | Follow Shankar's skill |
+| Rhetorical questions in a document | Shankar's skill forbids several in a row. An earlier version of the guide forbade every one | Allowed when the reader has the question. Answer it in full sentences, as the choices about the declauding skill below say |
+| The length of a sentence | ASD-STE100 keeps an instruction to 20 words and a description to 25. Shankar's skill sets no limit | Usually 20 to 25 words at most, and never more than 40, which `check.py` fails. An occasional longer sentence is fine when its punctuation makes it clear |
+| "e.g." and semicolons | Shankar's skill writes "e.g." before examples, and it allows a semicolon between the steps of a sequence. An earlier version of the guide forbade both | Follow Shankar's skill |
 | Verbs with a strong feeling | Shankar's post asks for verbs such as "love" and "complain" in a dashboard | Allowed anywhere. Words that add force but no fact, such as "really", stay out |
-| The -ing form | Shankar's post writes titles of work in progress with it. ASD-STE100 does not use it as a verb | Allowed anywhere. Prefer the simple form |
+| The -ing form | Shankar's post writes titles of work in progress with it. ASD-STE100 does not use it as a verb | Allowed. Prefer the simple form. At the end of a sentence, an -ing clause must add a fact, as the last row of the choices about the declauding skill says |
 | Short items read in bulk | Shankar's post gives five principles for them | A section of the guide, rules 45 to 49 |
 | A README | No source gives its order | A README starts with what the project does |
 
 ## Choices about the declauding skill
 
 The declauding skill by Oskar Austegard gives rules 50 to 55 of the guide. In the places below, its
-register asked for something that a rule of the guide did not. The project's author chose in each place,
-and the column "The choice" names the rule that holds the choice. [The declauding skill](declauding.md)
+register and a rule of the guide disagreed, and the project's author chose in each place. Where the column "What the sources say" uses the past tense, it gives the
+rule as it was before the choice. The column "The choice" names the rule that holds the choice now. [The declauding skill](declauding.md)
 says where the skill comes from.
 
 | Question | What the sources say | The choice |
@@ -77,9 +78,13 @@ says where the skill comes from.
 | "It" or the noun | Rule 37 replaces a vague "This" with the noun. [Oskar Austegard's register, entry 40](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L788) replaces "That child" with "it" | Write "it" when only one thing could be meant, and the noun otherwise. Rule 37 |
 | An -ing clause at the end of a sentence | Rule 9 allowed an -ing form anywhere. [Oskar Austegard's register, entry 25](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L419) removes a clause at the end that only claims importance, and moves a clause with a fact to its own sentence | Keep an -ing clause that adds a fact, in its sentence or in a sentence of its own. Remove one that only claims importance. Rules 9 and 51 |
 
-## What is not checked
+## Rules of ASD-STE100 that are not checked against the standard
 
-Three rules of ASD-STE100 come from memory of its Issue 8, because no copy of the standard was available.
-The first is the active voice in procedures. The second is a limit of 20 words for an instruction and 25
-for a description. The third is no -ing form as a verb. The guide keeps all three as preferences, not as
-hard limits. They are not yet checked against the standard.
+No copy of ASD-STE100 was available, so these three of its rules come from memory of its Issue 8:
+
+- the active voice in procedures
+- a limit of 20 words for an instruction and 25 for a description
+- no -ing form as a verb
+
+The guide keeps all three as preferences, not as hard limits. They are not yet checked against the
+standard.
