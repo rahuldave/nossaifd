@@ -1,7 +1,7 @@
 # Not so shitty AI first drafts
 
 A writing guide for documentation, READMEs and other prose that an AI model writes and a person reads. It
-joins four sources:
+joins five sources:
 
 - **ASD-STE100, Simplified Technical English.** Aerospace manuals use it, so that readers who are not
   native English speakers understand them.
@@ -11,6 +11,8 @@ joins four sources:
   and the rules for figures.
 - **"Five Principles for Generating Readable AI Text in Bulk", a post by Shreya Shankar.** It gives the
   rules for short items that a person skims, such as titles and notifications.
+- **The declauding skill by Oskar Austegard.** It finds the sentences that sound as if a model wrote
+  them, and it gives the rules for the revision of a draft.
 
 Each rule names its source and links to the place in it. A rule that comes from no source is this guide's
 own, and it says so. The section "Sources" lists each place where this guide differs from a source.
@@ -114,17 +116,25 @@ section is this guide's own.
      when the actor is unknown.
    - A noun for an action is correct when it names the action of the sentence before, as in "The
      measurement showed a delay".
-   - An -ing form is allowed anywhere, but prefer the simple form.
+   - An -ing form is allowed, but prefer the simple form. An -ing clause at the end of a sentence must
+     add a fact, as in "The script reads each file, skipping the empty ones". Do not end a sentence with
+     one that only claims importance, as in "The team released version 2, marking a turning point".
 
    From: the writing rules of [STE](https://www.asd-ste100.org/about.html), and Rosalind Reid, written
    reports, [pages 13 and 14](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)
    for actions in verbs and [page 15](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)
    for the voice. The passive for an unknown actor is this guide's own. STE asks for the active voice, and
-   this guide follows Rosalind Reid.
-10. **Put not more than three nouns in a row.** Break a longer group with "of", "for" or "in". Write "the
-    size of the terminal font" and not "the terminal font size setting".
+   this guide follows Rosalind Reid. The rule for an -ing clause at the end follows
+   [Oskar Austegard's declauding skill, register entry 25](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L419),
+   which removes a clause at the end that only claims importance.
+10. **Put not more than two nouns in a row.** Break a longer group with "of", "for" or "in". Write "the
+    size of the terminal font" and not "the terminal font size setting". Write "the format of the cache
+    key" and not "the cache key format". A standard term of the field, such as "foreign key constraint",
+    keeps its nouns. So does a group of nouns that the document defines once and then uses as a name.
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html).
+    From: the writing rules of [STE](https://www.asd-ste100.org/about.html), which allow three nouns. The
+    limit of two and the term of the field come from [Oskar Austegard's declauding skill, register entry 53](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1185), and this guide follows
+    it.
 11. **Say exactly what happens.** Name who or what does the action, and by what means. Remove side clauses
     that add no fact, for example "as we move forward" or "for the time being".
 
@@ -203,9 +213,12 @@ The order of a README is this guide's own. It is not Rosalind Reid's.
 20. **Tell the story of a problem and how it was solved.** Give the document these parts, in this order:
     - **Summary.** A few sentences at the start of every report. Usually they state the result. A report
       can be a story with a climax, such as a bug hunt with wrong paths. Then the summary states the
-      problem and hints at the path. It does not give away the climax. Write "We tried three fixes for
-      the slow build, and each one failed. Read on to see how we found the cause." The summary is this
-      guide's own rule, and not Rosalind Reid's.
+      problem and gives the reader the puzzle. It does not give away the climax. Write "The build slowed
+      from 4 minutes to 40 over one week, and the log of that week shows no commit to the build files. We tried three
+      fixes, and each one failed." Do not write a teaser that promises content and names none, as in
+      "Read on to see how we found the cause". The summary is this guide's own rule, and not Rosalind
+      Reid's. The ban on the teaser comes from Oskar Austegard's declauding skill,
+      [register entries 8](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L175) and [42](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L843).
     - **Motivation.** Why the reader should care about the work.
     - **Description.** The problem in detail, and how the work broke it into parts.
     - **Approach.** What was done, and why.
@@ -291,10 +304,15 @@ The rules in this section also come from Rosalind Reid.
 ## Tone
 
 32. **Write literal headings.** Do not write a catchy heading, a slogan or a clever label. A heading says
-    what the section is about, for example "Moving with edits" and not "The point of no return". The text
-    under the heading can be conversational.
+    what the section is about, for example "Move a file that has unsaved edits" and not "The point of no
+    return". When a section makes one point, name the concrete thing, as in "When create_session fails".
+    Do not name a topic area with an -ing form or an abstract noun, as in "Spawn availability" or
+    "Detecting a parked child". In a reference, such as this guide, a label for a group of entries is
+    correct, as in "Punctuation and formatting". The title of a task in progress in a list keeps its -ing
+    form, by rule 45. The text under the heading can be conversational.
 
     From: [Shankar's skill, rule 7](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L63).
+    The rule against a topic area comes from [Oskar Austegard's declauding skill, register entry 41](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L816).
 33. **Use an analogy, a metaphor or humor when it explains the work.** Rosalind Reid recommends them for
     written, visual and spoken work
     ([Rosalind Reid, tutorial deck, page 40](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf)).
@@ -304,26 +322,37 @@ The rules in this section also come from Rosalind Reid.
     From: Rosalind Reid. The literal fact after the analogy is this guide's own.
     [Shankar's skill, rule 21](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L222) forbids analogy and metaphor, and this guide follows Rosalind Reid.
 34. **Do not give objects fake agency.** A tool can return, write or read. But do not write as if a system
-    decides or intends something, when a person or a process is the real actor.
+    decides or intends something, when a person or a process is the real actor. Do not give a thing a verb
+    that needs a mind, as in "The median hides it" or "The docstring promises". A pairing that readers
+    know is correct, as in "The table shows" or "The measurement showed a delay".
 
     From: [Shankar's skill, rule 20](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L214).
+    The verbs that need a mind, and the pairings that readers know, come from [Oskar Austegard's declauding skill, register entry 4](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L73).
 35. **State what a thing is.** Do not write "not just X, but Y" or "not only X, it is Y".
 
     From: [Shankar's skill, rule 22](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L230).
-36. **Answer a rhetorical question close by.** A question can lead the reader to the next point. Start to
-    answer it in the next sentences. Prefer one question at a time. Several in a row can build tension in
-    a story.
+36. **Ask a rhetorical question only when the reader has it, and answer it in full sentences.** Do not ask
+    a question that you answer at once with a fragment, as in "So how does it fail? Mostly by not
+    finishing." Write "Why does a retry make the bug worse? Each retry takes a new lock, so two retries can
+    wait on each other." Prefer one question at a time. Several in a row are correct only in a story,
+    where they are the questions that the people in it asked.
 
     From: [Shankar's skill, rule 23](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L240),
-    which forbids two or more in a row. This guide lets a writer ask them for the story.
+    which forbids two or more in a row. This guide lets a writer ask them for the story. The ban on the
+    fragment answer comes from [Oskar Austegard's declauding skill, register entry 10](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L201).
 37. **Do not start a sentence with a vague "This", "That", "These" or "Those".** Name the thing. Write "The
-    flag lets a move discard edits" and not "This lets a move discard edits".
+    flag lets a move discard edits" and not "This lets a move discard edits". Write "it" when only one thing
+    could be meant. Write the noun when the sentence before names two things, such as a parent and a child.
 
     From: [Shankar's skill, rule 24](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L248).
+    The choice of "it" comes from [Oskar Austegard's declauding skill, register entry 40](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L788).
 38. **Do not open with a count.** Do not write "Three things to know." State the first thing. If there are
-    many things, use a list.
+    many things, use a list. A count is correct in front of the list that it counts when it also says what
+    the items share or how they differ, as in "Three shapes, and the fix differs for each:". "Two
+    cautions:" says only the count, so delete it and start with the first caution.
 
     From: [Shankar's skill, rule 25](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L255).
+    The count in front of a list comes from [Oskar Austegard's declauding skill, register entry 38](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L720).
 
 ## Punctuation and formatting
 
@@ -344,12 +373,15 @@ The rules in this section also come from Rosalind Reid.
 42. **Use sentence case in headings.** Write "How to install the tool" and not "How To Install The Tool".
 
     From: [Shankar's skill, rule 18](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L185).
-43. **Use bold to set one thing off from the next.** Bold the first words of a list item or a paragraph, so
-    the reader can scan the items. Bold the names of things the reader must find on a screen, for example
-    a button. Do not use bold for emphasis in the middle of a sentence.
+43. **Use bold to set one thing off from the next.** Bold the first words of a list item or a paragraph
+    when they are a name that the reader looks for, such as an option, a term or a case. Write
+    "**--dry-run** prints the changes and writes nothing." Do not bold a label that repeats the sentence,
+    as in "**Performance:** Performance has been improved". Bold the names of things the reader must find
+    on a screen, for example a button. Do not use bold for emphasis in the middle of a sentence.
 
     From: [Shankar's skill, rule 18](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L185),
-    which forbids bold for decoration. The two uses of bold are this guide's own.
+    which forbids bold for decoration. The two uses of bold are this guide's own. The test of a name that
+    the reader looks for comes from [Oskar Austegard's declauding skill, register entry 29](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L518).
 44. **Use lists and tables where they help, and not more.** In prose, keep a list to about four items, and
     nest the items if there are more. On a reference page, a table is the clearest form for options,
     commands and keys.
@@ -393,6 +425,60 @@ them. The rules come from the post by Shreya Shankar, and this guide states them
 
     From: [Shankar's post, principle 5](https://fsdatalab.github.io/blog/agent-text-at-scale/#5-align-the-connotation-of-verbs-with-the-purpose-of-the-dashboard).
 
+## Patterns of model prose
+
+These rules are for the revision of a draft. An AI model writes some sentences to sound like a finding,
+and not to give one. The rules come from the declauding skill by Oskar Austegard.
+
+The register of the skill by Oskar Austegard lists 56 patterns. For most patterns it gives a pair of sentences from real
+text, before and after the revision. This guide states the rules in its own words. The register, with all
+its examples, is in `.agents/skills/declauding/references/register.md`. Read it after you write the draft,
+and not before, as the skill asks.
+
+50. **State a finding, and do not stage it.** A staged sentence makes the reader feel that a finding
+    arrives. A stated sentence gives the finding. Ask of each sentence whether it states the finding or
+    stages it. For example, do not say what a thing is not before you say what it is, unless the reader
+    believed the wrong thing. Do not tell the reader which sentence is important.
+    Do not end a paragraph with a short, quotable line that repeats the paragraph. Write "It is a
+    non-answer rather than a wrong answer" and not "It is not a wrong answer. It is a non-answer." Rule 35
+    is one case of this rule.
+
+    From: [Oskar Austegard's declauding skill, register entries 1 to 23](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L10), and
+    [entries 37 to 42](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L687).
+51. **Remove the defaults of chatbot prose.** Write "is" and not "serves as". Do not add a clause with an
+    -ing form at the end of a sentence to claim that the fact is important. Give the number of items that
+    the content has, and not three because three sounds complete. Write a range only when it has a scale,
+    as in "from 2 to 8 bits". Remove the words of a chat reply, for example "I hope this helps".
+
+    From: [Oskar Austegard's declauding skill, register entries 24 to 36](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L385). The register
+    takes them from the Wikipedia page "Signs of AI writing", through the humanizer skill.
+52. **Give the evidence for each claim of certainty.** An adverb such as "plainly" or "quietly", a
+    compound such as "byte-identical", and a word such as "nothing" or "never" each claim a check. Say what
+    was run, what came back and what scope was checked. Write "The fit has one parameter per cluster and
+    none per week" and not "Nothing in the fit varies with time".
+
+    From: [Oskar Austegard's declauding skill, register entries 43 to 47](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L865). The
+    skill takes them from Louis Abraham's study of the words in pull requests, "load-bearing".
+53. **Do not tell the reader that you are honest, and do not grade your own text.** Remove "to be honest",
+    "to be clear" and "I will not pretend". Do not write "that is why the transcript was important" about
+    an earlier paragraph, or "that is the whole point" about one part of a thing.
+
+    From: [Oskar Austegard's declauding skill, register entries 48 to 52](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1028). The
+    skill takes them from Simon Willison's "llm-cliche-highlighter".
+54. **Do not pack a claim into fewer words than a reader can parse.** Keep "that" in a long clause, give
+    the verb soon after its subject, and use a plain verb and not a noun as a verb. Rules 10 and 12 are
+    cases of this rule. A revision that is shorter and harder to read is worse than the draft.
+
+    From: [Oskar Austegard's declauding skill, register entries 53 to 56](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1146). The register
+    takes them from a paper by Clark, Martin and Mahowald, arXiv 2610.29162.
+55. **Keep every claim of the draft in the revision, and add none.** Keep each number, name, ranking and
+    hedge that has content. Do not add a fact, a name, a number, a date or a citation that the draft or
+    the author did not give. If the draft disagrees with itself, tell the author, and do not choose a
+    version.
+
+    From: Oskar Austegard's declauding skill, ["Do not invent specifics"](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/SKILL.md?plain=1#L29) and
+    [steps 5 and 6 of its workflow](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/SKILL.md?plain=1#L275).
+
 ## Check the result
 
 `check.py` measures the rules that a program can measure:
@@ -415,7 +501,19 @@ more than 20. They also show two questions in a row, -ing forms, possible passiv
 notes are nouns that name an action, sentences that may have three clauses, and words with a simpler
 alternative.
 
-The program cannot judge meaning, tone or a missing definition. Read every page after it passes.
+The program cannot judge meaning, tone or a missing definition.
+
+Next, revise the draft with the declauding skill by Oskar Austegard, in `.agents/skills/declauding/`. Its
+file `SKILL.md` gives the steps. Its linter marks the patterns of rules 50 to 54 that a program can find,
+and its diff shows each claim that a revision lost or added:
+
+```
+uv run --no-project python .agents/skills/declauding/scripts/declaude_lint.py --skip-quoted page.md
+uv run --no-project python .agents/skills/declauding/scripts/declaude_diff.py draft.md page.md
+```
+
+Its author says that the linter finds about two thirds of what a careful reading finds. Run `check.py`
+again on the revision. Then read every page yourself.
 
 ## Sources
 
@@ -468,3 +566,13 @@ The program cannot judge meaning, tone or a missing definition. Read every page 
 
   This guide differs from Rosalind Reid in one place. Her story ends with the result. This guide starts
   every report with a summary, and a README with what the project does.
+- **The declauding skill by Oskar Austegard**, in https://github.com/oaustegard/claude-skills, folder
+  `declauding`, version 0.14.0 at commit 6baa729, under the MIT licence, copyright (c) 2025 Oskar
+  Austegard. Rules 50 to 55 come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of it. This repository ships the skill without changes in
+  `.agents/skills/declauding/`, with its licence. Its register gives a pair of sentences, before and after,
+  for most patterns. The README of the skill names its sources, which are the Wikipedia page "Signs of AI
+  writing", the humanizer skill, Louis Abraham, Simon Willison, and Clark, Martin and Mahowald. Where the
+  skill and a rule above disagreed, the project's author chose, and several rules above now take the
+  skill's advice. [Why the rules](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md) lists each
+  choice. A sample of an author's writing wins over the register, but not over the hard limits of this
+  guide.
