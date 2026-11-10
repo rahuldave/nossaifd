@@ -7,7 +7,7 @@ license: MIT, copyright (c) 2026 Rahul Dave. The full text is in the LICENSE fil
 # nossaifd
 
 nossaifd is a writing guide for prose that an AI model writes and a person
-reads. Its rules come from four sources:
+reads. Its rules come from five sources:
 
 - Simplified Technical English, ASD-STE100.
 - The plain-writing skill by Shreya Shankar.
@@ -18,6 +18,9 @@ reads. Its rules come from four sources:
   changed version of this skill. Her PDFs are not under the MIT licence.
 - "Five Principles for Generating Readable AI Text in Bulk", a post by Shreya
   Shankar. It gives the rules for short items that a person skims.
+- The declauding skill by Oskar Austegard, under the MIT licence. It gives
+  the rules for the revision of a draft that reads as if a model wrote it.
+  This package ships it, without changes, as the skill `declauding`.
 
 The rules make the text plain and easy to read for a reader who is not a native
 speaker. Each rule in the guide names its source. Most rules are preferences. A
@@ -42,7 +45,16 @@ rule can give way to the story, as the section "When to break a rule" says.
 
 5. Run the checker with `-v` to see the soft notes. Fix each note that makes
    the page harder to read.
-6. Read the page yourself. The checker cannot judge meaning, tone or a missing
+6. Revise the page with the declauding skill by Oskar Austegard. Read its
+   `SKILL.md`, in the folder `declauding` next to this skill, and follow its
+   steps. Do not read its register before you write the page, even when its
+   description asks you to load it at the start. Where the two disagreed, the
+   guide now holds the choice of the project's author, so follow the guide.
+   A sample of the author's writing wins over the register, but not over the
+   hard problems of the checker. Run the checker again after the revision.
+   If the skill `declauding` is not installed, follow rules 50 to 55 of the
+   guide.
+7. Read the page yourself. The checker cannot judge meaning, tone or a missing
    definition.
 
 The checker skips front matter, code, tables, link targets and quoted words.

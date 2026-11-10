@@ -18,6 +18,38 @@ sync:
     cp GUIDE.md EXAMPLES.md .agents/skills/nossaifd/references/
     cp check.py .agents/skills/nossaifd/scripts/check.py
 
+# The commit of oaustegard/claude-skills whose declauding skill, by Oskar Austegard, ships in .agents/skills/declauding
+declauding_commit := "6baa7290da972191749acda03c63297e67b3fc26"
+
+# Copy the declauding skill again from that commit, without changes, with its licence
+declauding:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tool_root="$(mktemp -d)"
+    trap 'rm -rf -- "$tool_root"' EXIT
+    git clone --quiet --filter=blob:none --no-checkout https://github.com/oaustegard/claude-skills.git "$tool_root/src"
+    git -C "$tool_root/src" sparse-checkout set --no-cone /declauding/ /LICENSE
+    git -C "$tool_root/src" checkout --quiet {{declauding_commit}}
+    rm -rf .agents/skills/declauding
+    cp -R "$tool_root/src/declauding" .agents/skills/declauding
+    cp "$tool_root/src/LICENSE" .agents/skills/declauding/LICENSE
+    {{python}} tests/declauding_manifest.py {{declauding_commit}} > sources/declauding.json
+
+# Compare the record of the declauding copy with the files of its commit on GitHub. It needs gh and the network
+declauding-verify:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{python}} - "$(gh api "repos/oaustegard/claude-skills/git/trees/{{declauding_commit}}?recursive=1")" <<'EOF'
+    import json, sys
+    tree = {e['path']: e['sha'] for e in json.loads(sys.argv[1])['tree'] if e['type'] == 'blob'}
+    files = json.load(open('sources/declauding.json'))['files']
+    upstream = {p[len('declauding/'):]: s for p, s in tree.items() if p.startswith('declauding/')}
+    upstream['LICENSE'] = tree['LICENSE']
+    if upstream != files:
+        sys.exit(f'the record differs from GitHub: {sorted(set(upstream.items()) ^ set(files.items()))}')
+    print(f'{len(files)} files match the commit {{declauding_commit}} on GitHub')
+    EOF
+
 # Check the Python and the JSON for syntax
 lint:
     {{python}} -m py_compile check.py tests/*.py

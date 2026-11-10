@@ -30,8 +30,9 @@ class SkillTest(unittest.TestCase):
         manifest = json.loads((REPO / 'skill-package.json').read_text())
         self.assertNotIn('installers', manifest)
         self.assertEqual([e['name'] for e in manifest['executables']['required']], ['uv'])
-        self.assertEqual(manifest['skills'], [{'name': 'nossaifd', 'path': '.agents/skills/nossaifd'}])
-        self.assertEqual(sorted(p.name for p in (REPO / '.agents/skills').iterdir()), ['nossaifd'])
+        self.assertEqual(manifest['skills'], [{'name': 'nossaifd', 'path': '.agents/skills/nossaifd'},
+                                              {'name': 'declauding', 'path': '.agents/skills/declauding'}])
+        self.assertEqual(sorted(p.name for p in (REPO / '.agents/skills').iterdir()), ['declauding', 'nossaifd'])
         self.assertFalse((REPO / 'scripts').exists())
         self.assertNotIn('python3 ', (SKILL / 'SKILL.md').read_text())
 

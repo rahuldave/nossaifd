@@ -66,6 +66,9 @@ the guide exempts, because Markdown comes first:
 The checker cannot judge meaning, tone, or a term that a page uses before it defines it. Read every page
 after it passes.
 
+The checker finds only a few of the patterns of model prose in rules 50 to 54, such as "not just" and the
+words of rule 5. The linter of the declauding skill by Oskar Austegard looks for more of them. [The declauding skill](declauding.md) says how to run it.
+
 ## How it decides
 
 The checker splits a block of prose into sentences after a full stop, a question mark or an exclamation

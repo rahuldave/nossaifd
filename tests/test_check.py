@@ -102,6 +102,13 @@ class HardRules(unittest.TestCase):
         for text in ('Two cautions:\n', 'Three key points.\n', 'A few notes:\n', 'Four steps to follow.\n'):
             self.assertHard(text, 'opens with a count')
 
+    def test_a_count_that_says_how_the_items_of_its_list_differ_is_correct(self):
+        # GUIDE.md rule 38: the count of the register's entry 38 says more than the count, and passes
+        self.assertClean('Three shapes, and the fix differs for each:\n\n- One.\n- Two.\n- Three.\n')
+        # A count that only announces fails, with a list after it or not
+        self.assertHard('Two cautions:\n- The disk fills.\n- The network drops.\n', 'opens with a count')
+        self.assertHard('Three things to know:\n\n- One.\n', 'opens with a count')
+
     def test_a_sentence_of_fact_that_starts_with_a_number_is_not_a_count(self):
         for text in ('Three runs failed today.\n', 'Two tests timed out.\n', '- Five nodes went down.\n',
                      'Two servers share the cache.\n', '## Two servers share the cache.\n',

@@ -28,10 +28,12 @@ https://rahuldave.com/nossaifd-talks/. That guide also draws on the work of Rosa
 |---|---|
 | [`GUIDE.md`](GUIDE.md) | The rules for reports: words, sentences, instructions, paragraphs, long documents, figures, tone, punctuation, formatting and short items |
 | [`check.py`](https://github.com/rahuldave/nossaifd/blob/main/check.py) | It checks a report against the rules that a program can measure. See [the checker](docs/checker.md) |
-| [`EXAMPLES.md`](EXAMPLES.md) | Worked examples for the rules, from Rosalind Reid and Shreya Shankar. Each example names its source |
+| [`EXAMPLES.md`](EXAMPLES.md) | Worked examples for the rules, from Rosalind Reid, Shreya Shankar and the declauding skill by Oskar Austegard. Each example names its source |
 | `sources/reid/` | The PDFs of Rosalind Reid's tutorial, which the guide cites page by page |
+| `sources/declauding.json` | The commit and the version of the declauding skill by Oskar Austegard that ships here, with a checksum of each file. `just declauding` writes it |
 | `docs/` | The pages of the site, which smalldocs builds from `_smalldocs.yml` |
 | `.agents/skills/nossaifd/` | The agent skill, with copies of `GUIDE.md`, `EXAMPLES.md` and `check.py` |
+| `.agents/skills/declauding/` | The declauding skill by Oskar Austegard, without changes, with its licence. See [the declauding skill](docs/declauding.md) |
 
 ## How to use it
 
@@ -46,24 +48,29 @@ For a report:
    uv run --no-project python check.py -v docs/page.md
    ```
 
-4. Read the result. The checker cannot judge meaning or tone.
+4. Revise the result with the declauding skill by Oskar Austegard, by its `SKILL.md`. Run the
+   checker again after the revision.
+5. Read the result. The checker cannot judge meaning or tone.
 
 The checker needs only Python 3.11 or later, with no other packages. `uv run` gives that Python, so the
 machine needs only `uv`.
 
 ## Install the skill in a repository
 
-The repository is also an agent skill package with one skill, `.agents/skills/nossaifd/`. It holds copies
-of the guide, the examples and the checker, and a `SKILL.md` that tells an agent how to use them.
+The repository is also an agent skill package with two skills. The first, `.agents/skills/nossaifd/`, holds
+copies of the guide, the examples and the checker, and a `SKILL.md` that tells an agent how to use them.
+The second, `.agents/skills/declauding/`, is the declauding skill by Oskar Austegard. An install with
+`npx skills add rahuldave/nossaifd --skill nossaifd` takes only the first. The nossaifd skill then
+follows rules 50 to 55 of the guide in place of the declauding skill.
 
-jnterfaces installs the skill in the role `prose`. In a project with jnterfaces, run
+jnterfaces installs both skills in the role `prose`. In a project with jnterfaces, run
 this command:
 
 ```
 just install prose
 ```
 
-The installer of jnterfaces clones this repository, copies the skill and
+The installer of jnterfaces clones this repository, copies the skills and
 records the source revision in `.agents/nossaifd-install.json`. It never
 overwrites a file that you edited after an install. `just uninstall prose`
 takes the skill out again. This repository has no installer of its own.
@@ -79,6 +86,10 @@ in its Justfile.
 After you change the guide, the examples or the checker, run `just sync` to
 copy them into the skill. `just check` fails while the copies differ.
 
+`just declauding` copies the declauding skill by Oskar Austegard again from its
+fixed commit in oaustegard/claude-skills. Change the commit in the Justfile to take a newer
+version.
+
 ## Build the site
 
 [smalldocs](https://pypi.org/project/smalldocs/) builds the site from the pages that `_smalldocs.yml`
@@ -92,7 +103,7 @@ The site goes to `_site/`. `just check` also runs `smalldocs check .`, which fin
 
 ## Where the rules come from
 
-The guide joins four sources. [Sources and credit](docs/sources.md) says what each one gives, and
+The guide joins five sources. [Sources and credit](docs/sources.md) says what each one gives, and
 [Why the rules](docs/why.md) says what the guide chose where the sources disagree.
 
 - **"Communicating Your Work", a tutorial by Rosalind Reid**, for the course AC297r at Harvard in March
@@ -107,10 +118,15 @@ The guide joins four sources. [Sources and credit](docs/sources.md) says what ea
 - **["Five Principles for Generating Readable AI Text in Bulk"](https://fsdatalab.github.io/blog/agent-text-at-scale/),
   by Shreya Shankar.** It gives the rules for short items that a reader
   skims, such as titles, list items and the rows of a dashboard.
+- **[The declauding skill](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding) by Oskar
+  Austegard**, under the MIT licence. It gives the rules for the revision of a draft that reads as if a
+  model wrote it. Its register gives a pair of sentences, before and after, for most of its patterns. This
+  repository ships the skill in `.agents/skills/declauding/`. See [the declauding skill](docs/declauding.md).
 
 ## Licence
 
-The code and the guide are under the MIT licence, in [`LICENSE`](https://github.com/rahuldave/nossaifd/blob/main/LICENSE). Rosalind Reid's PDFs in `sources/reid/`
+The code and the guide are under the MIT licence, in [`LICENSE`](https://github.com/rahuldave/nossaifd/blob/main/LICENSE). The declauding skill in `.agents/skills/declauding/` is
+under its own MIT licence, copyright (c) 2025 Oskar Austegard, in the file `LICENSE` of that folder. Rosalind Reid's PDFs in `sources/reid/`
 are her work, used with her permission, and they are not under the MIT licence.
 
 Rosalind Reid lets others use her work on one condition. Every place that uses it credits her. So text in

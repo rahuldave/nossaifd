@@ -1,6 +1,6 @@
 # Sources and credit
 
-The rules on this site come from four sources. This page says who wrote each one and where to read it. It
+The rules on this site come from five sources. This page says who wrote each one and where to read it. It
 also says which part of the site uses each one. Each rule in [the guide](../GUIDE.md) also names its source
 and links to the exact page.
 
@@ -65,6 +65,18 @@ Two works by Shreya Shankar are sources:
 - ["Five Principles for Generating Readable AI Text in Bulk"](https://fsdatalab.github.io/blog/agent-text-at-scale/),
   a post from October 2026. It is about many short items that a reader skims, such as titles, list
   items, notifications and the rows of a dashboard. The guide's rules for short items come from it.
+
+## Oskar Austegard
+
+Oskar Austegard wrote [the declauding skill](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding),
+in his repository oaustegard/claude-skills, under the MIT licence. The skill revises a draft that reads as
+if an AI model wrote it, and it checks that the revision kept the claims of the draft. Rules 50 to 55 of
+[the guide](../GUIDE.md) come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of it. The register of the skill gives a pair of sentences, before and
+after, for most of its 56 patterns.
+
+nossaifd ships version 0.14.0 of the skill by Oskar Austegard, from commit `6baa729`, without changes.
+It is in `.agents/skills/declauding/`, with his licence in the file `LICENSE`. [The declauding skill](declauding.md)
+says how to use it with the guide, and it lists the sources that the README of the skill names.
 
 ## Where the sources disagree
 

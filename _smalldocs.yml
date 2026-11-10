@@ -6,6 +6,7 @@ project:
     - GUIDE.md
     - EXAMPLES.md
     - docs/checker.md
+    - docs/declauding.md
     - docs/sources.md
     - docs/why.md
 website:
@@ -29,6 +30,8 @@ website:
             href: GUIDE.md
           - text: The checker
             href: docs/checker.md
+          - text: The declauding skill
+            href: docs/declauding.md
           - text: The examples
             href: EXAMPLES.md
       - section: About

@@ -36,10 +36,12 @@ The letter of an example names its source:
   the skill. An eval is the set of test tasks with which Shreya Shankar measures her skill. E is a table
   from the eval, and B is a bad specimen from it. T is a task prompt of the eval.
 - **SP** is Shreya Shankar's post.
+- **DC** is the register of the declauding skill by Oskar Austegard. The number of an example is the
+  number of its entry in the register.
 
 ## Sources
 
-The examples come from three works:
+The examples come from four works:
 
 - **"Communicating Your Work", a tutorial by Rosalind Reid**, which she taught in the course AC297r at the
   Institute for Applied Computational Science at Harvard in March 2015. The examples here come from its
@@ -49,6 +51,10 @@ The examples come from three works:
   [commit f0d3630](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md) of https://github.com/docwriter-org/plain-writing-skill.
 - **"Five Principles for Generating Readable AI Text in Bulk", a post by Shreya Shankar**, 29 October 2026,
   at https://fsdatalab.github.io/blog/agent-text-at-scale/.
+- **The declauding skill by Oskar Austegard**, at
+  [commit 6baa729](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding)
+  of https://github.com/oaustegard/claude-skills. This repository ships the skill in
+  `.agents/skills/declauding/`.
 
 GUIDE.md also draws on ASD-STE100, Simplified Technical English. It gives no examples here, because no copy
 of the standard was available.
@@ -68,6 +74,11 @@ one links to its section of the post, at https://fsdatalab.github.io/blog/agent-
 Some texts in the repository of the skill are not by Shreya Shankar. A model wrote the answers in the eval
 tables, and Anthropic Claude wrote the bad specimens. Each such example says who wrote it. In the post, the
 bad theme cards of SP6 are the output of a Claude plugin, as the post says.
+
+The declauding skill is under the MIT licence, copyright (c) 2025 Oskar Austegard. The examples DC2 to DC56
+come from its register at commit 6baa729, and each one links to its lines. Many texts before a revision in
+the register come from drafts by models, and the register names the model after the text where it knows
+it.
 
 # The examples
 
@@ -825,6 +836,10 @@ After: Applicable legal constraints.
 **Rule:** GUIDE.md rule 32. GUIDE.md rule 33 permits a metaphor in prose. Rule 32
 still asks for a literal heading or label.
 
+**The project now:** "Applicable legal constraints" names a topic area with an abstract noun. Such a label is
+correct for a group of entries in a reference. A section that makes one point names the constraints, by
+GUIDE.md rule 32.
+
 ### S8. A literal heading
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 7, lines 69 to 70](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L69-L70).
@@ -835,6 +850,10 @@ After: # Iterative refinement using development disagreements
 ```
 
 **What it shows:** A heading says what the section describes, even when the result is longer.
+
+**The project now:** The "After" heading names a topic area with the abstract noun "refinement". When a
+section makes one point, GUIDE.md rule 32 now asks for the concrete thing, as in DC41. A heading by the
+guide says what the loop does to the disagreements.
 
 **Rule:** GUIDE.md rule 32.
 
@@ -850,6 +869,9 @@ Rename these section headings to be clearer if needed, and keep them usable in a
 ```
 
 **What it shows:** Rewrite three clever headings, the first two of which are the "Before" texts of S8 and S7.
+
+**The project now:** The "After" texts of S8 and S7 name topic areas. Read the lines "The project now" of
+S8 and S7 before you use them as answers.
 
 **Rule:** GUIDE.md rules 32 and 42.
 
@@ -912,6 +934,9 @@ After: It is a parser and a formatter.
 
 **What it shows:** Name the parts of the thing, in place of the pattern "not just X, it is Y".
 
+**The project now:** The "After" names a formatter, which the "Before" does not. By GUIDE.md rule 55, a
+revision takes that fact from the author, and does not add it.
+
 **Rule:** GUIDE.md rule 35.
 
 ### S27. Replace a quoted hype phrase with a fact
@@ -925,6 +950,9 @@ After: The API has a 99.9% monthly uptime SLO.
 ```
 
 **What it shows:** Answer a vague claim with the number that settles it.
+
+**The project now:** The number 99.9% is not in the "Before". By GUIDE.md rule 55, a revision takes that
+number from the author or a source, as T3 does, and does not add it.
 
 **Rule:** GUIDE.md rules 35 and 11.
 
@@ -955,8 +983,8 @@ whether it makes the argument stronger or weaker.
 
 **Rule:** GUIDE.md rule 36.
 
-**The project now:** GUIDE.md rule 36 permits rhetorical questions that the next sentences answer. The
-"Before" fails only because nothing answers its questions.
+**The project now:** GUIDE.md rule 36 permits a question that the reader has, answered in full sentences,
+and a run of questions only in a story. The "Before" is not a story, and nothing answers its questions.
 
 ### S29. No vague demonstratives
 
@@ -997,6 +1025,9 @@ that live elsewhere. It can also balloon if every item gets a sentence.
 
 **What it shows:** Start with the first point in place of a count, and add the reason.
 
+**The project now:** GUIDE.md rule 38 also permits a count in front of the list that it counts, when the
+count says what the items share or how they differ, as in DC38. "Two cautions." says only the count.
+
 **Rule:** GUIDE.md rule 38.
 
 ### S43. Openings that announce a count
@@ -1007,7 +1038,8 @@ Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 25, lines 255 to 257
 "Two cautions." or "Three things to keep in mind."
 ```
 
-**What it shows:** Avoid these two openings.
+**What it shows:** Avoid these two openings. Each one says only the count, so S30 and the exception of
+rule 38 both remove it.
 
 **Rule:** GUIDE.md rule 38.
 
@@ -1253,7 +1285,9 @@ Here it is the -ing form, for a session in progress.
 
 **Rule:** GUIDE.md rules 45 and 47.
 
-**The project now:** GUIDE.md rule 9 permits the -ing form anywhere.
+**The project now:** GUIDE.md rule 9 permits the -ing form, and rule 45 keeps it for a title of work in
+progress. "Quail grant application" is three nouns in a row, and rule 10 allows two. A title by the guide
+would write "Planning the application for the Quail grant".
 
 ### SP3. Order emails
 
@@ -1419,3 +1453,971 @@ A dashboard of praise:     "love", as in "Users love"
 **What it shows:** Choose a negative verb for a list of complaints and a positive verb for a list of praise.
 
 **Rule:** GUIDE.md rule 49, which uses these two verbs.
+
+## Patterns of model prose
+
+The examples in this section come from the register of the declauding skill by Oskar Austegard, in
+`.agents/skills/declauding/references/register.md`. Each example gives the pairs of sentences of one
+entry, word for word, before and after the revision. Where an entry has no pair, the example gives its
+tell, and its fix where it has one, also word for word. Entry 1 names the root of the staging family and has no example.
+
+The code blocks keep the Markdown marks of the register, such as the asterisks around italics. Only the
+mark ">" of a quote is removed. Some revisions in the register use contractions, dashes, words such as
+"just", a semicolon between clauses, or a fragment. For each of them, a block "By the guide" gives a
+version that follows GUIDE.md.
+
+A note in parentheses after a text, such as "(Fable 5)", is the register's own. It names where the text
+comes from, for example the model that wrote it.
+
+### DC2. Negation-first reveal
+
+Credit: Oskar Austegard, declauding skill, register entry 2, [lines 33 to 36](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L33-L36).
+
+```text
+was: *It is not a wrong answer. It is a non-answer. Counting it as a failure is
+the conservative choice, and it is what these numbers do.*
+now: *It is a non-answer rather than a wrong answer, and these numbers count it
+as a failure, which is the conservative choice.*
+```
+
+**What it shows:** State what the thing is, in one clause, and do not first knock down an answer that the reader never gave.
+
+**Rule:** GUIDE.md rules 50 and 35.
+
+### DC3. Significance designation
+
+Credit: Oskar Austegard, declauding skill, register entry 3, [lines 60 to 63](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L60-L63).
+
+```text
+was: *Nobody had checked whether it could still think. It is the leg that
+answers the actual question.*
+now: *Earlier testing measured its size and not its accuracy, so this run is
+the first accuracy number for it.*
+```
+
+**What it shows:** Delete the words that tell the reader which sentence is important, and state the content.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC4. Abstraction agency
+
+Credit: Oskar Austegard, declauding skill, register entry 4, [lines 87 to 88](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L87-L88), [lines 90 to 91](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L90-L91), [lines 100 to 103](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L100-L103).
+
+```text
+was: *Median hides it: the middle of every distribution is similar.*
+now: *The middle of every distribution is similar.*
+
+was: *Truncation cuts compute natively.*
+now: *A shorter vector is a shorter dot product.*
+
+was: *The docstring promises they're skipped when they "appear anywhere in
+the source_dir path".* (Fable 5)
+now: *According to the docstring, they're skipped when they "appear anywhere
+in the source_dir path".*
+```
+
+**What it shows:** Give the subject of the sentence to a thing that can act, or name the source of the claim.
+
+**By the guide:** A revision above breaks GUIDE.md rule 6. This version follows the guide, and it adds no fact.
+
+```text
+According to the docstring, they are skipped when they "appear anywhere in the source_dir path".
+```
+
+**The project now:** GUIDE.md rule 34 removes a verb that needs a mind, such as "hides", and keeps a pairing that readers know, such as "the measurement showed".
+
+**Rule:** GUIDE.md rules 50 and 34.
+
+### DC5. Deferred noun
+
+Credit: Oskar Austegard, declauding skill, register entry 5, [lines 122 to 124](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L122-L124).
+
+```text
+was: *Five of those six rows are one cluster. The sixth is not.*
+now: *Five legs pass 77 to 81 of the 92 and exhaust 6 to 9. fit-17g passes 62
+and exhausts 21.*
+```
+
+**What it shows:** Name the noun and its number in the subject, and do not point at it with "one thing" or "the sixth".
+
+**Rule:** GUIDE.md rule 50.
+
+### DC6. Structural-metaphor locator
+
+Credit: Oskar Austegard, declauding skill, register entry 6, [lines 139 to 140](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L139-L140).
+
+```text
+was: *It's the seam where the laugh is doing the work an argument would have to.*
+now: *The piece never engages the bull case; the joke covers the gap.*
+```
+
+**What it shows:** Name the plain mechanism, and not a part of a structure such as a seam, a hinge or a fault line.
+
+**By the guide:** A revision above breaks GUIDE.md rule 40. This version follows the guide, and it adds no fact.
+
+```text
+The piece never engages the bull case. The joke covers the gap.
+```
+
+**Rule:** GUIDE.md rule 50.
+
+### DC7. Coy and thesis-shaped headers
+
+Credit: Oskar Austegard, declauding skill, register entry 7, [lines 158 to 159](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L158-L159).
+
+```text
+was: *What "exhausted" means* → now: *Exhausted cases*
+was: *The one gap that does clear the bar* → now: *The 2.876-bit gap*
+```
+
+**What it shows:** Write a heading as a label of what the section holds, and not as a verdict or a riddle.
+
+**The project now:** GUIDE.md rule 32 names the concrete thing. A heading that is a question, such as "When does create_session fail?", names its content. "What exhausted means" hides it.
+
+**Rule:** GUIDE.md rules 50 and 32.
+
+### DC8. Suspense construction
+
+Credit: Oskar Austegard, declauding skill, register entry 8, [lines 177 to 180](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L177-L180), [line 185](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L185).
+
+```text
+**Tell:** a paragraph ending on a colon that introduces the culprit on the next
+line; a sentence that withholds the noun to force a break; "1, 2, and then 3 —
+the killer"; "Then the part that almost killed it."; "But here's where it gets
+interesting."
+
+**Fix:** state the finding when you have it.
+```
+
+**What it shows:** Give the finding when you have it, and do not hold it back for suspense.
+
+**The project now:** GUIDE.md rule 20 keeps suspense that gives the reader the puzzle, and removes a teaser that promises content and names none.
+
+**Rule:** GUIDE.md rules 50 and 20.
+
+### DC9. Drama line break
+
+Credit: Oskar Austegard, declauding skill, register entry 9, [lines 191 to 192](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L191-L192), [lines 196 to 197](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L196-L197).
+
+```text
+**Tell:** a single sentence alone on its own line as a gravitas beat — "It isn't.",
+"That is not a result.", "And then everything broke."
+
+**Fix:** put the sentence back in its paragraph. **Earned** for a real pivot: new
+actor, category shift, time jump.
+```
+
+**What it shows:** Put a sentence back in its paragraph, unless it starts a new actor, a new kind of thing or a new time.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC10. Rhetorical question plus fragment answer
+
+Credit: Oskar Austegard, declauding skill, register entry 10, [lines 203 to 204](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L203-L204), [line 209](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L209), [lines 211 to 216](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L211-L216).
+
+```text
+**Tell:** "So how does it fail?" / "Mostly by not finishing." — asking the reader
+something in order to answer it yourself.
+
+**Fix:** one declarative. *"fit-17g fails mostly by not finishing."*
+
+**Two in a row is the same tic amplified.** *Do I know how it works? Where it
+breaks? Which corners it cut?* — the second and third are fragments riding on
+the first, and none of them is asked of anyone. The linter reports runs of
+consecutive questions separately from the single standalone one, because a run
+does not need the fragment answer to be the tic. An interview transcript and a
+FAQ are the earned cases.
+```
+
+**What it shows:** Write one statement, and do not ask the reader a question so that you can answer it.
+
+**The project now:** GUIDE.md rule 36 removes a question that the writer answers with a fragment. It keeps a question that the reader has, answered in full sentences, and a run of questions in a story.
+
+**Rule:** GUIDE.md rules 50 and 36.
+
+### DC11. Straw-man knockdown
+
+Credit: Oskar Austegard, declauding skill, register entry 11, [lines 222 to 223](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L222-L223), [lines 229 to 230](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L229-L230).
+
+```text
+**Tell:** quoting a wrong reading attributed to the reader, then rejecting it —
+*"It thinks twice as long" is the obvious reading of that, and it is wrong.*
+
+**Fix:** give the correction directly. *"That median does not mean it thinks twice
+as long. On the questions it finishes..."*
+```
+
+**What it shows:** Give the correction, and do not first quote a wrong reading that nobody gave.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC12. Aphoristic closer
+
+Credit: Oskar Austegard, declauding skill, register entry 12, [lines 236 to 239](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L236-L239), [lines 244 to 246](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L244-L246).
+
+```text
+**Tell:** a final sentence that compresses the paragraph into a contrast, moral,
+or quotable line — "It is the kind of number that looks like evidence and is
+not", "The bridge was the move, not novel math", "Verifier > judge by a wide
+margin", "the failure that looks like diligence", "X is the load-bearing part".
+
+**Fix:** delete it. If the paragraph needs it, the paragraph is not working.
+Where a landing is genuinely wanted, land on a fact: *"Default retries are back
+to 3."*
+```
+
+**What it shows:** Delete the last sentence that repeats the paragraph as a moral, or end on a fact.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC13. Self-grading
+
+Credit: Oskar Austegard, declauding skill, register entry 13, [lines 252 to 255](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L252-L255), [line 260](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L260).
+
+```text
+**Tell:** "earned, not asserted", "this isn't just X, it's genuinely Y", "to be
+clear, this is rigorous because", "That is what the data shows", "That
+distinction changes what you would predict", "not a relabel", "worth noting", "a
+distinction worth keeping separate".
+
+**Fix:** make the point and stop.
+```
+
+**What it shows:** Make the point and stop, without a grade of your own reasoning.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC14. Performed humility
+
+Credit: Oskar Austegard, declauding skill, register entry 14, [lines 266 to 268](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L266-L268), [lines 272 to 273](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L272-L273).
+
+```text
+**Tell:** "Their phrasing for it is better than mine", "This might be a small
+thing, but", "I'm not sure this is worth writing up, but", "Probably nobody cares,
+but", "classic me".
+
+**Fix:** if it is worth publishing, publish it straight. Attribution without
+ranking: *"from a conversation with X"*.
+```
+
+**What it shows:** Publish the work without an apology for it.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC15. Staccato fragment cadence
+
+Credit: Oskar Austegard, declauding skill, register entry 15, [lines 279 to 281](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L279-L281), [lines 285 to 286](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L285-L286).
+
+```text
+**Tell:** three or more fragments in series for rhythm — *Six legs. One GPU, one
+server build, one sampler, one question set.* — or parallel fragment pairs, *Most
+questions it handles at a normal length. A subset runs away and hits the wall.*
+
+**Fix:** one sentence. *"Six legs, all on the same GPU with the same server build,
+sampler and question set."*
+```
+
+**What it shows:** Join a series of fragments into one sentence that lists what there is.
+
+**By the guide:** A revision above breaks GUIDE.md rule 7. This version follows the guide, and it adds no fact.
+
+```text
+The six legs all ran on the same GPU, with the same server build, sampler and question set.
+```
+
+**Rule:** GUIDE.md rules 50 and 7.
+
+### DC16. Em-dash gotcha
+
+Credit: Oskar Austegard, declauding skill, register entry 16, [lines 292 to 293](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L292-L293), [lines 298 to 302](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L298-L302).
+
+```text
+**Tell:** a clause after an em-dash that delivers the punch, especially at the end
+of a paragraph.
+
+**Fix:** if the clause is the point, make it the sentence. Also: count em-dashes.
+More than roughly one per 150 words reads as machine-written regardless of what
+each one is doing. The linter reports the density and, separately, each dash
+whose clause runs to the end of its sentence, which is the drum-roll shape rather
+than the aside.
+```
+
+**What it shows:** Make the clause after a dash its own sentence when it carries the point.
+
+**Rule:** GUIDE.md rules 50 and 39.
+
+### DC17. Throat-clearing and process narration
+
+Credit: Oskar Austegard, declauding skill, register entry 17, [lines 311 to 313](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L311-L313), [line 318](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L318).
+
+```text
+**Tell:** "I want to talk about", "In this post, I'll cover", "Let me explain",
+"First, some background", "Before I get into it", "Let me consult my memories",
+"Storing this before I answer", "First I'll X, then Y".
+
+**Fix:** start where you would start with no preamble budget.
+```
+
+**What it shows:** Start with the content, and not with what you are going to say.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC18. RTFM as revelation
+
+Credit: Oskar Austegard, declauding skill, register entry 18, [lines 324 to 326](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L324-L326), [line 328](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L328).
+
+```text
+**Tell:** "It turns out that", bare sentence-initial "Turns out", "I finally
+discovered", "Hidden in the API",
+"Buried in the docs" — followed by standard documented behaviour.
+
+**Fix:** if the finding is that you missed something obvious, say that.
+```
+
+**What it shows:** Do not present documented behavior as a discovery.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC19. Generic-developer vocabulary
+
+Credit: Oskar Austegard, declauding skill, register entry 19, [lines 334 to 337](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L334-L337).
+
+```text
+**Tell:** footgun, shot itself in the foot, almost killed it, fell apart, rabbit
+hole, yak shaving, belt-and-suspenders, load-bearing (as metaphor), moving the
+needle, first-class citizen, under the hood, magic, just works, sane defaults,
+batteries included, zero config, small enough to fit in your head.
+```
+
+**What it shows:** Use the accurate phrase, and not the stock phrase of a developer.
+
+**Rule:** GUIDE.md rules 50 and 5.
+
+### DC20. Slop vocabulary
+
+Credit: Oskar Austegard, declauding skill, register entry 20, [lines 346 to 349](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L346-L349).
+
+```text
+**Tell:** delve, tapestry, testament to, navigate the complexities, in today's
+fast-paced, it's important to note, landscape (figurative), realm, robust,
+seamless, leverage (as verb), utilize, crucial, pivotal, myriad, plethora, elevate,
+unlock, harness, embark, dive deep, at the end of the day, that said.
+```
+
+**What it shows:** Replace each word that a model overuses with the specific word.
+
+**Rule:** GUIDE.md rules 50 and 5.
+
+### DC21. Sanitized quotes
+
+Credit: Oskar Austegard, declauding skill, register entry 21, [lines 358 to 359](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L358-L359), [line 361](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L361).
+
+```text
+**Tell:** reported speech where the verb is "expressed", "indicated", "voiced
+concern about".
+
+**Fix:** if they said "WTF", write "WTF".
+```
+
+**What it shows:** Quote what the person said, and not a polite verb for it.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC22. Time-scale inflation
+
+Credit: Oskar Austegard, declauding skill, register entry 22, [lines 367 to 368](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L367-L368), [lines 370 to 371](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L370-L371).
+
+```text
+**Tell:** vague durations on recent work — "a month ago", "for a long time", "all
+year", "recently", "yesterday" — when the real timeline is hours or days.
+
+**Fix:** check the timestamp, or drop the time framing. The pull toward narrative
+time is strong and needs an empirical counter.
+```
+
+**What it shows:** Give the real time of recent work, or no time at all.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC23. Editorializing modifiers
+
+Credit: Oskar Austegard, declauding skill, register entry 23, [lines 377 to 379](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L377-L379), [line 381](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L381).
+
+```text
+**Tell:** adjectives that pre-load the verdict the piece is supposed to reach —
+"aggressive", "surprising", "impressive", "brutal", "collapse" for a 15-point
+drop, "exactly" where the contrast already carries it.
+
+**Fix:** let the number be the adjective.
+```
+
+**What it shows:** Let the number carry the verdict, and remove the adjective that gives it first.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC24. Copula avoidance
+
+Credit: Oskar Austegard, declauding skill, register entry 24, [lines 412 to 415](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L412-L415).
+
+```text
+was: *Gallery 825 serves as LAAA's exhibition space. The gallery features four
+separate spaces and boasts over 3,000 square feet.*
+now: *Gallery 825 is LAAA's exhibition space. It has four rooms totalling 3,000
+square feet.*
+```
+
+**What it shows:** Write "is" and "has", and not "serves as" and "boasts".
+
+**Rule:** GUIDE.md rule 51.
+
+### DC25. Participle tail
+
+Credit: Oskar Austegard, declauding skill, register entry 25, [lines 432 to 436](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L432-L436).
+
+```text
+was: *The temple's palette resonates with the region's natural beauty,
+symbolizing Texas bluebonnets and the Gulf of Mexico, reflecting the
+community's deep connection to the land.*
+now: *The temple is painted blue, green and gold, colours chosen to evoke
+Texas bluebonnets and the Gulf of Mexico.*
+```
+
+**What it shows:** Remove the -ing clause at the end of a sentence that claims importance.
+
+**The project now:** GUIDE.md rule 9 keeps an -ing clause that adds a fact, in its sentence or in a sentence of its own, as the register does here.
+
+**Rule:** GUIDE.md rules 51 and 9.
+
+### DC26. Forced triad
+
+Credit: Oskar Austegard, declauding skill, register entry 26, [lines 454 to 456](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L454-L456).
+
+```text
+was: *The event features keynote sessions, panel discussions, and networking
+opportunities.*
+now: *The event has talks and panels, with time between them to talk to people.*
+```
+
+**What it shows:** List the items that there are, even when there are two.
+
+**Rule:** GUIDE.md rule 51.
+
+### DC27. Elegant variation
+
+Credit: Oskar Austegard, declauding skill, register entry 27, [lines 488 to 490](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L488-L490).
+
+```text
+was: *The protagonist faces many challenges. The main character must overcome
+obstacles. The central figure eventually triumphs.*
+now: *The protagonist faces many challenges and eventually wins.*
+```
+
+**What it shows:** Keep one noun for one thing, and do not rename it for variety.
+
+**Rule:** GUIDE.md rules 51 and 2.
+
+### DC28. False range
+
+Credit: Oskar Austegard, declauding skill, register entry 28, [lines 508 to 511](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L508-L511).
+
+```text
+was: *Our journey has taken us from the singularity of the Big Bang to the
+grand cosmic web, from the birth of stars to the dance of dark matter.*
+now: *The book covers the Big Bang, star formation and current theories about
+dark matter.*
+```
+
+**What it shows:** Write a range only when it has a scale, and otherwise list the items.
+
+**Rule:** GUIDE.md rule 51.
+
+### DC29. Inline-header list
+
+Credit: Oskar Austegard, declauding skill, register entry 29, [lines 530 to 532](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L530-L532).
+
+```text
+was: *- **Performance:** Performance has been enhanced through optimized
+algorithms.*
+now: *Load times dropped after the index moved off the hot path.*
+```
+
+**What it shows:** Remove a bold label that repeats the first words of its list item.
+
+**The project now:** GUIDE.md rule 43 bolds the first words of an item only when they are a name that the reader looks for, such as an option, a term or a case.
+
+**Rule:** GUIDE.md rules 51 and 43.
+
+### DC30. Typographic tells
+
+Credit: Oskar Austegard, declauding skill, register entry 30, [lines 541 to 543](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L541-L543), [lines 549 to 551](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L549-L551).
+
+```text
+**Tell:** bold scattered mid-sentence on phrases that are not terms; Title Case
+On Every Word Of A Heading; emoji as bullet or heading decoration; curly quotes
+in a plain-text or code context.
+
+**Fix:** bold for terms on first use and nothing else; sentence case in headings;
+no emoji unless the document already uses them; straight quotes in anything a
+program will read.
+```
+
+**What it shows:** Bold only a term at its first use, write headings in sentence case, and use straight quotes in anything that a program reads.
+
+**The project now:** GUIDE.md rule 43 also bolds the name of a button, which the reader must find on a screen.
+
+**Rule:** GUIDE.md rules 51, 41, 42 and 43.
+
+### DC31. Chatbot residue
+
+Credit: Oskar Austegard, declauding skill, register entry 31, [lines 560 to 563](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L560-L563), [line 568](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L568).
+
+```text
+**Tell:** the conversational wrapper left in the pasted text — "Great question",
+"Certainly", "You're absolutely right", "I hope this helps", "Let me know if
+you'd like", "Would you like me to", "Want me to give examples", "Here is an
+overview of".
+
+**Fix:** delete. There is no rewrite; the sentence has no content.
+```
+
+**What it shows:** Delete the words of a chat reply, such as "Great question".
+
+**Rule:** GUIDE.md rule 51.
+
+### DC32. Filler and hedge stacking
+
+Credit: Oskar Austegard, declauding skill, register entry 32, [lines 585 to 587](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L585-L587).
+
+```text
+was: *It could potentially possibly be argued that the policy might have some
+effect on outcomes.*
+now: *The policy may affect outcomes.*
+```
+
+**What it shows:** Use one plain word for a long phrase, and one hedge for the uncertainty.
+
+**Rule:** GUIDE.md rule 51.
+
+### DC33. Speculative gap-filling
+
+Credit: Oskar Austegard, declauding skill, register entry 33, [lines 607 to 609](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L607-L609).
+
+```text
+was: *Information about her early life is not publicly available, suggesting
+she maintains a low profile. She likely grew up in a middle-class household.*
+now: *Her early life is not documented in the sources used here.*
+```
+
+**What it shows:** Say what is not known, and do not fill the gap with a guess.
+
+**Rule:** GUIDE.md rule 51.
+
+### DC34. Diff-anchored documentation
+
+Credit: Oskar Austegard, declauding skill, register entry 34, [lines 635 to 638](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L635-L638), [lines 640 to 644](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L640-L644).
+
+```text
+was: *This function was added to replace the previous approach of iterating
+through all items, which caused quadratic performance.*
+now: *Looks up items through a hash map, so cost is constant per item rather
+than quadratic in the list length.*
+
+was: *Before entries 24 to 36 were ported from it, a probe file of 19 humanizer
+specimens produced 2 candidates from this linter, neither for the right reason.
+It now produces 33 across 13 categories.* (this skill's own README)
+now: *A probe file of 19 humanizer specimens produces 33 candidates across 13
+categories.* The before-and-after count moves to the changelog.
+```
+
+**What it shows:** Describe the thing as it is now, and put the history of the change in the changelog.
+
+**By the guide:** A revision above breaks GUIDE.md rule 7. This version follows the guide, and it adds no fact.
+
+```text
+The function looks up items through a hash map, so the cost is constant per item rather than quadratic in the length of the list.
+```
+
+**Rule:** GUIDE.md rule 51.
+
+### DC35. Subjectless fragment
+
+Credit: Oskar Austegard, declauding skill, register entry 35, [lines 660 to 662](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L660-L662).
+
+```text
+was: *No configuration file needed. The results are preserved automatically.*
+now: *You do not need a config file. The runner writes results to `out/` when
+the job exits.*
+```
+
+**What it shows:** Name the actor that does the thing.
+
+**Rule:** GUIDE.md rules 51 and 7.
+
+### DC36. Predicate-position hyphenation
+
+Credit: Oskar Austegard, declauding skill, register entry 36, [lines 679 to 680](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L679-L680).
+
+```text
+was: *The team is cross-functional and the report is data-driven.*
+now: *The team is cross functional and the report is data driven.*
+```
+
+**What it shows:** Keep the hyphen of a compound before the noun, and drop it after the noun.
+
+**Rule:** GUIDE.md rule 51.
+
+### DC37. Dressed metaphor
+
+Credit: Oskar Austegard, declauding skill, register entry 37, [lines 704 to 705](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L704-L705), [lines 707 to 708](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L707-L708).
+
+```text
+was: *That is information loss wearing the costume of a style fix.*
+now: *The edit removes content while looking like it removed only style.*
+
+was: *every time we pushed on a mechanism the hard part squirted out.*
+now: *each mechanism we examined had the same difficulty underneath it.*
+```
+
+**What it shows:** Describe the mechanism in place of a figure of speech that dresses it.
+
+**Rule:** GUIDE.md rule 50.
+
+### DC38. Announce-then-deliver
+
+Credit: Oskar Austegard, declauding skill, register entry 38, [lines 741 to 744](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L741-L744).
+
+```text
+was: *One factual note, not fixed: X and Y both assert what people generally
+do. Nothing in the repo supports either.*
+now: *Two sentences assert what people generally do, and nothing in the repo
+supports either: X and Y.*
+```
+
+**What it shows:** Delete a counted label in front of the content, and start with the content.
+
+**Rule:** GUIDE.md rules 50 and 38.
+
+### DC39. Welded epigram
+
+Credit: Oskar Austegard, declauding skill, register entry 39, [lines 774 to 776](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L774-L776), [lines 778 to 780](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L778-L780).
+
+```text
+was: *Entries the caller does not itself hold are dropped, so a child never
+carries a grant its parent lacks.*
+now: *List a tool you do not have yourself and it is dropped.*
+
+was: *The rest of the surface depends on this parameter, and the failure it
+prevents is silent.*
+now: *Leave it out and nothing errors — the child just comes up bare.*
+```
+
+**What it shows:** Keep the clause that says what happens, and delete the clause that turns it into a maxim.
+
+**By the guide:** A revision above breaks GUIDE.md rules 5, 16, 39 and 54. This version follows the guide, and it adds no fact.
+
+```text
+If you list a tool that you do not have yourself, it is dropped.
+
+If you leave it out, no error appears, and the child comes up bare.
+```
+
+**Rule:** GUIDE.md rule 50.
+
+### DC40. Spec-ese
+
+Credit: Oskar Austegard, declauding skill, register entry 40, [lines 804 to 805](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L804-L805), [lines 807 to 808](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L807-L808).
+
+```text
+was: *That child holds no repository and waits for input.*
+now: *It comes up with no repo and does nothing until you send it a message.*
+
+was: *Omit it and the child idles awaiting input.*
+now: *Leave it out and the session just sits there.*
+```
+
+**What it shows:** Write "it" and the verb that you would say aloud, and name the person who acts.
+
+**By the guide:** A revision above breaks GUIDE.md rules 5 and 16. This version follows the guide, and it adds no fact.
+
+```text
+It comes up with no repo and does nothing until you send it a message.
+
+If you leave it out, the session does nothing.
+```
+
+**The project now:** GUIDE.md rule 37 writes "it" when only one thing could be meant, and the noun when the sentence before names two things.
+
+**Rule:** GUIDE.md rules 50 and 37.
+
+### DC41. Nominalized header
+
+Credit: Oskar Austegard, declauding skill, register entry 41, [lines 830 to 831](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L830-L831).
+
+```text
+was: *GitHub authorship in a sourced child* → now: *Who the delegate posts as*
+was: *Spawn availability* → now: *When create_session fails*
+```
+
+**What it shows:** Name the concrete thing in a heading, or ask the question of the reader.
+
+**The project now:** GUIDE.md rule 32 follows the register for section headings. The title of a task in progress in a list keeps its -ing form, by rule 45.
+
+**Rule:** GUIDE.md rules 50 and 32.
+
+### DC42. Contents-list standfirst
+
+Credit: Oskar Austegard, declauding skill, register entry 42, [lines 859 to 861](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L859-L861).
+
+```text
+was: *The create_session parameter surface, plus the behavior the schema
+leaves out.*
+now: *Every parameter, and four behaviors that only show up in practice.*
+```
+
+**What it shows:** Say what the page holds, and do not promise material without naming it.
+
+**Rule:** GUIDE.md rules 50 and 20.
+
+### DC43. Flat-certainty adverb
+
+Credit: Oskar Austegard, declauding skill, register entry 43, [lines 900 to 901](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L900-L901), [lines 903 to 904](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L903-L904).
+
+```text
+was: *The retry is provably safe.*
+now: *The retry is idempotent: the handler keys on the request id.*
+
+was: *The flag was quietly dropped in 4.2.*
+now: *The flag was dropped in 4.2. The changelog does not mention it.*
+```
+
+**What it shows:** Delete an adverb that stands in for the evidence, or give the evidence.
+
+**By the guide:** A revision above breaks GUIDE.md rule 40. This version follows the guide, and it adds no fact.
+
+```text
+The retry is idempotent, because the handler keys on the request id.
+
+The flag was dropped in 4.2. The changelog does not mention it.
+```
+
+**Rule:** GUIDE.md rule 52.
+
+### DC44. Juridical register
+
+Credit: Oskar Austegard, declauding skill, register entry 44, [lines 928 to 929](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L928-L929), [lines 931 to 932](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L931-L932).
+
+```text
+was: *The guard refuses any caller without standing.*
+now: *The guard returns 403 when the token has no `write` scope.*
+
+was: *That is the carve-out the header check honors.*
+now: *The header check skips one-word titles.*
+```
+
+**What it shows:** Name the mechanism and its exit condition, and not the words of a court.
+
+**Rule:** GUIDE.md rule 52.
+
+### DC45. Verification-provenance compound
+
+Credit: Oskar Austegard, declauding skill, register entry 45, [lines 959 to 961](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L959-L961), [lines 963 to 964](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L963-L964).
+
+```text
+was: *The rewrite is byte-identical and mutation-checked.*
+now: *`diff` reports no change. The mutation run killed 14 of 15; the survivor
+is in `parse_header`.*
+
+was: *I re-derived the threshold.*
+now: *I recomputed the threshold from the 46 chunks and got 0.20 again.*
+```
+
+**What it shows:** Say what was run and what came back, in place of a compound such as "byte-identical".
+
+**By the guide:** A revision above breaks GUIDE.md rule 40. This version follows the guide, and it adds no fact.
+
+```text
+`diff` reports no change. The mutation run killed 14 of 15, and the survivor is in `parse_header`.
+
+I recomputed the threshold from the 46 chunks and got 0.20 again.
+```
+
+**Rule:** GUIDE.md rule 52.
+
+### DC46. Privative coinage
+
+Credit: Oskar Austegard, declauding skill, register entry 46, [lines 987 to 988](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L987-L988), [lines 990 to 991](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L990-L991).
+
+```text
+was: *Three of the paths are unguarded.*
+now: *Three of the paths have no length check before the index.*
+
+was: *The assertion is vacuous.*
+now: *The assertion passes on an empty list, which is what the test supplies.*
+```
+
+**What it shows:** Say what is missing and where, in place of a word such as "ungated".
+
+**Rule:** GUIDE.md rule 52.
+
+### DC47. Exhaustive negation
+
+Credit: Oskar Austegard, declauding skill, register entry 47, [lines 1014 to 1015](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1014-L1015), [lines 1017 to 1019](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1017-L1019).
+
+```text
+was: *Nothing in the fit varies with time.*
+now: *The fit has one parameter per cluster and none per week.*
+
+was: *There is nowhere else for the rise to be.*
+now: *The weekly shares are counted after assignment, so a rise is in the
+assignments.*
+```
+
+**What it shows:** State the scope that you checked, in place of "nothing" or "never".
+
+**Rule:** GUIDE.md rule 52.
+
+### DC48. Performative candour
+
+Credit: Oskar Austegard, declauding skill, register entry 48, [lines 1042 to 1045](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1042-L1045).
+
+```text
+was: *Let's be honest: the benchmark does not measure what the README claims.
+And you don't have to take my word for it.*
+now: *The benchmark times decode only. The README claims end to end. The
+harness is `bench/run.py`, line 40.*
+```
+
+**What it shows:** Delete the announcement of honesty, and keep the sentence.
+
+**Rule:** GUIDE.md rule 53.
+
+### DC49. Stranded auxiliary reversal
+
+Credit: Oskar Austegard, declauding skill, register entry 49, [lines 1065 to 1067](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1065-L1067).
+
+```text
+was: *The tool died; the data didn't.*
+now: *The tool stopped writing checkpoints on 12 August. The rows already
+written are still in the bucket.*
+```
+
+**What it shows:** Say what the second clause claims, and do not end it on a bare auxiliary verb.
+
+**Rule:** GUIDE.md rule 53.
+
+### DC50. Retroactive significance
+
+Credit: Oskar Austegard, declauding skill, register entry 50, [lines 1091 to 1093](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1091-L1093).
+
+```text
+was: *That's why being able to open the environment mattered.*
+now: *Opening the environment recovered 40 GB of checkpoints. Without it the
+run restarts at step 0.*
+```
+
+**What it shows:** Delete a sentence that tells the reader why an earlier passage was important.
+
+**Rule:** GUIDE.md rule 53.
+
+### DC51. Totalizing designation
+
+Credit: Oskar Austegard, declauding skill, register entry 51, [lines 1113 to 1115](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1113-L1115), [lines 1117 to 1119](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1117-L1119).
+
+```text
+was: *That's the whole point of the format.*
+now: *The format keeps the offsets in the header, so a reader can seek without
+decompressing.*
+
+was: *Changelogs are the only release notes I trust.*
+now: *I check release notes against the diff, which per-entry links make
+possible.*
+```
+
+**What it shows:** State the part, and do not call it the whole.
+
+**Rule:** GUIDE.md rule 53.
+
+### DC52. Obituary headline
+
+Credit: Oskar Austegard, declauding skill, register entry 52, [lines 1138 to 1139](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1138-L1139).
+
+```text
+was: *Peer code review is dead*
+now: *Three of our four teams dropped the second-approval requirement in July*
+```
+
+**What it shows:** Name what changed, in place of "X is dead".
+
+**Rule:** GUIDE.md rule 53.
+
+### DC53. Noun stack
+
+Credit: Oskar Austegard, declauding skill, register entry 53, [lines 1201 to 1204](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1201-L1204), [lines 1206 to 1209](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1206-L1209).
+
+```text
+was: *New tests for paths with spaces, dry-run write prevention, and
+idempotent config reinstalls.* (GPT-5.6 Terra, paper Table 2)
+now: *New tests cover paths with spaces, check that a dry run writes nothing,
+and check that reinstalling the config is idempotent.*
+
+was: *I acknowledge concerns about distraction, but Policy 1's class-time
+shutdown requirement directly addresses this.* (Kimi K2.5)
+now: *Policy 1 requires phones to be off during class, which addresses the
+concern about distraction.*
+```
+
+**What it shows:** Break a stack of nouns into a phrase with prepositions, or a clause that names the relation.
+
+**Rule:** GUIDE.md rules 54 and 10.
+
+### DC54. Verbed noun
+
+Credit: Oskar Austegard, declauding skill, register entry 54, [lines 1229 to 1231](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1229-L1231).
+
+```text
+was: *…the convoluted sentence you are currently reading is quietly eating
+its own reader-patience budget — footnote it.* (the paper's opening specimen)
+now: *…this sentence is hard to read. Move it to a footnote.*
+```
+
+**What it shows:** Use a plain verb with the noun as its object, and not a noun as a verb.
+
+**Rule:** GUIDE.md rule 54.
+
+### DC55. Dropped *that*
+
+Credit: Oskar Austegard, declauding skill, register entry 55, [lines 1259 to 1262](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1259-L1262).
+
+```text
+was: *Three fail on the old code; the others check behaviour the old code never
+reached.* (Opus 5.5)
+now: *Three fail on the old code; the others check behaviour that the old code
+never reached.*
+```
+
+**What it shows:** Put "that" back in a long clause.
+
+**By the guide:** A revision above breaks GUIDE.md rule 40. This version follows the guide, and it adds no fact.
+
+```text
+Three fail on the old code. The others check behaviour that the old code never reached.
+```
+
+**Rule:** GUIDE.md rule 54.
+
+### DC56. Distant verb
+
+Credit: Oskar Austegard, declauding skill, register entry 56, [lines 1283 to 1288](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1283-L1288).
+
+```text
+was: *All five expression shapes — attribute access, subscript, calls, nested
+calls, string literals — leave current on NAME('b'), and the full template
+renders correctly.* (Fable 5)
+now: *All five expression shapes leave current on NAME('b'): attribute access,
+subscript, calls, nested calls and string literals. The full template renders
+correctly.*
+```
+
+**What it shows:** Give the verb soon after its subject, and move the list after the main clause.
+
+**Rule:** GUIDE.md rules 54 and 12.
