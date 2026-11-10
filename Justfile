@@ -21,7 +21,7 @@ sync:
 # The commit of oaustegard/claude-skills whose declauding skill, by Oskar Austegard, ships in .agents/skills/declauding
 declauding_commit := "6baa7290da972191749acda03c63297e67b3fc26"
 
-# Copy the declauding skill again from that commit, without changes, with its licence
+# Copy the declauding skill again from that commit, with its licence, and apply sources/declauding.patch
 declauding:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -30,10 +30,18 @@ declauding:
     git clone --quiet --filter=blob:none --no-checkout https://github.com/oaustegard/claude-skills.git "$tool_root/src"
     git -C "$tool_root/src" sparse-checkout set --no-cone /declauding/ /LICENSE
     git -C "$tool_root/src" checkout --quiet {{declauding_commit}}
+    mkdir -p "$tool_root/stage/.agents/skills"
+    cp -R "$tool_root/src/declauding" "$tool_root/stage/.agents/skills/declauding"
+    if ! git -C "$tool_root/stage" apply --check "$PWD/sources/declauding.patch" 2>/dev/null; then
+        echo "sources/declauding.patch does not apply to commit {{declauding_commit}}. Update or remove it." >&2
+        exit 1
+    fi
     rm -rf .agents/skills/declauding
     cp -R "$tool_root/src/declauding" .agents/skills/declauding
     cp "$tool_root/src/LICENSE" .agents/skills/declauding/LICENSE
-    {{python}} tests/declauding_manifest.py {{declauding_commit}} > sources/declauding.json
+    {{python}} tests/declauding_manifest.py {{declauding_commit}} > "$tool_root/before.json"
+    git apply sources/declauding.patch
+    {{python}} tests/declauding_manifest.py {{declauding_commit}} "$tool_root/before.json" > sources/declauding.json
 
 # Compare the record of the declauding copy with the files of its commit on GitHub. It needs gh and the network
 declauding-verify:

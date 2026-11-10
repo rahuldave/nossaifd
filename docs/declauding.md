@@ -14,8 +14,14 @@ nossaifd ships the skill by Oskar Austegard in `.agents/skills/declauding/`, nex
 Oskar Austegard wrote the skill. It is in the folder `declauding` of his repository
 [oaustegard/claude-skills](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding),
 under the MIT licence, copyright (c) 2025 Oskar Austegard. nossaifd ships version 0.14.0, from commit
-`6baa729` of 10 November 2026. The copy has no changes, and the file `LICENSE` in the folder holds his
-licence. `just declauding` copies the skill again from that commit.
+`6baa729` of 10 November 2026. The file `LICENSE` in the folder holds his licence. `just declauding`
+copies the skill again from that commit.
+
+The copy changes one sentence of his skill, and `sources/declauding.patch` holds the change. In his
+commit, line 14 of `references/fresh-eyes.md` cites `docs/failure-modes.md`, a file in his repository
+oaustegard/claude-workspace. That repository is not public, so the file cannot be copied. The lint of
+skill-package-maker read the path as a missing file of the skill, and it failed. The sentence now names
+the file, its folder and his repository in words, on lines 14 and 15 of the copy.
 
 ## How to use it with the guide
 

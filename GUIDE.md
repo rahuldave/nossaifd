@@ -4,7 +4,8 @@ This guide is for documentation, READMEs and other prose that an AI model writes
 joins five sources:
 
 - **ASD-STE100, Simplified Technical English.** Aerospace manuals use it, so that readers who are not
-  native English speakers understand them.
+  native English speakers understand them. Most of its rules here come from memory, and
+  [the list of them](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard) says which.
 - **The plain-writing skill by Shreya Shankar.** It keeps prose plain and free of the habits of AI writing.
 - **"Communicating Your Work", a tutorial by Rosalind Reid**, in two slide decks, the written reports and
   the tutorial deck. Rosalind Reid's decks give the order of a long document, several rules for sentences,
@@ -65,7 +66,7 @@ section is this guide's own.
    | before | prior to |
 
    From: [Shankar's skill, rule 1](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L26),
-   and the dictionary of [STE](https://www.asd-ste100.org/about.html).
+   and the dictionary of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard).
 2. **Use one term for one thing.** Keep a glossary of the project's terms, and use each term the same way
    every time. Do not change to a synonym for variety. A word keeps one meaning in the whole document.
 
@@ -105,7 +106,7 @@ section is this guide's own.
    "and", "but", "because" or "so". `check.py` notes a sentence of more than 25 words. It fails one of more
    than 40, which is this guide's own limit.
 
-   From: the writing rules of [STE](https://www.asd-ste100.org/about.html) for the 25 words, and Shankar's
+   From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard) for the 25 words, and Shankar's
    skill, [rule 11](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L105)
    and [rule 12](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L118).
 9. **Use mostly the active voice, mix in the passive where it helps, and put each action in a verb.** Rosalind
@@ -121,10 +122,10 @@ section is this guide's own.
      add a fact, as in "The script reads each file, skipping the empty ones". Do not end a sentence with
      one that only claims importance, as in "The team released version 2, marking a turning point".
 
-   From: the writing rules of [STE](https://www.asd-ste100.org/about.html), and Rosalind Reid, written
+   From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard), and Rosalind Reid, written
    reports, [pages 13 and 14](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)
    for actions in verbs and [page 15](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)
-   for the voice. The passive for an unknown actor is this guide's own. STE asks for the active voice, and
+   for the voice. The passive for an unknown actor is this guide's own. STE, from memory and not checked, asks for the active voice, and
    this guide follows Rosalind Reid. The rule for an -ing clause at the end follows
    [Oskar Austegard's declauding skill, register entry 25](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L419),
    which removes a clause at the end that only claims importance.
@@ -133,7 +134,7 @@ section is this guide's own.
     key" and not "the cache key format". A standard term of the field, such as "foreign key constraint",
     keeps its nouns. So does a group of nouns that the document defines once and then uses as a name.
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html), which allow three nouns. The
+    From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard), which allow three nouns. The
     limit of two and the term of the field come from [Oskar Austegard's declauding skill, register entry 53](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1185), and this guide follows
     it.
 11. **Say exactly what happens.** Name who or what does the action, and by what means. Remove side clauses
@@ -164,21 +165,21 @@ section is this guide's own.
 14. **Write an instruction as a command.** Write "Open the file" and not "You should open the file" or "The
     file can be opened".
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html).
+    From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard).
 15. **Give one instruction in one sentence, in the order the reader does it.** Use a numbered list, or
     "First", "Second" and "Third", for a sequence. Two actions that happen at the same time can share a
     sentence.
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html), and
+    From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard), and
     [Shankar's skill, rule 9](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L83).
 16. **Put a condition first.** Write "If the test fails, read the log" and not "Read the log if the test
-    fails". An instruction has 20 words or fewer.
+    fails". Keep an instruction to about 20 words, as rule 8 says.
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html).
+    From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard).
 17. **Start a warning with a short command, then give the reason.** Write "Do not put the address on a
     slide. Anyone with the address can run commands as you."
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html).
+    From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard).
 
 ## Paragraphs
 
@@ -189,7 +190,7 @@ section is this guide's own.
 19. **Keep a paragraph to six sentences or fewer.** Do not give three or more examples in a row for the
     same point.
 
-    From: the writing rules of [STE](https://www.asd-ste100.org/about.html) for the six sentences, and
+    From: the writing rules of STE, [from memory and not checked](https://github.com/rahuldave/nossaifd/blob/main/docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard) for the six sentences, and
     [Shankar's skill, rule 11](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L105)
     for the examples.
 
@@ -520,14 +521,14 @@ again on the revision. Then read every page yourself.
 
 ## Sources
 
-- **ASD-STE100, Simplified Technical English**, Issue 8, at https://www.asd-ste100.org/about.html. The
-  AeroSpace and Defence Industries Association of Europe (ASD) owns it. Aircraft makers write their
-  maintenance manuals in it, so that readers who are not native English speakers understand them. Andrej
-  Karpathy suggested on X that the same rules suit text that AI models write. The rules for words,
-  sentences, instructions and paragraphs come from it. Only the about page is public. It confirms the
-  purpose of STE and its rule of one word for one meaning. No copy of the writing rules was available to
-  check the other rules that this guide gives to STE. Its dictionary of approved words is not part of this
-  guide.
+- **ASD-STE100, Simplified Technical English (STE)**, Issue 8, at https://www.asd-ste100.org/about.html.
+  The AeroSpace and Defence Industries Association of Europe (ASD) owns it, and aircraft makers write their
+  maintenance manuals in it for readers who are not native English speakers. Andrej Karpathy suggested on X
+  that the same rules suit text that AI models write. The rules for words, sentences, instructions and
+  paragraphs come from it. Only its about page was read. That page confirms the purpose of STE and its
+  rule of one word for one meaning. Every other rule that this guide gives to STE comes from memory. So do
+  the few word swaps of rule 1 from its dictionary. So each of their credits says "from memory and not
+  checked".
 - **The plain-writing skill by Shreya Shankar**,
   https://github.com/docwriter-org/plain-writing-skill, at commit f0d3630, under the MIT licence, copyright
   (c) 2026 Shreya Shankar. The rules for tone, punctuation and the patterns of AI writing come from it,
@@ -572,7 +573,7 @@ again on the revision. Then read every page yourself.
 - **The declauding skill by Oskar Austegard**, in https://github.com/oaustegard/claude-skills, folder
   `declauding`, version 0.14.0 at commit 6baa729, under the MIT licence, copyright (c) 2025 Oskar
   Austegard. Rules 50 to 55 come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of
-  it. This repository ships the skill without changes in `.agents/skills/declauding/`, with its licence.
+  it. This repository ships the skill in `.agents/skills/declauding/`, with its licence and one changed sentence.
   Its register gives a pair of sentences, before and after, for most patterns. The README of the skill
   names its sources, which are the Wikipedia page "Signs of AI writing", the humanizer skill, Louis
   Abraham, Simon Willison, and Clark, Martin and Mahowald. Where the skill and an earlier version of a rule

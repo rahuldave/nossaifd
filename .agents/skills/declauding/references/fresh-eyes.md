@@ -11,7 +11,8 @@ contradicted itself.
 
 Three ways of catching it automatically were measured on Claude-written commits to READMEs, docs, write-ups and
 pages. A fire is a passage the check flagged; whether a fire was real was judged by a separate model that had not
-written the check (oaustegard/claude-workspace `docs/failure-modes.md` has the details):
+written the check (the file failure-modes.md, in the folder docs of Oskar Austegard's repository
+oaustegard/claude-workspace, has the details):
 
 | check | result |
 |---|---|

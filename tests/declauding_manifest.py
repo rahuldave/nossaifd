@@ -3,6 +3,10 @@
 `just declauding` writes it to sources/declauding.json, and tests/test_declauding.py compares the copy with it.
 A git blob id is the SHA-1 of "blob <size>\\0" and the bytes, so `just declauding-verify` can compare the
 record with the tree of the commit on GitHub. The LICENSE comes from the root of that repository.
+
+The copy changes the files that sources/declauding.patch names. "files" keeps the ids of the files of the
+commit, before the patch, and "changed" gives the ids of the changed files after it. With a second argument,
+a record of the copy before the patch, the script takes "files" from that record.
 """
 import hashlib
 import json
@@ -27,4 +31,7 @@ def version():
 
 
 if __name__ == '__main__':
-    print(json.dumps({'commit': sys.argv[1], 'version': version(), 'files': digests()}, indent=2))
+    now = digests()
+    files = json.loads(Path(sys.argv[2]).read_text())['files'] if len(sys.argv) > 2 else now
+    changed = {path: digest for path, digest in now.items() if files.get(path) != digest}
+    print(json.dumps({'commit': sys.argv[1], 'version': version(), 'files': files, 'changed': changed}, indent=2))

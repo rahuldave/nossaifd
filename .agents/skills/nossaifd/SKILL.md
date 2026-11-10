@@ -9,7 +9,8 @@ license: MIT, copyright (c) 2026 Rahul Dave. The full text is in the LICENSE fil
 nossaifd is a writing guide for prose that an AI model writes and a person
 reads. Its rules come from five sources:
 
-- Simplified Technical English, ASD-STE100.
+- Simplified Technical English, ASD-STE100. Most of its rules here come from memory of the standard, and
+  the file docs/why.md of nossaifd lists them.
 - The plain-writing skill by Shreya Shankar.
 - "Communicating Your Work", a tutorial by Rosalind Reid. It gives the order of a long document, several rules for sentences,
   and the rules for figures. Rosalind Reid lets this project use her work on
@@ -20,7 +21,7 @@ reads. Its rules come from five sources:
   Shankar. It gives the rules for short items that a person skims.
 - The declauding skill by Oskar Austegard, under the MIT licence. It gives
   the rules for the revision of a draft that reads as if a model wrote it.
-  This package ships it, without changes, as the skill `declauding`.
+  This package ships it as the skill `declauding`, with one sentence of a reference changed.
 
 The rules make the text plain and easy to read for a reader who is not a native
 speaker. Each rule in the guide names its source. Most rules are preferences. A
