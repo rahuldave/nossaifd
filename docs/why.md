@@ -78,7 +78,7 @@ says where the skill comes from.
 | "It" or the noun | Rule 37 replaces a vague "This" with the noun. [Oskar Austegard's register, entry 40](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L788) replaces "That child" with "it" | Write "it" when only one thing could be meant, and the noun otherwise. Rule 37 |
 | An -ing clause at the end of a sentence | Rule 9 allowed an -ing form anywhere. [Oskar Austegard's register, entry 25](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L419) removes a clause at the end that only claims importance, and moves a clause with a fact to its own sentence | Keep an -ing clause that adds a fact, in its sentence or in a sentence of its own. Remove one that only claims importance. Rules 9 and 51 |
 
-## Rules of ASD-STE100 that are not checked against the standard
+## ASD-STE100 rules from memory
 
 ASD-STE100, Simplified Technical English (STE), is a standard for the maintenance manuals of aircraft.
 Issue 8 is the edition that the guide names, and [the sources](sources.md#asd-ste100-simplified-technical-english)

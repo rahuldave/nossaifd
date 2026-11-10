@@ -7,7 +7,7 @@ REPO = Path(__file__).resolve().parents[1]
 GUIDE = (REPO / 'GUIDE.md').read_text()
 WHY = (REPO / 'docs/why.md').read_text()
 ABOUT = 'https://www.asd-ste100.org/about.html'
-ANCHOR = 'why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard'
+ANCHOR = 'why.md#asd-ste100-rules-from-memory'
 UNCHECKED = 'from memory and not checked'
 # Every spelling of the standard's name
 NAMES = re.compile(r'\bSTE\b|Simplified Technical English|ASD-STE100', re.I)
@@ -22,7 +22,7 @@ def rules():
 
 
 def section():
-    return WHY[WHY.index('## Rules of ASD-STE100 that are not checked'):]
+    return WHY[WHY.index('## ASD-STE100 rules from memory'):]
 
 
 class SteTest(unittest.TestCase):
@@ -44,7 +44,22 @@ class SteTest(unittest.TestCase):
         for number, text in rules():
             if UNCHECKED in text:
                 self.assertIn(f'[{UNCHECKED}](https://github.com/rahuldave/nossaifd/blob/main/docs/{ANCHOR})', text, number)
-        self.assertIn('## Rules of ASD-STE100 that are not checked against the standard', WHY)
+        self.assertIn('## ASD-STE100 rules from memory', WHY)
+
+    def test_each_link_to_a_section_of_a_page_of_docs_finds_its_heading(self):
+        "A renamed heading breaks every link to it, and smalldocs check does not check anchors"
+        def slugs(page):
+            return {re.sub(r'[^a-z0-9 -]', '', h.lower()).replace(' ', '-')
+                    for h in re.findall(r'^#+ (.+)$', page.read_text(), re.M)}
+        pages = [REPO / n for n in ('README.md', 'GUIDE.md', 'EXAMPLES.md', 'index.qmd')]
+        pages += sorted((REPO / 'docs').glob('*.md')) + sorted((REPO / '.agents/skills/nossaifd').rglob('*.md'))
+        for page in pages:
+            for name, anchor in re.findall(r'(?:docs/|\]\()([a-z]+)\.md#([a-z0-9-]+)', page.read_text()):
+                target = REPO / 'docs' / f'{name}.md'
+                if target.exists():
+                    with self.subTest(page=str(page.relative_to(REPO)), link=f'{name}.md#{anchor}'):
+                        self.assertIn(anchor, slugs(target))
+        self.assertIn(ANCHOR.split('#')[1], slugs(REPO / 'docs/why.md'))
 
     def test_each_block_of_each_page_that_names_ste_marks_its_rules_as_unchecked(self):
         "A paragraph, an item or a row that names STE says from memory, or that only the about page was read"

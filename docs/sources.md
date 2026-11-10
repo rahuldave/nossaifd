@@ -60,7 +60,7 @@ adopt the dictionary itself.
 
 No copy of the standard was available. Only its about page was read. That page confirms the purpose of
 STE and its rule of one word for one meaning.
-[Why the rules](why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard) lists every other
+[Why the rules](why.md#asd-ste100-rules-from-memory) lists every other
 part of the guide that names STE, and none of them is checked against the standard.
 
 ## Shreya Shankar

@@ -115,6 +115,47 @@ class CopyTest(unittest.TestCase):
         recipe = (REPO / 'Justfile').read_text().split('\ndeclauding:', 1)[1].split('\n\n', 1)[0]
         self.assertLess(recipe.index('apply --check'), recipe.index('rm -rf .agents/skills/declauding'))
 
+    def declaude(self, *pages, code=1):
+        "Run just declaude in a copy of the Justfile, with a stub linter that ends with this code."
+        import shutil, subprocess, tempfile
+        if not shutil.which('just'):
+            self.skipTest('just is not installed')
+        with tempfile.TemporaryDirectory() as temp:
+            shutil.copy(REPO / 'Justfile', temp)
+            stub = Path(temp) / '.agents/skills/declauding/scripts/declaude_lint.py'
+            stub.parent.mkdir(parents=True)
+            stub.write_text(f'import sys\nprint("LINT", sys.argv[1:])\nsys.exit({code})\n')
+            (Path(temp) / 'my page.md').write_text('A page.\n')
+            return subprocess.run(['just', 'declaude', *pages], cwd=temp, capture_output=True, text=True)
+
+    def test_the_declaude_recipe_does_not_fail_on_candidates(self):
+        run = self.declaude('my page.md')
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertIn("LINT ['--skip-quoted', 'my page.md']", run.stdout)   # a name with a space stays whole
+
+    def test_the_declaude_recipe_fails_on_a_missing_page_or_a_linter_that_cannot_run(self):
+        run = self.declaude('my page.md', 'nope.md')
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('no such file: nope.md', run.stderr)
+        self.assertNotEqual(self.declaude('my page.md', code=2).returncode, 0)
+
+    def test_the_declaude_recipe_runs_no_code_in_a_page_name(self):
+        run = self.declaude('a$(echo hi).md')
+        self.assertIn('no such file: a$(echo hi).md', run.stderr)
+
+    def test_check_does_not_run_declaude_through_any_recipe_that_it_calls(self):
+        justfile = (REPO / 'Justfile').read_text()
+        bodies = dict(re.findall(r'^([a-z-]+)[^\n:]*:\n((?:    .*\n|\n(?=    ))*)', justfile, re.M))
+        seen, todo = set(), ['check']
+        while todo:
+            name = todo.pop()
+            if name in seen:
+                continue
+            seen.add(name)
+            self.assertNotIn('declaude', bodies[name], name)
+            todo += re.findall(r'^\s+just ([a-z-]+)', bodies[name], re.M)
+        self.assertGreaterEqual(seen, {'check', 'lint', 'test', 'prose'})
+
     def test_the_readme_says_what_to_do_when_the_patch_no_longer_applies(self):
         readme = re.sub(r'\s+', ' ', (REPO / 'README.md').read_text())
         self.assertIn('If the patch no longer applies, the recipe stops before it changes the copy', readme)
