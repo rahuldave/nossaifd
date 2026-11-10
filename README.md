@@ -40,10 +40,11 @@ machine needs only `uv`.
 | [`check.py`](https://github.com/rahuldave/nossaifd/blob/main/check.py) | It checks a report against the rules that a program can measure. See [the checker](docs/checker.md) |
 | [`EXAMPLES.md`](EXAMPLES.md) | Worked examples for the rules, from Rosalind Reid, Shreya Shankar and the declauding skill by Oskar Austegard. Each example names its source |
 | `sources/reid/` | The PDFs of Rosalind Reid's tutorial, which the guide cites page by page |
-| `sources/declauding.json` | The commit and the version of the declauding skill by Oskar Austegard that ships here, with a checksum of each file. `just declauding` writes it |
+| `sources/declauding.json` | The commit and the version of the declauding skill by Oskar Austegard that ships here, with the git id of each file of that commit and of each file that the patch changes. `just declauding` writes it |
+| `sources/declauding.patch` | The one sentence that the copy of the declauding skill by Oskar Austegard changes. See [the declauding skill](docs/declauding.md#where-it-comes-from) |
 | `docs/` | The pages of the site, which smalldocs builds from `_smalldocs.yml` |
 | `.agents/skills/nossaifd/` | The agent skill, with copies of `GUIDE.md`, `EXAMPLES.md` and `check.py` |
-| `.agents/skills/declauding/` | The declauding skill by Oskar Austegard, without changes, with its licence. See [the declauding skill](docs/declauding.md) |
+| `.agents/skills/declauding/` | The declauding skill by Oskar Austegard, with its licence and one changed sentence. See [the declauding skill](docs/declauding.md) |
 
 ## Install the skill in a repository
 
@@ -77,7 +78,10 @@ After you change the guide, the examples or the checker, run `just sync` to copy
 skill. `just check` fails while the copies differ.
 
 `just declauding` copies the declauding skill by Oskar Austegard again from its fixed commit in
-oaustegard/claude-skills. To take a newer version, change the commit in the Justfile.
+oaustegard/claude-skills, and it applies `sources/declauding.patch`. To take a newer version, change the
+commit in the Justfile and run `just declauding`. If the patch no longer applies, the recipe stops before
+it changes the copy. Then update or remove the patch, and the names of the changed files and the version
+in `tests/test_declauding.py`.
 
 ## Build the site
 
@@ -117,7 +121,9 @@ The guide joins five sources. [Sources and credit](docs/sources.md) says what ea
   use them on one condition. Every place that uses her work credits her.
 - **ASD-STE100, Simplified Technical English.** Aircraft makers write their maintenance manuals in it.
   Andrej Karpathy suggested on X that the same rules suit text that AI models write. It gives the rules
-  for words, sentences, instructions and paragraphs.
+  for words, sentences, instructions and paragraphs. Only its about page was read, so all but one of these
+  rules come from memory, and [the list of them](docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard)
+  says which.
 - **The plain-writing skill by Shreya Shankar**, at
   https://github.com/docwriter-org/plain-writing-skill, under the MIT licence. It gives the rules for
   tone, punctuation and the patterns of AI writing.

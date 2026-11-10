@@ -30,5 +30,8 @@
     "tests/sample-structure.md": "08c9b354c506c2aa4155bc3c43547ee635e4e17d",
     "tests/sample-tics.md": "c35cd978e535bdfa3a6324d28846835c1ddca7df",
     "tests/test_fresh_eyes.py": "a703646d7c60508e6f654a6d20be32be675dd8bb"
+  },
+  "changed": {
+    "references/fresh-eyes.md": "5dae3ade9f38f88c6ed61c302581e57e4fe0a738"
   }
 }

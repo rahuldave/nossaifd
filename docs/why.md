@@ -36,7 +36,7 @@ The project's author set these two principles. Most of the choices below follow 
 | Question | What the sources say | The choice |
 |---|---|---|
 | Analogy, metaphor and humor | Rosalind Reid recommends them for written, visual and spoken work ([Rosalind Reid, tutorial deck, page 40](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf)). Shankar's skill forbids analogy and metaphor ([rule 21](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L222)) | Use them in documents when they explain the work. State the literal fact in the next sentence, for a reader who is not a native speaker |
-| The passive voice | Rosalind Reid says a mix of active and passive can help ([Rosalind Reid, written reports, page 15](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)). ASD-STE100 asks for the active voice | Mix active and passive, as Rosalind Reid says. Choose the form that puts the known information first |
+| The passive voice | Rosalind Reid says a mix of active and passive can help ([Rosalind Reid, written reports, page 15](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)). ASD-STE100, from memory and not checked, asks for the active voice | Mix active and passive, as Rosalind Reid says. Choose the form that puts the known information first |
 
 ## Choices of the project's author
 
@@ -49,10 +49,10 @@ answer.
 | Where does the result go? | Rosalind Reid ends a report and a talk with the result ([Rosalind Reid, tutorial deck, page 16](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf)). Shankar's skill starts with the main conclusion for a busy reader | Every report starts with a summary, whatever its length. A report can be a blog post, and its style can be conversational. When the report is a story with a climax, the summary states the problem and gives the reader the puzzle, and not the climax. For example: "The build slowed from 4 minutes to 40 over one week, and the log of that week shows no commit to the build files. We tried three fixes, and each one failed." A teaser such as "Read on to see how we found the cause" is not a summary. Otherwise the summary states the result, as in "Threads make the build three times faster" |
 | Contractions | Shankar's skill allows them. The guide forbids them for readers who are not native speakers | Not in a document |
 | Rhetorical questions in a document | Shankar's skill forbids several in a row. An earlier version of the guide forbade every one | Allowed when the reader has the question. Answer it in full sentences, as the choices about the declauding skill below say |
-| The length of a sentence | ASD-STE100 keeps an instruction to 20 words and a description to 25. Shankar's skill sets no limit | Usually 20 to 25 words at most, and never more than 40, which `check.py` fails. An occasional longer sentence is fine when its punctuation makes it clear |
+| The length of a sentence | ASD-STE100, from memory and not checked, keeps an instruction to 20 words and a description to 25. Shankar's skill sets no limit | Usually 20 to 25 words at most, and never more than 40, which `check.py` fails. An occasional longer sentence is fine when its punctuation makes it clear |
 | "e.g." and semicolons | Shankar's skill writes "e.g." before examples, and it allows a semicolon between the steps of a sequence. An earlier version of the guide forbade both | Follow Shankar's skill |
 | Verbs with a strong feeling | Shankar's post asks for verbs such as "love" and "complain" in a dashboard | Allowed anywhere. Words that add force but no fact, such as "really", stay out |
-| The -ing form | Shankar's post writes titles of work in progress with it. ASD-STE100 does not use it as a verb | Allowed. Prefer the simple form. At the end of a sentence, an -ing clause must add a fact, as the last row of the choices about the declauding skill says |
+| The -ing form | Shankar's post writes titles of work in progress with it. ASD-STE100, from memory and not checked, does not use it as a verb | Allowed. Prefer the simple form. At the end of a sentence, an -ing clause must add a fact, as the last row of the choices about the declauding skill says |
 | Short items read in bulk | Shankar's post gives five principles for them | A section of the guide, rules 45 to 49 |
 | A README | No source gives its order | A README starts with what the project does |
 
@@ -69,7 +69,7 @@ says where the skill comes from.
 | Bold elsewhere | Rule 43 bolds the name of a button. [Oskar Austegard's register, entry 30](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L539) bolds a term at its first use and nothing else | Keep rule 43. Bold what the reader must find on a screen, and never bold for emphasis |
 | Rhetorical questions | Rule 36 allowed a question that the next sentences answer, and several in a row for the story. [Oskar Austegard's register, entry 10](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L201) removes a question that the writer answers, and a run of questions, except in a FAQ or an interview | Ask a question only when the reader has it, and answer it in full sentences. Never answer with a fragment. A run of questions only in a story. Rule 36 |
 | A summary that holds back the cause | Rule 20 let the summary of a story hold back the climax, with the teaser "Read on to see how we found the cause". [Oskar Austegard's register, entry 8](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L175) calls suspense a technique of fiction, and [Oskar Austegard's register, entry 42](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L843) removes an opening that promises content and names none | Keep suspense that gives the reader the puzzle and holds back the answer. Remove the teaser. Rule 20 |
-| Nouns in a row | Rule 10 allowed three nouns, from ASD-STE100. [Oskar Austegard's register, entry 53](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1185) removes a stack of three or more, except a term of the field | Two nouns at most, except a standard term of the field or a name that the document defines. Rule 10 |
+| Nouns in a row | Rule 10 allowed three nouns, which it credited to ASD-STE100 (from memory and not checked). [Oskar Austegard's register, entry 53](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1185) removes a stack of three or more, except a term of the field | Two nouns at most, except a standard term of the field or a name that the document defines. Rule 10 |
 | A heading with an -ing form or an abstract noun | Rule 32 gave "Moving with edits" as a literal heading. Rule 45 gives "Measuring the latency" as a title. [Oskar Austegard's register, entry 41](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L816) removes a heading that names a topic area | When a section makes one point, its heading names the concrete thing. A label for a group of entries in a reference is correct. A title of a task in progress keeps its -ing form. Rules 32 and 45 |
 | A thing as the subject of a verb | Rule 9 gives "The measurement showed a delay" as a correct sentence. [Oskar Austegard's register, entry 4](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L73) removes a verb that needs a mind, such as "hides", and keeps a pairing that readers know | Keep the pairings that readers know. Remove the verbs that need a mind. Rule 34 |
 | A sample of the author's writing | The skill lets a sample of the author's writing win over every one of its rules, with dashes too. The guide has hard limits, such as no dashes and no contractions, for a reader who is not a native speaker | The hard limits of the guide win. A sample wins over the rest of the register |
@@ -80,11 +80,25 @@ says where the skill comes from.
 
 ## Rules of ASD-STE100 that are not checked against the standard
 
-No copy of ASD-STE100 was available, so these three of its rules come from memory of its Issue 8:
+ASD-STE100, Simplified Technical English (STE), is a standard for the maintenance manuals of aircraft.
+Issue 8 is the edition that the guide names, and [the sources](sources.md#asd-ste100-simplified-technical-english)
+say more about it. No copy of the standard was available. Only its about page was read, and that page
+confirms the purpose of STE and its rule of one word for one meaning. That rule is rule 2 of the guide.
 
-- the active voice in procedures
-- a limit of 20 words for an instruction and 25 for a description
-- no -ing form as a verb
+Every other part of the guide that names STE comes from memory of the standard, and none of it is
+checked. The list gives each such part:
 
-The guide keeps all three as preferences, not as hard limits. They are not yet checked against the
-standard.
+- rule 1, the few word swaps from the dictionary of STE
+- rule 8, a limit of 25 words for a description
+- rule 9, the active voice in procedures, and no -ing form as a verb
+- rule 10, three nouns in a row at most
+- rule 14, an instruction as a command
+- rule 15, one instruction in one sentence
+- rule 16, a condition first, and a limit of 20 words for an instruction
+- rule 17, a warning that starts with a short command
+- rule 19, six sentences in a paragraph at most
+
+The guide does not always do what these parts say. It keeps the active voice, the limits of 20 and 25
+words, and the rule against the -ing form as a verb as preferences. It makes six sentences in a paragraph
+a hard limit of its own, which `check.py` enforces. It allows two nouns in a row, from Oskar Austegard's
+declauding skill, and not three.

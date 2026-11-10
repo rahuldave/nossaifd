@@ -51,11 +51,17 @@ there too, so each use credits Rosalind Reid.
 
 ## ASD-STE100, Simplified Technical English
 
-[ASD-STE100](https://www.asd-ste100.org/about.html) is a standard from the AeroSpace and Defence Industries
+[ASD-STE100](https://www.asd-ste100.org/about.html), Simplified Technical English (STE), is a standard from the AeroSpace and Defence Industries
 Association of Europe (ASD). Aircraft makers write their maintenance manuals in it, so that readers who are
 not native English speakers understand them. Andrej Karpathy suggested that the same rules suit text that AI
 models write. The rules of [the guide](../GUIDE.md) for words, sentences, instructions and paragraphs come
-from it. Its dictionary of approved words is not part of the guide.
+from it, from memory of the standard. Rule 1 takes a few word swaps from its dictionary of approved words, and the guide does not
+adopt the dictionary itself.
+
+No copy of the standard was available. Only its about page was read. That page confirms the purpose of
+STE and its rule of one word for one meaning.
+[Why the rules](why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard) lists every other
+part of the guide that names STE, and none of them is checked against the standard.
 
 ## Shreya Shankar
 
@@ -75,7 +81,8 @@ if an AI model wrote it, and it checks that the revision kept the claims of the 
 [the guide](../GUIDE.md) come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of it. The register of the skill gives a pair of sentences, before and
 after, for most of its 56 patterns.
 
-nossaifd ships version 0.14.0 of the skill by Oskar Austegard, from commit `6baa729`, without changes.
+nossaifd ships version 0.14.0 of the skill by Oskar Austegard, from commit `6baa729`, with one sentence changed.
+[The declauding skill](declauding.md#where-it-comes-from) gives the change.
 It is in `.agents/skills/declauding/`, with his licence in the file `LICENSE`. [The declauding skill](declauding.md)
 says how to use it with the guide, and it lists the sources that the README of the skill names.
 

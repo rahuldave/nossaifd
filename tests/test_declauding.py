@@ -65,7 +65,60 @@ class CopyTest(unittest.TestCase):
         self.assertEqual(RECORD['version'], '0.14.0')
 
     def test_each_file_of_the_copy_is_the_file_of_the_record(self):
-        self.assertEqual(declauding_manifest.digests(), RECORD['files'], 'the copy changed: run just declauding')
+        self.assertEqual(declauding_manifest.digests(), {**RECORD['files'], **RECORD['changed']},
+                         'the copy changed: run just declauding')
+
+    def test_the_patch_changes_only_the_files_that_the_record_marks_as_changed(self):
+        patch = (REPO / 'sources/declauding.patch').read_text()
+        named = sorted(set(re.findall(r'^\+\+\+ b/\.agents/skills/declauding/(\S+)$', patch, re.M)))
+        self.assertEqual(named, sorted(RECORD['changed']))
+        self.assertEqual(named, ['references/fresh-eyes.md'])
+        for path in named:
+            self.assertNotEqual(RECORD['changed'][path], RECORD['files'][path])
+
+    def test_the_patch_undone_gives_back_each_file_of_the_commit(self):
+        import hashlib, shutil, subprocess, tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            for path in RECORD['changed']:
+                target = Path(temp) / '.agents/skills/declauding' / path
+                target.parent.mkdir(parents=True)
+                shutil.copy(SKILL / path, target)
+            subprocess.run(['git', 'apply', '-R', str(REPO / 'sources/declauding.patch')], cwd=temp, check=True)
+            for path in RECORD['changed']:
+                data = (Path(temp) / '.agents/skills/declauding' / path).read_bytes()
+                self.assertEqual(hashlib.sha1(b'blob %d\0' % len(data) + data).hexdigest(), RECORD['files'][path])
+
+    def test_no_reference_names_a_docs_path_in_code_that_the_lint_reads_as_missing(self):
+        "skill-package-maker fails a reference that names `docs/...` in code, as line 14 of fresh-eyes.md did"
+        for path in (SKILL / 'references').glob('*.md'):
+            self.assertNotRegex(path.read_text(), r'`docs/', path.name)
+
+    def test_each_page_that_describes_the_copy_says_that_one_line_changed(self):
+        for name in ('README.md', 'GUIDE.md', 'docs/sources.md', 'docs/declauding.md', '.agents/skills/nossaifd/SKILL.md'):
+            text = re.sub(r'\s+', ' ', (REPO / name).read_text())
+            self.assertRegex(text, r'one (changed )?sentence', name)
+        for path in pages():
+            for block in blocks(path.read_text()):
+                if re.search(r'declauding|Austegard', block):
+                    with self.subTest(page=str(path.relative_to(REPO)), block=block[:80]):
+                        self.assertNotRegex(block, r'(?i)without changes|\bunchanged\b|no changes|not changed|one changed line|one line')
+
+    def test_the_changed_sentence_names_oskar_austegard_and_not_the_author(self):
+        "In the skill, the author is the writer of the draft, so the sentence names him"
+        text = (SKILL / 'references/fresh-eyes.md').read_text()
+        sentence = text[text.index('written the check ('):text.index('has the details)')]
+        self.assertIn("Oskar Austegard's repository", sentence)
+        self.assertNotIn("author's", sentence)
+        self.assertNotIn('`', sentence)
+
+    def test_the_recipe_checks_the_patch_before_it_removes_the_copy(self):
+        recipe = (REPO / 'Justfile').read_text().split('\ndeclauding:', 1)[1].split('\n\n', 1)[0]
+        self.assertLess(recipe.index('apply --check'), recipe.index('rm -rf .agents/skills/declauding'))
+
+    def test_the_readme_says_what_to_do_when_the_patch_no_longer_applies(self):
+        readme = re.sub(r'\s+', ' ', (REPO / 'README.md').read_text())
+        self.assertIn('If the patch no longer applies, the recipe stops before it changes the copy', readme)
+        self.assertIn('| `sources/declauding.patch` |', readme)
 
     def test_the_copy_keeps_the_whole_licence(self):
         licence = (SKILL / 'LICENSE').read_text()
