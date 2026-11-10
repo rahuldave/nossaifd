@@ -71,6 +71,26 @@ test *args:
 prose:
     {{python}} check.py README.md GUIDE.md EXAMPLES.md docs/*.md .agents/skills/nossaifd/SKILL.md
 
+# Print the passages of each page that the declauding linter by Oskar Austegard marks as possible model
+# prose. It does not fail on them, because a person judges each one. It fails on a missing page, or when
+# the linter cannot run
+declaude +pages:
+    #!/usr/bin/env bash
+    status=0
+    for page in "$@"; do
+        if [ ! -f "$page" ]; then
+            echo "no such file: $page" >&2
+            status=1
+            continue
+        fi
+        echo "== $page"
+        # The linter ends with 1 when it marks a passage, and with 2 or more when it cannot run
+        {{python}} -I .agents/skills/declauding/scripts/declaude_lint.py --skip-quoted "$page"
+        code=$?
+        if [ "$code" -gt 1 ]; then status=$code; fi
+    done
+    exit "$status"
+
 # Check skill-package.json with skill-package-maker at a fixed commit
 package-lint:
     #!/usr/bin/env bash

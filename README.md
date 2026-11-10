@@ -77,6 +77,10 @@ jnterfaces did not set up adds the recipe with the line
 After you change the guide, the examples or the checker, run `just sync` to copy them into the nossaifd
 skill. `just check` fails while the copies differ.
 
+`just declaude page.md` prints the passages of a page that the linter of Oskar Austegard's declauding
+skill marks as possible model prose. It does not fail on them, because a person judges each one.
+`just declaude` reads pages, and `just declauding` copies the skill again.
+
 `just declauding` copies the declauding skill by Oskar Austegard again from its fixed commit in
 oaustegard/claude-skills, and it applies `sources/declauding.patch`. To take a newer version, change the
 commit in the Justfile and run `just declauding`. If the patch no longer applies, the recipe stops before
@@ -122,7 +126,7 @@ The guide joins five sources. [Sources and credit](docs/sources.md) says what ea
 - **ASD-STE100, Simplified Technical English.** Aircraft makers write their maintenance manuals in it.
   Andrej Karpathy suggested on X that the same rules suit text that AI models write. It gives the rules
   for words, sentences, instructions and paragraphs. Only its about page was read, so all but one of these
-  rules come from memory, and [the list of them](docs/why.md#rules-of-asd-ste100-that-are-not-checked-against-the-standard)
+  rules come from memory, and [the list of them](docs/why.md#asd-ste100-rules-from-memory)
   says which.
 - **The plain-writing skill by Shreya Shankar**, at
   https://github.com/docwriter-org/plain-writing-skill, under the MIT licence. It gives the rules for

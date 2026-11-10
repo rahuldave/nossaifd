@@ -30,11 +30,17 @@ the file, its folder and his repository in words, on lines 14 and 15 of the copy
 2. Run `check.py` on the draft, and fix each hard problem.
 3. Keep a copy of the draft. Then revise the page by the steps in the file `SKILL.md` of the declauding
    skill. For each pattern, its register gives the reason that the pattern marks model prose, and the
-   fix. Its linter marks the patterns that a program can find:
+   fix. Its linter marks the patterns that a program can find. Each passage that it marks is a
+   candidate, a place that may be model prose, and not a verdict. In this repository, run
+   `just declaude page.md`, for one page or more. In another repository, run:
 
    ```
    uv run --no-project python .agents/skills/declauding/scripts/declaude_lint.py --skip-quoted page.md
    ```
+
+   `just declaude` does not fail on candidates, and `just check` does not run it. It fails only on a
+   missing page, or when the linter cannot run. Judge each candidate against the register and the guide. Where the two disagree, the guide
+   holds, as [the choices](why.md#choices-about-the-declauding-skill) say.
 
 4. Run its diff on the copy of the draft and on the revision. The diff lists each number, name, quote,
    ranking and hedge that the revision lost or added:
