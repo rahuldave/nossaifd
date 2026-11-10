@@ -1,7 +1,7 @@
 # nossaifd
 
-**Not so shitty AI first drafts.** A writing guide and a checker for text that an AI model writes and a
-person reads, such as documentation, READMEs, reports and notes. The guide is [`GUIDE.md`](GUIDE.md), and
+**Not so shitty AI first drafts.** The project is a writing guide and a checker for text that an AI model
+writes and a person reads. Such text includes documentation, READMEs, reports and notes. The guide is [`GUIDE.md`](GUIDE.md), and
 the checker is [`check.py`](https://github.com/rahuldave/nossaifd/blob/main/check.py).
 
 The site is at https://rahuldave.com/nossaifd/.
@@ -10,7 +10,7 @@ Much of the advice comes from "Communicating Your Work", a tutorial by Rosalind 
 Harvard in 2015, and she was the editor of *American Scientist* magazine from 1992 to 2008. Each rule that
 uses her work names her and gives the page. See [Sources and credit](docs/sources.md).
 
-## How to use it
+## How to use the guide and the checker
 
 For a report:
 
@@ -32,7 +32,7 @@ For a report:
 The checker needs only Python 3.11 or later, with no other packages. `uv run` gives that Python, so the
 machine needs only `uv`.
 
-## What is here
+## Files in this repository
 
 | File | What it is |
 |---|---|
@@ -55,7 +55,7 @@ The second, `.agents/skills/declauding/`, is the declauding skill by Oskar Auste
 nossaifd skill follows rules 50 to 55 of the guide in place of the declauding skill.
 
 [jnterfaces](https://github.com/rahuldave/jnterfaces) is a package of agent skills for the command
-interface of a project. Its installer adds other packages, and each package does one job, which
+interface of a project. Its installer adds other packages. Each package does one job, which
 jnterfaces calls a role. It installs both skills of this package in the role `prose`. In a project that
 uses jnterfaces, run this command:
 
@@ -79,10 +79,9 @@ skill. `just check` fails while the copies differ.
 
 `just declaude page.md` prints the passages of a page that the linter of Oskar Austegard's declauding
 skill marks as possible model prose. It does not fail on them, because a person judges each one.
-`just declaude` reads pages, and `just declauding` copies the skill again.
 
-`just declauding` copies the declauding skill by Oskar Austegard again from its fixed commit in
-oaustegard/claude-skills, and it applies `sources/declauding.patch`. To take a newer version, change the
+`just declauding` is a different recipe from `just declaude`. It copies the declauding skill by Oskar Austegard again from its
+fixed commit in oaustegard/claude-skills, and it applies `sources/declauding.patch`. To take a newer version, change the
 commit in the Justfile and run `just declauding`. If the patch no longer applies, the recipe stops before
 it changes the copy. Then update or remove the patch, and the names of the changed files and the version
 in `tests/test_declauding.py`.
@@ -126,7 +125,7 @@ The guide joins five sources. [Sources and credit](docs/sources.md) says what ea
 - **ASD-STE100, Simplified Technical English.** Aircraft makers write their maintenance manuals in it.
   Andrej Karpathy suggested on X that the same rules suit text that AI models write. It gives the rules
   for words, sentences, instructions and paragraphs. Only its about page was read, so all but one of these
-  rules come from memory, and [the list of them](docs/why.md#asd-ste100-rules-from-memory)
+  rules come from memory. [The list of them](docs/why.md#asd-ste100-rules-from-memory)
   says which.
 - **The plain-writing skill by Shreya Shankar**, at
   https://github.com/docwriter-org/plain-writing-skill, under the MIT licence. It gives the rules for

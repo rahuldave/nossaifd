@@ -13,8 +13,8 @@ in Innovative Computing from 2008 to 2010. She worked at the Institute for Appli
 from 2010 to 2013. In 2015 she was the executive director of the
 [Council for the Advancement of Science Writing](https://casw.org/).
 
-Rosalind Reid gave permission to use her material, on one condition. Every place that uses her work
-credits her. The test file `tests/test_credit.py` checks the credit. Among its checks are these:
+Rosalind Reid gave permission to use her material, on the condition that every place that uses her
+work credits her. The test file `tests/test_credit.py` checks the credit. Among its checks are these:
 
 - It fails when a page built on her work does not name her in full. The list of these pages has the README,
   the guide, the examples and the checker. It also has this page, the page on the checker, the page "Why
@@ -83,7 +83,7 @@ after, for most of its 56 patterns.
 
 nossaifd ships version 0.14.0 of the skill by Oskar Austegard, from commit `6baa729`, with one sentence changed.
 [The declauding skill](declauding.md#where-it-comes-from) gives the change.
-It is in `.agents/skills/declauding/`, with his licence in the file `LICENSE`. [The declauding skill](declauding.md)
+nossaifd keeps the skill in `.agents/skills/declauding/`, with his licence in the file `LICENSE`. [The declauding skill](declauding.md)
 says how to use it with the guide, and it lists the sources that the README of the skill names.
 
 ## Where the sources disagree

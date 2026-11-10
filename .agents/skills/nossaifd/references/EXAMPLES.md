@@ -15,9 +15,7 @@ line "Rule", so a search for "GUIDE.md rule 13" finds the examples of rule 13. A
 rules, as in "GUIDE.md rules 13 and 28", so also search for "rules 13 and" and for "and 13". Then write your own text. Do
 not copy an example into your text.
 
-The examples follow the sections of GUIDE.md.
-
-Each example has the same parts:
+The examples follow the sections of GUIDE.md, and each example has the same parts:
 
 - **A heading** with a letter, a number and a short name.
 - **A credit line** that names the author and links to the place in the source.
@@ -141,7 +139,7 @@ After: We added a colon that shows the schema.
 
 **Rule:** GUIDE.md rule 3.
 
-### S33. A compound adjective that is fine
+### S33. A compound adjective that a dictionary has
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 6, lines 58 to 59](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L58-L59).
 
@@ -212,7 +210,7 @@ form, by the guide for talks in nossaifd-talks.
 
 ## Sentences
 
-### S9. Write complete sentences, one fact to a sentence
+### S9. Write complete sentences with one fact to a sentence
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 8, lines 78 to 81](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L78-L81).
 
@@ -340,7 +338,7 @@ before it.
 **Rule:** GUIDE.md rule 9, which lets a noun name the action of the sentence before. The revision
 "This analysis" also follows rule 37, because "This" comes with its noun.
 
-### W13. Active voice, two pairs
+### W13. Two pairs of passive and active sentences
 
 Credit: [Rosalind Reid, written reports, page 15](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf).
 
@@ -364,7 +362,7 @@ sharper.
 **Rule:** GUIDE.md rule 9. Rosalind Reid's second bullet, that a mix of active and passive can help, is in
 rule 9 too.
 
-### S15. A mechanism, not an evocative phrase
+### S15. A mechanism in place of an evocative phrase
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 13, lines 143 to 145](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L143-L145).
 
@@ -437,7 +435,7 @@ Warm regards,
 Customer Success Team
 ```
 
-**What it shows:** A reply that thanks and promises, but does not say what broke, has these faults:
+**What it shows:** The reply thanks the reader and makes promises, but it does not say what broke. It has these faults:
 
 - "seamless", "truly", "leveraging" and "exceptional" add no fact, by GUIDE.md rule 5.
 - "certain export pathways" names no export, by rule 11.
@@ -520,7 +518,7 @@ Credit: [Rosalind Reid, written reports, page 8](https://github.com/rahuldave/no
 ba-da-BUM
 ```
 
-**What it shows:** A written sentence builds up through the context and lands its weight on the last words.
+**What it shows:** A written sentence gives the context first, and it puts the weight on the last words.
 
 **Rule:** GUIDE.md rule 13.
 
@@ -623,7 +621,7 @@ repository gives no answer.
 
 ## Paragraphs
 
-### S11. A topic sentence, then support
+### S11. A topic sentence before its support
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 10, lines 99 to 103](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L99-L103).
 
@@ -681,7 +679,7 @@ background.
 
 **Rule:** GUIDE.md rule 20.
 
-### W2. The same story, in more detail, for a written report
+### W2. The same story in more detail for a written report
 
 Credit: [Rosalind Reid, written reports, page 3](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf).
 
@@ -756,7 +754,7 @@ http://cgi.duke.edu/web/sciwriting/index.php
 
 **Rule:** GUIDE.md rule 27.
 
-### W14. A paragraph from a published paper, revised
+### W14. A revised paragraph from a published paper
 
 Credit: [Rosalind Reid, written reports, page 16](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf).
 
@@ -781,7 +779,7 @@ joins its parts, and a repeated phrase goes.
 
 **Rule:** GUIDE.md rules 9 and 28.
 
-### W15. The same revision, with each change named
+### W15. The same revision with each change named
 
 Credit: [Rosalind Reid, written reports, page 17](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf).
 
@@ -877,7 +875,7 @@ S8 and S7 before you use them as answers.
 
 **Rule:** GUIDE.md rules 32 and 42.
 
-### S25. An analogy, and the literal structure
+### S25. An analogy and the literal structure
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 21, lines 225 to 228](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L225-L228).
 
@@ -1087,7 +1085,7 @@ After: Read for the schema. The feature fires.
 **Rule:** GUIDE.md rule 40. The rule permits a semicolon only between the steps of a sequence, and the
 example is not a sequence.
 
-### S20. A colon after a label is correct
+### S20. A correct colon after a short label
 
 Credit: Shreya Shankar, plain-writing skill, [SKILL.md rule 16, lines 177 to 179](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md?plain=1#L177-L179).
 
@@ -1182,7 +1180,7 @@ The "Before" also puts items that did not ship under "Shipped".
 
 **Rule:** GUIDE.md rule 44, and rule 47 for one structure in the items.
 
-### E7. An engineering brief, with and without the skill (answers written by a model)
+### E7. An engineering brief with and without the skill (answers written by a model)
 
 Credit: [evals/README.md, lines 279 to 289](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/evals/README.md?plain=1#L279-L289), in the eval of
 Shreya Shankar's plain-writing skill. The first block is the prompt of the task. The model gpt-5.5 wrote the
@@ -1574,7 +1572,7 @@ was: *The one gap that does clear the bar* → now: *The 2.876-bit gap*
 
 **What it shows:** Write a heading as a label of what the section holds, and not as a verdict or a riddle.
 
-**The project now:** GUIDE.md rule 32 names the concrete thing. A heading that is a question, such as "When does create_session fail?", names its content. "What exhausted means" hides it.
+**The project now:** GUIDE.md rule 32 names the concrete thing. A heading that is a question, such as "When does create_session fail?", names its content. "What exhausted means" does not name it.
 
 **Rule:** GUIDE.md rules 50 and 32.
 
@@ -1593,7 +1591,7 @@ interesting."
 
 **What it shows:** Give the finding when you have it, and do not hold it back for suspense.
 
-**The project now:** GUIDE.md rule 20 keeps suspense that gives the reader the puzzle, and removes a teaser that promises content and names none.
+**The project now:** GUIDE.md rule 20 keeps suspense that gives the reader the puzzle. The rule removes a teaser, which says that content follows and names none of it.
 
 **Rule:** GUIDE.md rules 50 and 20.
 
