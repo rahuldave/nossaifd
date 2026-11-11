@@ -22,7 +22,7 @@ reads. Its rules come from five sources:
 - The declaude skill by Oskar Austegard, under the MIT licence. It gives
   the rules for the revision of a draft that reads as if a model wrote it.
   He calls it declauding. This package ships it as the skill `declaude`, with
-  three changes. They are to its name and the path of its folder, to its
+  three changes. They are to its name and the paths of its folder, to its
   description, and to one sentence of a reference.
 
 The rules make the text plain and easy to read for a reader who is not a native
@@ -73,7 +73,16 @@ guide says.
 7. Run the checker again on the revision, and fix only what the revision
    broke.
 8. Run the linter of the declaude skill once more, to check that the fixes
-   brought back no pattern.
+   brought back no pattern. Then record the page:
+
+   ```bash
+   uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py record page.md
+   ```
+
+   A project can install the hooks of this skill. Then a hook checks each
+   page that your turn changed, at the end of the turn. The page must pass
+   the checker and have a record. It asks once for the steps that remain. If a page is not
+   prose for a person, do not record it, and tell the user so.
 9. Read the page yourself. The checker cannot judge meaning, tone or a missing
    definition.
 
@@ -88,6 +97,15 @@ It needs only Python 3.11 or later, which `uv run` gives.
   Each example keeps its credit.
 - **`scripts/check.py`** checks a page against the rules that a program can
   measure. It exits with 1 when it finds a hard problem.
+- **`scripts/prose_gate.py`** records a page after its pass. It is also the
+  hook at the start and at the end of a turn of Claude Code or Codex. It
+  also checks a pull request.
+- **`assets/agents-prose.md`** is the instruction for the `AGENTS.md` and
+  `CLAUDE.md` of a project.
+- **`assets/claude-settings-hook.json`** and **`assets/codex-hooks.json`**
+  are the settings of the hooks for Claude Code and for Codex.
+- **`assets/prose-check.yml`** is a workflow for GitHub that checks each page
+  of a pull request.
 
 The source of these files is https://github.com/rahuldave/nossaifd. The guide
 for talks is in https://github.com/rahuldave/nossaifd-talks.

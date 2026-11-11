@@ -72,7 +72,7 @@ class CopyTest(unittest.TestCase):
         patch = (REPO / 'sources/declaude.patch').read_text()
         named = sorted(set(re.findall(r'^\+\+\+ b/\.agents/skills/declaude/(\S+)$', patch, re.M)))
         self.assertEqual(named, sorted(RECORD['changed']))
-        self.assertEqual(named, ['SKILL.md', 'references/fresh-eyes.md'])
+        self.assertEqual(named, ['SKILL.md', 'hooks/hooks.json', 'references/fresh-eyes.md', 'tests/test_fresh_eyes.py'])
         for path in named:
             self.assertNotEqual(RECORD['changed'][path], RECORD['files'][path])
 
@@ -92,6 +92,13 @@ class CopyTest(unittest.TestCase):
         "skill-package-maker fails a reference that names `docs/...` in code, as line 14 of fresh-eyes.md did"
         for path in (SKILL / 'references').glob('*.md'):
             self.assertNotRegex(path.read_text(), r'`docs/', path.name)
+
+    def test_no_path_in_the_copy_names_the_old_folder(self):
+        "His folder is declauding upstream. A path to it breaks once the copy is named declaude"
+        for path in SKILL.rglob('*'):
+            if path.is_file() and path.name != 'CHANGELOG.md' and '__pycache__' not in path.parts:
+                with self.subTest(file=str(path.relative_to(SKILL))):
+                    self.assertNotRegex(path.read_text(errors='replace'), r'declauding/|skills/declauding')
 
     def test_each_page_that_describes_the_copy_says_that_it_has_three_changes(self):
         for name in ('README.md', 'GUIDE.md', 'docs/sources.md', 'docs/declaude.md', '.agents/skills/nossaifd/SKILL.md'):

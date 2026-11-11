@@ -7,6 +7,7 @@ project:
     - EXAMPLES.md
     - docs/checker.md
     - docs/declaude.md
+    - docs/flow.md
     - docs/sources.md
     - docs/why.md
 website:
@@ -32,6 +33,8 @@ website:
             href: docs/checker.md
           - text: The declaude skill
             href: docs/declaude.md
+          - text: Make the flow happen
+            href: docs/flow.md
           - text: The examples
             href: EXAMPLES.md
       - section: About

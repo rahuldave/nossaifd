@@ -21,7 +21,8 @@ The copy makes three changes to his skill, and `sources/declaude.patch` holds th
 
 - **The name.** This package calls the skill declaude, a verb. `check.py` and the linter read the name
   declauding as an -ing form, and they marked it on every page that credits him. The file `SKILL.md`
-  names the skill declaude, and its path for the scripts names the folder `declaude`.
+  names the skill declaude, and its path for the scripts names the folder `declaude`. So do the
+  command of his hook for a plugin and the command of his tests.
 - **The description.** His description tells an agent to load the skill at the start of every task
   that writes prose, before the draft exists. The new description says that the nossaifd skill calls it
   at its step 6, after the draft passes the checker. It also says to run the skill in an agent that did
