@@ -43,7 +43,7 @@ machine needs only `uv`.
 | [`EXAMPLES.md`](EXAMPLES.md) | Worked examples for the rules, from Rosalind Reid, Shreya Shankar and the declaude skill by Oskar Austegard. Each example names its source |
 | `sources/reid/` | The PDFs of Rosalind Reid's tutorial, which the guide cites page by page |
 | `sources/declaude.json` | The commit and the version of the declaude skill by Oskar Austegard that ships here, with the git id of each file of that commit and of each file that the patch changes. `just declaude-copy` writes it |
-| `sources/declaude.patch` | The three changes that the copy makes to the declaude skill by Oskar Austegard: its name and the path of its folder, its description, and one sentence. See [the declaude skill](docs/declaude.md#where-it-comes-from) |
+| `sources/declaude.patch` | The three changes that the copy makes to the declaude skill by Oskar Austegard: its name and the paths of its folder, its description, and one sentence. See [the declaude skill](docs/declaude.md#where-it-comes-from) |
 | `docs/` | The pages of the site, which smalldocs builds from `_smalldocs.yml` |
 | `.agents/skills/nossaifd/` | The agent skill, with copies of `GUIDE.md`, `EXAMPLES.md` and `check.py` |
 | `.agents/skills/declaude/` | The declaude skill by Oskar Austegard, with its licence and three changes. See [the declaude skill](docs/declaude.md) |
@@ -94,6 +94,16 @@ fixed commit in oaustegard/claude-skills, and it applies `sources/declaude.patch
 commit in the Justfile and run `just declaude-copy`. If the patch no longer applies, the recipe stops before
 it changes the copy. Then update or remove the patch, and the names of the changed files and the version
 in `tests/test_declaude.py`.
+
+## Make the flow happen in a project
+
+An agent follows the steps of the nossaifd skill only when it loads the skill. Three parts make the flow
+happen. The first is an instruction in `AGENTS.md` and `CLAUDE.md`. The second is a hook at the start and
+at the end of each turn. The third is a workflow for GitHub that checks each pull request.
+
+The skill ships the parts in `.agents/skills/nossaifd/scripts/` and `.agents/skills/nossaifd/assets/`.
+[Make the flow happen](docs/flow.md) says what each part does and how
+to install it.
 
 ## Build the site
 

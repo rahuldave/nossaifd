@@ -33,6 +33,8 @@
   },
   "changed": {
     "SKILL.md": "4f7d879d62c434629471c3019168ea8194b35213",
-    "references/fresh-eyes.md": "5dae3ade9f38f88c6ed61c302581e57e4fe0a738"
+    "hooks/hooks.json": "bcd83f8d417d68de78083ec71eaa79dfed6ed0cc",
+    "references/fresh-eyes.md": "5dae3ade9f38f88c6ed61c302581e57e4fe0a738",
+    "tests/test_fresh_eyes.py": "2bdde5b653c7d359eed52cc5bd49b114541043cf"
   }
 }

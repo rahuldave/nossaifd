@@ -60,7 +60,7 @@ declaude-verify:
 
 # Check the Python and the JSON for syntax
 lint:
-    {{python}} -m py_compile check.py tests/*.py
+    {{python}} -m py_compile check.py tests/*.py .agents/skills/nossaifd/scripts/prose_gate.py
     {{python}} -m json.tool skill-package.json > /dev/null
 
 # Run the tests. Extra arguments go to unittest: just test tests.test_skill

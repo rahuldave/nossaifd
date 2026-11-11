@@ -3,7 +3,7 @@
 Real git repositories and plain directories in tmp_path stand in for a session's files. Covers which changes count,
 what the packet holds, when the gate stands down, and the hook end to end.
 
-    python3 -m pytest declauding/tests/test_fresh_eyes.py
+    python3 -m pytest declaude/tests/test_fresh_eyes.py
 """
 
 from __future__ import annotations
