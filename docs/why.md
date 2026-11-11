@@ -48,19 +48,19 @@ answer.
 | Where does the new fact go in a sentence? | Rosalind Reid puts it last in a written sentence and first in a spoken one ([Rosalind Reid, written reports, pages 5 to 7](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-written-reports.pdf)). Shankar's post puts the words that set an item apart first ([principle 2](https://fsdatalab.github.io/blog/agent-text-at-scale/#2-put-the-most-important-words-first)) | Reading: last. Skimming: the words that set the item apart go first |
 | Where does the result go? | Rosalind Reid ends a report and a talk with the result ([Rosalind Reid, tutorial deck, page 16](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf)). Shankar's skill starts with the main conclusion for a busy reader | Every report starts with a summary, whatever its length. A report can be a blog post, and its style can be conversational. When the report is a story with a climax, the summary states the problem and gives the reader the puzzle, and not the climax. For example: "The build slowed from 4 minutes to 40 over one week, and the log of that week shows no commit to the build files. We tried three fixes, and each one failed." A teaser such as "Read on to see how we found the cause" is not a summary. Otherwise the summary states the result, as in "Threads make the build three times faster" |
 | Contractions | Shankar's skill allows them. The guide forbids them for readers who are not native speakers | Not in a document |
-| Rhetorical questions in a document | Shankar's skill forbids several in a row. An earlier version of the guide forbade every one | Allowed when the reader has the question. Answer it in full sentences, as the choices about the declauding skill below say |
+| Rhetorical questions in a document | Shankar's skill forbids several in a row. An earlier version of the guide forbade every one | Allowed when the reader has the question. Answer it in full sentences, as the choices about the declaude skill below say |
 | The length of a sentence | ASD-STE100, from memory and not checked, keeps an instruction to 20 words and a description to 25. Shankar's skill sets no limit | Usually 20 to 25 words at most, and never more than 40, which `check.py` fails. An occasional longer sentence is fine when its punctuation makes it clear |
 | "e.g." and semicolons | Shankar's skill writes "e.g." before examples, and it allows a semicolon between the steps of a sequence. An earlier version of the guide forbade both | Follow Shankar's skill |
 | Verbs with a strong feeling | Shankar's post asks for verbs such as "love" and "complain" in a dashboard | Allowed anywhere. Words that add force but no fact, such as "really", stay out |
-| The -ing form | Shankar's post writes titles of work in progress with it. ASD-STE100, from memory and not checked, does not use it as a verb | Allowed. Prefer the simple form. At the end of a sentence, an -ing clause must add a fact, as the last row of the choices about the declauding skill says |
+| The -ing form | Shankar's post writes titles of work in progress with it. ASD-STE100, from memory and not checked, does not use it as a verb | Allowed. Prefer the simple form. At the end of a sentence, an -ing clause must add a fact, as the last row of the choices about the declaude skill says |
 | Short items read in bulk | Shankar's post gives five principles for them | A section of the guide, rules 45 to 49 |
 | A README | No source gives its order | A README starts with what the project does |
 
-## Choices about the declauding skill
+## Choices about the declaude skill
 
-The declauding skill by Oskar Austegard gives rules 50 to 55 of the guide. In the places below, its
+The declaude skill by Oskar Austegard gives rules 50 to 55 of the guide. In the places below, its
 register and a rule of the guide disagreed, and the project's author chose in each place. Where the column "What the sources say" uses the past tense, it gives the
-rule as it was before the choice. The column "The choice" names the rule that holds the choice now. [The declauding skill](declauding.md)
+rule as it was before the choice. The column "The choice" names the rule that holds the choice now. [The declaude skill](declaude.md)
 says where the skill comes from.
 
 | Question | What the sources say | The choice |
@@ -101,4 +101,4 @@ checked. The list gives each such part:
 The guide does not always do what these parts say. It keeps the active voice, the limits of 20 and 25
 words, and the rule against the -ing form as a verb as preferences. It makes six sentences in a paragraph
 a hard limit of its own, which `check.py` enforces. It allows two nouns in a row, from Oskar Austegard's
-declauding skill, and not three.
+declaude skill, and not three.

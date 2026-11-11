@@ -1,10 +1,10 @@
-"""Print the record of the declauding copy: the commit, the version and the git blob id of each file.
+"""Print the record of the declaude copy: the commit, the version and the git blob id of each file.
 
-`just declauding` writes it to sources/declauding.json, and tests/test_declauding.py compares the copy with it.
-A git blob id is the SHA-1 of "blob <size>\\0" and the bytes, so `just declauding-verify` can compare the
+`just declaude-copy` writes it to sources/declaude.json, and tests/test_declaude.py compares the copy with it.
+A git blob id is the SHA-1 of "blob <size>\\0" and the bytes, so `just declaude-verify` can compare the
 record with the tree of the commit on GitHub. The LICENSE comes from the root of that repository.
 
-The copy changes the files that sources/declauding.patch names. "files" keeps the ids of the files of the
+The copy changes the files that sources/declaude.patch names. "files" keeps the ids of the files of the
 commit, before the patch, and "changed" gives the ids of the changed files after it. With a second argument,
 a record of the copy before the patch, the script takes "files" from that record.
 """
@@ -14,7 +14,7 @@ from pathlib import Path
 import re
 import sys
 
-SKILL = Path(__file__).resolve().parents[1] / '.agents/skills/declauding'
+SKILL = Path(__file__).resolve().parents[1] / '.agents/skills/declaude'
 
 
 def digests():

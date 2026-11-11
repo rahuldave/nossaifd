@@ -18,44 +18,44 @@ sync:
     cp GUIDE.md EXAMPLES.md .agents/skills/nossaifd/references/
     cp check.py .agents/skills/nossaifd/scripts/check.py
 
-# The commit of oaustegard/claude-skills whose declauding skill, by Oskar Austegard, ships in .agents/skills/declauding
-declauding_commit := "6baa7290da972191749acda03c63297e67b3fc26"
+# The commit of oaustegard/claude-skills whose declaude skill, by Oskar Austegard, ships in .agents/skills/declaude
+declaude_commit := "6baa7290da972191749acda03c63297e67b3fc26"
 
-# Copy the declauding skill again from that commit, with its licence, and apply sources/declauding.patch
-declauding:
+# Copy the declaude skill again from that commit, with its licence, and apply sources/declaude.patch
+declaude-copy:
     #!/usr/bin/env bash
     set -euo pipefail
     tool_root="$(mktemp -d)"
     trap 'rm -rf -- "$tool_root"' EXIT
     git clone --quiet --filter=blob:none --no-checkout https://github.com/oaustegard/claude-skills.git "$tool_root/src"
     git -C "$tool_root/src" sparse-checkout set --no-cone /declauding/ /LICENSE
-    git -C "$tool_root/src" checkout --quiet {{declauding_commit}}
+    git -C "$tool_root/src" checkout --quiet {{declaude_commit}}
     mkdir -p "$tool_root/stage/.agents/skills"
-    cp -R "$tool_root/src/declauding" "$tool_root/stage/.agents/skills/declauding"
-    if ! git -C "$tool_root/stage" apply --check "$PWD/sources/declauding.patch" 2>/dev/null; then
-        echo "sources/declauding.patch does not apply to commit {{declauding_commit}}. Update or remove it." >&2
+    cp -R "$tool_root/src/declauding" "$tool_root/stage/.agents/skills/declaude"
+    if ! git -C "$tool_root/stage" apply --check "$PWD/sources/declaude.patch" 2>/dev/null; then
+        echo "sources/declaude.patch does not apply to commit {{declaude_commit}}. Update or remove it." >&2
         exit 1
     fi
-    rm -rf .agents/skills/declauding
-    cp -R "$tool_root/src/declauding" .agents/skills/declauding
-    cp "$tool_root/src/LICENSE" .agents/skills/declauding/LICENSE
-    {{python}} tests/declauding_manifest.py {{declauding_commit}} > "$tool_root/before.json"
-    git apply sources/declauding.patch
-    {{python}} tests/declauding_manifest.py {{declauding_commit}} "$tool_root/before.json" > sources/declauding.json
+    rm -rf .agents/skills/declaude
+    cp -R "$tool_root/src/declauding" .agents/skills/declaude
+    cp "$tool_root/src/LICENSE" .agents/skills/declaude/LICENSE
+    {{python}} tests/declaude_manifest.py {{declaude_commit}} > "$tool_root/before.json"
+    git apply sources/declaude.patch
+    {{python}} tests/declaude_manifest.py {{declaude_commit}} "$tool_root/before.json" > sources/declaude.json
 
-# Compare the record of the declauding copy with the files of its commit on GitHub. It needs gh and the network
-declauding-verify:
+# Compare the record of the declaude copy with the files of its commit on GitHub. It needs gh and the network
+declaude-verify:
     #!/usr/bin/env bash
     set -euo pipefail
-    {{python}} - "$(gh api "repos/oaustegard/claude-skills/git/trees/{{declauding_commit}}?recursive=1")" <<'EOF'
+    {{python}} - "$(gh api "repos/oaustegard/claude-skills/git/trees/{{declaude_commit}}?recursive=1")" <<'EOF'
     import json, sys
     tree = {e['path']: e['sha'] for e in json.loads(sys.argv[1])['tree'] if e['type'] == 'blob'}
-    files = json.load(open('sources/declauding.json'))['files']
+    files = json.load(open('sources/declaude.json'))['files']
     upstream = {p[len('declauding/'):]: s for p, s in tree.items() if p.startswith('declauding/')}
     upstream['LICENSE'] = tree['LICENSE']
     if upstream != files:
         sys.exit(f'the record differs from GitHub: {sorted(set(upstream.items()) ^ set(files.items()))}')
-    print(f'{len(files)} files match the commit {{declauding_commit}} on GitHub')
+    print(f'{len(files)} files match the commit {{declaude_commit}} on GitHub')
     EOF
 
 # Check the Python and the JSON for syntax
@@ -71,7 +71,7 @@ test *args:
 prose:
     {{python}} check.py README.md GUIDE.md EXAMPLES.md docs/*.md .agents/skills/nossaifd/SKILL.md
 
-# Print the passages of each page that the declauding linter by Oskar Austegard marks as possible model
+# Print the passages of each page that the declaude linter by Oskar Austegard marks as possible model
 # prose. It does not fail on them, because a person judges each one. It fails on a missing page, or when
 # the linter cannot run
 declaude +pages:
@@ -85,7 +85,7 @@ declaude +pages:
         fi
         echo "== $page"
         # The linter ends with 1 when it marks a passage, and with 2 or more when it cannot run
-        {{python}} -I .agents/skills/declauding/scripts/declaude_lint.py --skip-quoted "$page"
+        {{python}} -I .agents/skills/declaude/scripts/declaude_lint.py --skip-quoted "$page"
         code=$?
         if [ "$code" -gt 1 ]; then status=$code; fi
     done

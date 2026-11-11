@@ -32,6 +32,7 @@
     "tests/test_fresh_eyes.py": "a703646d7c60508e6f654a6d20be32be675dd8bb"
   },
   "changed": {
+    "SKILL.md": "4f7d879d62c434629471c3019168ea8194b35213",
     "references/fresh-eyes.md": "5dae3ade9f38f88c6ed61c302581e57e4fe0a738"
   }
 }

@@ -12,8 +12,8 @@
       "path": ".agents/skills/nossaifd"
     },
     {
-      "name": "declauding",
-      "path": ".agents/skills/declauding"
+      "name": "declaude",
+      "path": ".agents/skills/declaude"
     }
   ],
   "install_extras": {
@@ -33,6 +33,6 @@
   },
   "npx": {
     "supported": true,
-    "install": "npx skills add rahuldave/nossaifd -a codex --skill nossaifd -y"
+    "install": "npx skills add rahuldave/nossaifd -a codex --skill '*' -y"
   }
 }
