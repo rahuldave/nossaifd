@@ -66,8 +66,8 @@ page:
 - each line that starts with `<`, such as an HTML tag or the first line of a comment
 - words in straight double quotes, which are examples that the text talks about
 
-The section "Markdown comes first" of the guide exempts a little less and a little more. The guide checks
-the caption of an image, and the checker does not. The guide exempts all HTML and comments, and the
+The section "Markdown comes first" of the guide does not exempt the same parts as the checker. The guide
+checks the caption of an image, but the checker skips it. The guide exempts all HTML and comments, but the
 checker still reads HTML inside a line of prose and the later lines of a comment.
 
 The checker cannot judge meaning, tone, or a term that a page uses before it defines it. Read every page
@@ -76,7 +76,7 @@ after it passes.
 The checker finds only a few of the patterns of model prose in rules 50 to 54, such as "not just" and the
 words of rule 5. The linter of the declauding skill by Oskar Austegard looks for more of them. [The declauding skill](declauding.md) says how to run it.
 
-## How it decides
+## How it splits sentences and sets length limits
 
 The checker splits a block of prose into sentences after a full stop, a question mark or an exclamation
 mark. A sentence can start in lower case, as with a name like "timewalk". Inline code counts as one word.

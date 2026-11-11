@@ -51,10 +51,15 @@ guide says.
 6. Revise the page with the declauding skill by Oskar Austegard. Read its
    `SKILL.md`, in the folder `declauding` next to this skill, and follow its
    steps. Do not read its register before you write the page, even when its
-   description asks you to load it at the start. Where the skill and the guide
-   disagreed, the project's author chose, and the guide holds each choice, so
-   follow the guide. A sample of the user's own writing wins over the register, but not over the
-   hard problems of the checker. Run the checker again after the revision.
+   description asks you to load it at the start. Judge each passage that its
+   linter marks. Then read each sentence against the register, because the
+   linter finds only some of the patterns. Do not change a bad example that the
+   page shows on purpose, even when the linter or the checker marks it. Where
+   the skill and the guide disagreed, the project's author chose. The guide
+   gives each choice, so follow the guide. A sample of the user's own writing
+   wins over the register, but not over the hard problems of the checker.
+   Then run the checker again, and fix only what the revision broke. Run the
+   linter once more, to check that the fixes brought back no pattern.
    If the skill `declauding` is not installed, follow rules 50 to 55 of the
    guide.
 7. Read the page yourself. The checker cannot judge meaning, tone or a missing

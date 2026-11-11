@@ -252,5 +252,36 @@ class CreditTest(unittest.TestCase):
             self.assertIn("Oskar Austegard's declauding skill", rule, number)
 
 
+class PassesTest(unittest.TestCase):
+    "The steps for a pass of the skill after the guide, and the record of the passes on this repository"
+
+    def setUp(self):
+        self.page = re.sub(r'\s+', ' ', (REPO / 'docs/declauding.md').read_text())
+        self.skill = re.sub(r'\s+', ' ', (REPO / '.agents/skills/nossaifd/SKILL.md').read_text())
+
+    def test_the_skill_and_the_page_keep_bad_examples_and_run_the_three_passes(self):
+        "An agent reads only the skill, so the skill carries each step that the page gives"
+        for text in (self.page, self.skill):
+            self.assertRegex(text, r'Do not change a bad example that (a|the) page shows on purpose')
+            self.assertRegex(text, r'read each sentence against the register')
+            self.assertIn('fix only what the revision broke', text)
+            self.assertRegex(text, r'(?i)run the linter once more')
+            self.assertIn('Where the skill and the guide disagreed', text)
+
+    def test_the_page_does_not_claim_what_the_passes_did_not_show(self):
+        for claim in ('cannot find a staged paragraph, a riddle or a verb that needs a mind',
+                      'most real findings come from this reading', 'a fourth pass adds nothing',
+                      'earned its place', 'the full name of Rosalind Reid in each credit', 'most often',
+                      '1 of 29', 'went through these steps', 'The record of each step'):
+            self.assertNotIn(claim, self.page)
+        for count in ('On GUIDE.md, 1 of 36 was real', '1 of 25 was real, and 2 were partly real',
+                      '15 of the 104 candidates outside its quotations were real'):
+            self.assertIn(count, self.page)
+
+    def test_rule_13_keeps_the_wording_of_its_credit(self):
+        guide = re.sub(r'\s+', ' ', (REPO / 'GUIDE.md').read_text())
+        self.assertIn("The reason that a reader gives the end the most weight is this guide's own", guide)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -218,7 +218,7 @@ The order of a README is this guide's own. It is not Rosalind Reid's.
       can be a story with a climax, such as a bug hunt with wrong paths. Then the summary states the
       problem and gives the reader the puzzle. It does not give away the climax. Write "The build slowed
       from 4 minutes to 40 over one week, and the log of that week shows no commit to the build files. We tried three
-      fixes, and each one failed." Do not write a teaser that promises content and names none, as in
+      fixes, and each one failed." Do not write a teaser that says content follows but names none of it, as in
       "Read on to see how we found the cause". The summary is this guide's own rule, and not Rosalind
       Reid's. The ban on the teaser comes from Oskar Austegard's declauding skill,
       [register entries 8](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L175) and [42](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L843).
@@ -260,7 +260,7 @@ The order of a README is this guide's own. It is not Rosalind Reid's.
     From: [Rosalind Reid, tutorial deck, pages 24 and 25](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf).
     This guide adds that the approach usually needs the most space.
 25. **Report what did not work.** Say what the work showed, what failed and what the failure taught. A
-    report that gives only the successes hides what the next person needs to know.
+    report that gives only the successes leaves out what the next person needs to know.
 
     From: [Rosalind Reid, tutorial deck, page 36](https://github.com/rahuldave/nossaifd/blob/main/sources/reid/reid-2015-communicating-your-work-deck.pdf).
 26. **End with the result and what it means.** State the conclusion, what it means and what follows from

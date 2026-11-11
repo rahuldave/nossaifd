@@ -20,8 +20,8 @@ copies the skill again from that commit.
 The copy changes one sentence of his skill, and `sources/declauding.patch` holds the change. In his
 commit, line 14 of `references/fresh-eyes.md` cites `docs/failure-modes.md`, a file in his repository
 oaustegard/claude-workspace. That repository is not public, so the file cannot be copied. The lint of
-skill-package-maker read the path as a missing file of the skill, and it failed. The sentence now names
-the file, its folder and his repository in words, on lines 14 and 15 of the copy.
+skill-package-maker read the path as a missing file of the skill, and it failed. The changed sentence
+names the file, its folder and his repository in words, on lines 14 and 15 of the copy.
 
 ## How to use it with the guide
 
@@ -38,9 +38,15 @@ the file, its folder and his repository in words, on lines 14 and 15 of the copy
    uv run --no-project python .agents/skills/declauding/scripts/declaude_lint.py --skip-quoted page.md
    ```
 
-   `just declaude` does not fail on candidates, and `just check` does not run it. It fails only on a
-   missing page, or when the linter cannot run. Judge each candidate against the register and the guide. Where the two disagree, the guide
-   holds, as [the choices](why.md#choices-about-the-declauding-skill) say.
+   `just declaude` does not fail on candidates, and `just check` does not run it. `just declaude` fails
+   only on a missing page, or when the linter cannot run. Judge each candidate against the register and
+   the guide. Where the two disagree, the guide holds, as
+   [the choices](why.md#choices-about-the-declauding-skill) say.
+
+   Then read each sentence against the register. The linter finds only some of the patterns. It cannot
+   find a paragraph that holds back its finding, which rule 50 calls staging. It also cannot find a
+   sentence that the reader understands only after the next sentences. Do not change a bad example that
+   a page shows on purpose, even when the linter marks it.
 
 4. Run its diff on the copy of the draft and on the revision. The diff lists each number, name, quote,
    ranking and hedge that the revision lost or added:
@@ -49,16 +55,44 @@ the file, its folder and his repository in words, on lines 14 and 15 of the copy
    uv run --no-project python .agents/skills/declauding/scripts/declaude_diff.py draft.md page.md
    ```
 
-5. Run `check.py` again. Where the skill and the guide disagreed, the project's author chose, and the
-   guide holds each choice, so follow the guide. [Why the rules](why.md) lists the choices. A sample of
-   your own writing wins over the register, but not over the hard limits of the guide, which are the hard
-   problems of `check.py`.
-6. Read the page yourself.
+5. Run `check.py` again, and fix only what the revision broke. Where the skill and the guide disagreed,
+   the project's author chose. The rules of the guide give each choice, so follow the guide.
+   [Why the rules](why.md) lists the choices. A sample of your own writing wins over the register, but
+   not over the hard limits of the guide, which are the hard problems of `check.py`.
+6. Run the linter once more, to check that step 5 brought back no pattern. Then read the page yourself.
 
-The description of the skill gives two instructions together. It tells an agent to load the skill at the
-start of every task that writes prose, and it tells the agent to write the draft first without the skill
-in context. A project that installs both skills of this package gets that description too. Follow the
-steps above, and read the register only after the draft is written.
+The description of the skill tells an agent to load the skill at the start of every task that writes
+prose. It also tells the agent to write the draft first, without the skill in context. A project that
+installs both skills of this package gets that description too. Follow the steps above, and read the
+register only after the draft is written.
+
+## The three passes on the pages of this repository
+
+On 10 November 2026, the pages of this repository went through three passes. The first was the guide,
+the second was the declauding skill, and the third was the guide again. Each page had passed `check.py` before, with no hard problem. The
+repository does not keep the notes of the passes. The counts below come from them.
+
+- **The declauding pass found what `check.py` cannot.** On every group of pages, it found real
+  problems. Examples are a fragment, a heading that names no content, and "hides" or "promises" as the
+  verb of a thing. Some of them broke rules 12, 33 and 34 of the guide itself.
+- **The second run of `check.py` caught what the revision broke.** In each group of pages, the revision
+  made a new soft note. Examples are a sentence of 27 or 28 words, and a term that the paragraph never
+  set up. The revision made no hard problem.
+- **The last run of the linter found nothing new.** On these pages, no fix of the second run of
+  `check.py` brought back a pattern.
+
+In three groups of pages, the diff caught a claim that the revision lost or changed. Examples are a
+command, the word "most", and the words "the last words".
+
+Most candidates of the linter were false alarms. On GUIDE.md, 1 of 36 was real. On the pages of
+`docs/`, 1 of 25 was real, and 2 were partly real. On EXAMPLES.md, 15 of the 104
+candidates outside its quotations were real. The false alarms came from causes such as these:
+
+- the name "declauding", which the linter and `check.py` read as an -ing form
+- a bad example in straight double quotes, which `--skip-quoted` does not skip
+- a heading that starts with "What" or "How" and names its content, as "What it checks" does
+- the text of a link read together with its target, as in "the guide guide"
+- a phrase that a page repeats on purpose, such as "the declauding skill"
 
 ## The patterns
 
