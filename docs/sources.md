@@ -76,14 +76,14 @@ Two works by Shreya Shankar are sources:
 ## Oskar Austegard
 
 Oskar Austegard wrote [the declauding skill](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding),
-in his repository oaustegard/claude-skills, under the MIT licence. The skill revises a draft that reads as
+in his repository oaustegard/claude-skills, under the MIT licence. This package calls it declaude. The skill revises a draft that reads as
 if an AI model wrote it, and it checks that the revision kept the claims of the draft. Rules 50 to 55 of
 [the guide](../GUIDE.md) come from it, and rules 9, 10, 20, 32, 34, 36, 37, 38 and 43 take parts of it. The register of the skill gives a pair of sentences, before and
 after, for most of its 56 patterns.
 
-nossaifd ships version 0.14.0 of the skill by Oskar Austegard, from commit `6baa729`, with one sentence changed.
-[The declauding skill](declauding.md#where-it-comes-from) gives the change.
-nossaifd keeps the skill in `.agents/skills/declauding/`, with his licence in the file `LICENSE`. [The declauding skill](declauding.md)
+nossaifd ships version 0.14.0 of the skill by Oskar Austegard, from commit `6baa729`, with three changes.
+[The declaude skill](declaude.md#where-it-comes-from) gives the changes.
+nossaifd keeps the skill in `.agents/skills/declaude/`, with his licence in the file `LICENSE`. [The declaude skill](declaude.md)
 says how to use it with the guide, and it lists the sources that the README of the skill names.
 
 ## Where the sources disagree

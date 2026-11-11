@@ -12,7 +12,7 @@ UNCHECKED = 'from memory and not checked'
 # Every spelling of the standard's name
 NAMES = re.compile(r'\bSTE\b|Simplified Technical English|ASD-STE100', re.I)
 PAGES = ['README.md', 'GUIDE.md', 'EXAMPLES.md', 'docs/sources.md', 'docs/why.md', 'docs/checker.md',
-         'docs/declauding.md', 'index.qmd', '.agents/skills/nossaifd/SKILL.md']
+         'docs/declaude.md', 'index.qmd', '.agents/skills/nossaifd/SKILL.md']
 
 
 def rules():
@@ -65,7 +65,7 @@ class SteTest(unittest.TestCase):
         "A paragraph, an item or a row that names STE says from memory, or that only the about page was read"
         import sys
         sys.path.insert(0, str(REPO / 'tests'))
-        from test_declauding import blocks
+        from test_declaude import blocks
         allowed = re.compile(r'from memory|about page|not checked|No copy of (the|ASD-STE100)', re.I)
         for name in PAGES:
             path = REPO / name

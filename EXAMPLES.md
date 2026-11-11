@@ -36,7 +36,7 @@ The letter of an example names its source:
   the skill. An eval is the set of test tasks with which Shreya Shankar measures her skill. E is a table
   from the eval, and B is a bad specimen from it. T is a task prompt of the eval.
 - **SP** is Shreya Shankar's post.
-- **DC** is the register of the declauding skill by Oskar Austegard. The number of an example is the
+- **DC** is the register of the declaude skill by Oskar Austegard. The number of an example is the
   number of its entry in the register.
 
 ## Sources
@@ -51,10 +51,10 @@ The examples come from four works:
   [commit f0d3630](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md) of https://github.com/docwriter-org/plain-writing-skill.
 - **"Five Principles for Generating Readable AI Text in Bulk", a post by Shreya Shankar**, 29 October 2026,
   at https://fsdatalab.github.io/blog/agent-text-at-scale/.
-- **The declauding skill by Oskar Austegard**, at
+- **The declaude skill by Oskar Austegard**, which he calls declauding, at
   [commit 6baa729](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding)
   of https://github.com/oaustegard/claude-skills. This repository ships the skill in
-  `.agents/skills/declauding/`.
+  `.agents/skills/declaude/`.
 
 GUIDE.md also draws on ASD-STE100, Simplified Technical English. This file has no examples from it,
 because no copy of the standard was available.
@@ -75,7 +75,7 @@ Some texts in the repository of the skill are not by Shreya Shankar. A model wro
 tables, and Anthropic Claude wrote the bad specimens. Each such example says who wrote it. In the post, the
 bad theme cards of SP6 are the output of a Claude plugin, as the post says.
 
-The declauding skill is under the MIT licence, copyright (c) 2025 Oskar Austegard. The examples DC2 to DC56
+The declaude skill is under the MIT licence, copyright (c) 2025 Oskar Austegard. The examples DC2 to DC56
 come from its register at commit 6baa729, and each one links to its lines. Many texts before a revision in
 the register come from drafts by models, and the register names the model after the text where it knows
 it.
@@ -1456,8 +1456,8 @@ A dashboard of praise:     "love", as in "Users love"
 
 ## Patterns of model prose
 
-The examples in this section come from the register of the declauding skill by Oskar Austegard, in
-`.agents/skills/declauding/references/register.md`. Each example gives the pairs of sentences of one
+The examples in this section come from the register of the declaude skill by Oskar Austegard, in
+`.agents/skills/declaude/references/register.md`. Each example gives the pairs of sentences of one
 entry, word for word, before and after the revision. Where an entry has no pair, the example gives its
 tell, and its fix where it has one, also word for word. Entry 1 names the root of the staging family and has no example.
 
@@ -1471,7 +1471,7 @@ comes from, for example the model that wrote it.
 
 ### DC2. Negation-first reveal
 
-Credit: Oskar Austegard, declauding skill, register entry 2, [lines 33 to 36](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L33-L36).
+Credit: Oskar Austegard, declaude skill, register entry 2, [lines 33 to 36](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L33-L36).
 
 ```text
 was: *It is not a wrong answer. It is a non-answer. Counting it as a failure is
@@ -1486,7 +1486,7 @@ as a failure, which is the conservative choice.*
 
 ### DC3. Significance designation
 
-Credit: Oskar Austegard, declauding skill, register entry 3, [lines 60 to 63](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L60-L63).
+Credit: Oskar Austegard, declaude skill, register entry 3, [lines 60 to 63](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L60-L63).
 
 ```text
 was: *Nobody had checked whether it could still think. It is the leg that
@@ -1501,7 +1501,7 @@ the first accuracy number for it.*
 
 ### DC4. Abstraction agency
 
-Credit: Oskar Austegard, declauding skill, register entry 4, [lines 87 to 88](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L87-L88), [lines 90 to 91](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L90-L91), [lines 100 to 103](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L100-L103).
+Credit: Oskar Austegard, declaude skill, register entry 4, [lines 87 to 88](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L87-L88), [lines 90 to 91](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L90-L91), [lines 100 to 103](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L100-L103).
 
 ```text
 was: *Median hides it: the middle of every distribution is similar.*
@@ -1530,7 +1530,7 @@ According to the docstring, they are skipped when they "appear anywhere in the s
 
 ### DC5. Deferred noun
 
-Credit: Oskar Austegard, declauding skill, register entry 5, [lines 122 to 124](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L122-L124).
+Credit: Oskar Austegard, declaude skill, register entry 5, [lines 122 to 124](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L122-L124).
 
 ```text
 was: *Five of those six rows are one cluster. The sixth is not.*
@@ -1544,7 +1544,7 @@ and exhausts 21.*
 
 ### DC6. Structural-metaphor locator
 
-Credit: Oskar Austegard, declauding skill, register entry 6, [lines 139 to 140](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L139-L140).
+Credit: Oskar Austegard, declaude skill, register entry 6, [lines 139 to 140](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L139-L140).
 
 ```text
 was: *It's the seam where the laugh is doing the work an argument would have to.*
@@ -1563,7 +1563,7 @@ The piece never engages the bull case. The joke covers the gap.
 
 ### DC7. Coy and thesis-shaped headers
 
-Credit: Oskar Austegard, declauding skill, register entry 7, [lines 158 to 159](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L158-L159).
+Credit: Oskar Austegard, declaude skill, register entry 7, [lines 158 to 159](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L158-L159).
 
 ```text
 was: *What "exhausted" means* → now: *Exhausted cases*
@@ -1578,7 +1578,7 @@ was: *The one gap that does clear the bar* → now: *The 2.876-bit gap*
 
 ### DC8. Suspense construction
 
-Credit: Oskar Austegard, declauding skill, register entry 8, [lines 177 to 180](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L177-L180), [line 185](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L185).
+Credit: Oskar Austegard, declaude skill, register entry 8, [lines 177 to 180](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L177-L180), [line 185](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L185).
 
 ```text
 **Tell:** a paragraph ending on a colon that introduces the culprit on the next
@@ -1597,7 +1597,7 @@ interesting."
 
 ### DC9. Drama line break
 
-Credit: Oskar Austegard, declauding skill, register entry 9, [lines 191 to 192](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L191-L192), [lines 196 to 197](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L196-L197).
+Credit: Oskar Austegard, declaude skill, register entry 9, [lines 191 to 192](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L191-L192), [lines 196 to 197](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L196-L197).
 
 ```text
 **Tell:** a single sentence alone on its own line as a gravitas beat — "It isn't.",
@@ -1613,7 +1613,7 @@ actor, category shift, time jump.
 
 ### DC10. Rhetorical question plus fragment answer
 
-Credit: Oskar Austegard, declauding skill, register entry 10, [lines 203 to 204](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L203-L204), [line 209](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L209), [lines 211 to 216](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L211-L216).
+Credit: Oskar Austegard, declaude skill, register entry 10, [lines 203 to 204](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L203-L204), [line 209](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L209), [lines 211 to 216](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L211-L216).
 
 ```text
 **Tell:** "So how does it fail?" / "Mostly by not finishing." — asking the reader
@@ -1637,7 +1637,7 @@ FAQ are the earned cases.
 
 ### DC11. Straw-man knockdown
 
-Credit: Oskar Austegard, declauding skill, register entry 11, [lines 222 to 223](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L222-L223), [lines 229 to 230](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L229-L230).
+Credit: Oskar Austegard, declaude skill, register entry 11, [lines 222 to 223](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L222-L223), [lines 229 to 230](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L229-L230).
 
 ```text
 **Tell:** quoting a wrong reading attributed to the reader, then rejecting it —
@@ -1653,7 +1653,7 @@ as long. On the questions it finishes..."*
 
 ### DC12. Aphoristic closer
 
-Credit: Oskar Austegard, declauding skill, register entry 12, [lines 236 to 239](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L236-L239), [lines 244 to 246](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L244-L246).
+Credit: Oskar Austegard, declaude skill, register entry 12, [lines 236 to 239](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L236-L239), [lines 244 to 246](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L244-L246).
 
 ```text
 **Tell:** a final sentence that compresses the paragraph into a contrast, moral,
@@ -1672,7 +1672,7 @@ to 3."*
 
 ### DC13. Self-grading
 
-Credit: Oskar Austegard, declauding skill, register entry 13, [lines 252 to 255](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L252-L255), [line 260](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L260).
+Credit: Oskar Austegard, declaude skill, register entry 13, [lines 252 to 255](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L252-L255), [line 260](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L260).
 
 ```text
 **Tell:** "earned, not asserted", "this isn't just X, it's genuinely Y", "to be
@@ -1689,7 +1689,7 @@ distinction worth keeping separate".
 
 ### DC14. Performed humility
 
-Credit: Oskar Austegard, declauding skill, register entry 14, [lines 266 to 268](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L266-L268), [lines 272 to 273](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L272-L273).
+Credit: Oskar Austegard, declaude skill, register entry 14, [lines 266 to 268](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L266-L268), [lines 272 to 273](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L272-L273).
 
 ```text
 **Tell:** "Their phrasing for it is better than mine", "This might be a small
@@ -1706,7 +1706,7 @@ ranking: *"from a conversation with X"*.
 
 ### DC15. Staccato fragment cadence
 
-Credit: Oskar Austegard, declauding skill, register entry 15, [lines 279 to 281](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L279-L281), [lines 285 to 286](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L285-L286).
+Credit: Oskar Austegard, declaude skill, register entry 15, [lines 279 to 281](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L279-L281), [lines 285 to 286](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L285-L286).
 
 ```text
 **Tell:** three or more fragments in series for rhythm — *Six legs. One GPU, one
@@ -1729,7 +1729,7 @@ The six legs all ran on the same GPU, with the same server build, sampler and qu
 
 ### DC16. Em-dash gotcha
 
-Credit: Oskar Austegard, declauding skill, register entry 16, [lines 292 to 293](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L292-L293), [lines 298 to 302](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L298-L302).
+Credit: Oskar Austegard, declaude skill, register entry 16, [lines 292 to 293](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L292-L293), [lines 298 to 302](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L298-L302).
 
 ```text
 **Tell:** a clause after an em-dash that delivers the punch, especially at the end
@@ -1748,7 +1748,7 @@ than the aside.
 
 ### DC17. Throat-clearing and process narration
 
-Credit: Oskar Austegard, declauding skill, register entry 17, [lines 311 to 313](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L311-L313), [line 318](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L318).
+Credit: Oskar Austegard, declaude skill, register entry 17, [lines 311 to 313](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L311-L313), [line 318](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L318).
 
 ```text
 **Tell:** "I want to talk about", "In this post, I'll cover", "Let me explain",
@@ -1764,7 +1764,7 @@ Credit: Oskar Austegard, declauding skill, register entry 17, [lines 311 to 313]
 
 ### DC18. RTFM as revelation
 
-Credit: Oskar Austegard, declauding skill, register entry 18, [lines 324 to 326](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L324-L326), [line 328](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L328).
+Credit: Oskar Austegard, declaude skill, register entry 18, [lines 324 to 326](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L324-L326), [line 328](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L328).
 
 ```text
 **Tell:** "It turns out that", bare sentence-initial "Turns out", "I finally
@@ -1780,7 +1780,7 @@ discovered", "Hidden in the API",
 
 ### DC19. Generic-developer vocabulary
 
-Credit: Oskar Austegard, declauding skill, register entry 19, [lines 334 to 337](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L334-L337).
+Credit: Oskar Austegard, declaude skill, register entry 19, [lines 334 to 337](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L334-L337).
 
 ```text
 **Tell:** footgun, shot itself in the foot, almost killed it, fell apart, rabbit
@@ -1795,7 +1795,7 @@ batteries included, zero config, small enough to fit in your head.
 
 ### DC20. Slop vocabulary
 
-Credit: Oskar Austegard, declauding skill, register entry 20, [lines 346 to 349](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L346-L349).
+Credit: Oskar Austegard, declaude skill, register entry 20, [lines 346 to 349](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L346-L349).
 
 ```text
 **Tell:** delve, tapestry, testament to, navigate the complexities, in today's
@@ -1810,7 +1810,7 @@ unlock, harness, embark, dive deep, at the end of the day, that said.
 
 ### DC21. Sanitized quotes
 
-Credit: Oskar Austegard, declauding skill, register entry 21, [lines 358 to 359](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L358-L359), [line 361](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L361).
+Credit: Oskar Austegard, declaude skill, register entry 21, [lines 358 to 359](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L358-L359), [line 361](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L361).
 
 ```text
 **Tell:** reported speech where the verb is "expressed", "indicated", "voiced
@@ -1825,7 +1825,7 @@ concern about".
 
 ### DC22. Time-scale inflation
 
-Credit: Oskar Austegard, declauding skill, register entry 22, [lines 367 to 368](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L367-L368), [lines 370 to 371](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L370-L371).
+Credit: Oskar Austegard, declaude skill, register entry 22, [lines 367 to 368](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L367-L368), [lines 370 to 371](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L370-L371).
 
 ```text
 **Tell:** vague durations on recent work — "a month ago", "for a long time", "all
@@ -1841,7 +1841,7 @@ time is strong and needs an empirical counter.
 
 ### DC23. Editorializing modifiers
 
-Credit: Oskar Austegard, declauding skill, register entry 23, [lines 377 to 379](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L377-L379), [line 381](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L381).
+Credit: Oskar Austegard, declaude skill, register entry 23, [lines 377 to 379](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L377-L379), [line 381](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L381).
 
 ```text
 **Tell:** adjectives that pre-load the verdict the piece is supposed to reach —
@@ -1857,7 +1857,7 @@ drop, "exactly" where the contrast already carries it.
 
 ### DC24. Copula avoidance
 
-Credit: Oskar Austegard, declauding skill, register entry 24, [lines 412 to 415](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L412-L415).
+Credit: Oskar Austegard, declaude skill, register entry 24, [lines 412 to 415](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L412-L415).
 
 ```text
 was: *Gallery 825 serves as LAAA's exhibition space. The gallery features four
@@ -1872,7 +1872,7 @@ square feet.*
 
 ### DC25. Participle tail
 
-Credit: Oskar Austegard, declauding skill, register entry 25, [lines 432 to 436](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L432-L436).
+Credit: Oskar Austegard, declaude skill, register entry 25, [lines 432 to 436](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L432-L436).
 
 ```text
 was: *The temple's palette resonates with the region's natural beauty,
@@ -1890,7 +1890,7 @@ Texas bluebonnets and the Gulf of Mexico.*
 
 ### DC26. Forced triad
 
-Credit: Oskar Austegard, declauding skill, register entry 26, [lines 454 to 456](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L454-L456).
+Credit: Oskar Austegard, declaude skill, register entry 26, [lines 454 to 456](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L454-L456).
 
 ```text
 was: *The event features keynote sessions, panel discussions, and networking
@@ -1904,7 +1904,7 @@ now: *The event has talks and panels, with time between them to talk to people.*
 
 ### DC27. Elegant variation
 
-Credit: Oskar Austegard, declauding skill, register entry 27, [lines 488 to 490](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L488-L490).
+Credit: Oskar Austegard, declaude skill, register entry 27, [lines 488 to 490](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L488-L490).
 
 ```text
 was: *The protagonist faces many challenges. The main character must overcome
@@ -1918,7 +1918,7 @@ now: *The protagonist faces many challenges and eventually wins.*
 
 ### DC28. False range
 
-Credit: Oskar Austegard, declauding skill, register entry 28, [lines 508 to 511](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L508-L511).
+Credit: Oskar Austegard, declaude skill, register entry 28, [lines 508 to 511](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L508-L511).
 
 ```text
 was: *Our journey has taken us from the singularity of the Big Bang to the
@@ -1933,7 +1933,7 @@ dark matter.*
 
 ### DC29. Inline-header list
 
-Credit: Oskar Austegard, declauding skill, register entry 29, [lines 530 to 532](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L530-L532).
+Credit: Oskar Austegard, declaude skill, register entry 29, [lines 530 to 532](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L530-L532).
 
 ```text
 was: *- **Performance:** Performance has been enhanced through optimized
@@ -1949,7 +1949,7 @@ now: *Load times dropped after the index moved off the hot path.*
 
 ### DC30. Typographic tells
 
-Credit: Oskar Austegard, declauding skill, register entry 30, [lines 541 to 543](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L541-L543), [lines 549 to 551](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L549-L551).
+Credit: Oskar Austegard, declaude skill, register entry 30, [lines 541 to 543](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L541-L543), [lines 549 to 551](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L549-L551).
 
 ```text
 **Tell:** bold scattered mid-sentence on phrases that are not terms; Title Case
@@ -1969,7 +1969,7 @@ program will read.
 
 ### DC31. Chatbot residue
 
-Credit: Oskar Austegard, declauding skill, register entry 31, [lines 560 to 563](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L560-L563), [line 568](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L568).
+Credit: Oskar Austegard, declaude skill, register entry 31, [lines 560 to 563](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L560-L563), [line 568](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L568).
 
 ```text
 **Tell:** the conversational wrapper left in the pasted text — "Great question",
@@ -1986,7 +1986,7 @@ overview of".
 
 ### DC32. Filler and hedge stacking
 
-Credit: Oskar Austegard, declauding skill, register entry 32, [lines 585 to 587](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L585-L587).
+Credit: Oskar Austegard, declaude skill, register entry 32, [lines 585 to 587](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L585-L587).
 
 ```text
 was: *It could potentially possibly be argued that the policy might have some
@@ -2000,7 +2000,7 @@ now: *The policy may affect outcomes.*
 
 ### DC33. Speculative gap-filling
 
-Credit: Oskar Austegard, declauding skill, register entry 33, [lines 607 to 609](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L607-L609).
+Credit: Oskar Austegard, declaude skill, register entry 33, [lines 607 to 609](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L607-L609).
 
 ```text
 was: *Information about her early life is not publicly available, suggesting
@@ -2014,7 +2014,7 @@ now: *Her early life is not documented in the sources used here.*
 
 ### DC34. Diff-anchored documentation
 
-Credit: Oskar Austegard, declauding skill, register entry 34, [lines 635 to 638](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L635-L638), [lines 640 to 644](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L640-L644).
+Credit: Oskar Austegard, declaude skill, register entry 34, [lines 635 to 638](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L635-L638), [lines 640 to 644](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L640-L644).
 
 ```text
 was: *This function was added to replace the previous approach of iterating
@@ -2041,7 +2041,7 @@ The function looks up items through a hash map, so the cost is constant per item
 
 ### DC35. Subjectless fragment
 
-Credit: Oskar Austegard, declauding skill, register entry 35, [lines 660 to 662](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L660-L662).
+Credit: Oskar Austegard, declaude skill, register entry 35, [lines 660 to 662](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L660-L662).
 
 ```text
 was: *No configuration file needed. The results are preserved automatically.*
@@ -2055,7 +2055,7 @@ the job exits.*
 
 ### DC36. Predicate-position hyphenation
 
-Credit: Oskar Austegard, declauding skill, register entry 36, [lines 679 to 680](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L679-L680).
+Credit: Oskar Austegard, declaude skill, register entry 36, [lines 679 to 680](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L679-L680).
 
 ```text
 was: *The team is cross-functional and the report is data-driven.*
@@ -2068,7 +2068,7 @@ now: *The team is cross functional and the report is data driven.*
 
 ### DC37. Dressed metaphor
 
-Credit: Oskar Austegard, declauding skill, register entry 37, [lines 704 to 705](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L704-L705), [lines 707 to 708](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L707-L708).
+Credit: Oskar Austegard, declaude skill, register entry 37, [lines 704 to 705](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L704-L705), [lines 707 to 708](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L707-L708).
 
 ```text
 was: *That is information loss wearing the costume of a style fix.*
@@ -2084,7 +2084,7 @@ now: *each mechanism we examined had the same difficulty underneath it.*
 
 ### DC38. Announce-then-deliver
 
-Credit: Oskar Austegard, declauding skill, register entry 38, [lines 741 to 744](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L741-L744).
+Credit: Oskar Austegard, declaude skill, register entry 38, [lines 741 to 744](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L741-L744).
 
 ```text
 was: *One factual note, not fixed: X and Y both assert what people generally
@@ -2099,7 +2099,7 @@ supports either: X and Y.*
 
 ### DC39. Welded epigram
 
-Credit: Oskar Austegard, declauding skill, register entry 39, [lines 774 to 776](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L774-L776), [lines 778 to 780](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L778-L780).
+Credit: Oskar Austegard, declaude skill, register entry 39, [lines 774 to 776](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L774-L776), [lines 778 to 780](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L778-L780).
 
 ```text
 was: *Entries the caller does not itself hold are dropped, so a child never
@@ -2125,7 +2125,7 @@ If you leave it out, no error appears, and the child comes up bare.
 
 ### DC40. Spec-ese
 
-Credit: Oskar Austegard, declauding skill, register entry 40, [lines 804 to 805](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L804-L805), [lines 807 to 808](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L807-L808).
+Credit: Oskar Austegard, declaude skill, register entry 40, [lines 804 to 805](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L804-L805), [lines 807 to 808](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L807-L808).
 
 ```text
 was: *That child holds no repository and waits for input.*
@@ -2151,7 +2151,7 @@ If you leave it out, the session does nothing.
 
 ### DC41. Nominalized header
 
-Credit: Oskar Austegard, declauding skill, register entry 41, [lines 830 to 831](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L830-L831).
+Credit: Oskar Austegard, declaude skill, register entry 41, [lines 830 to 831](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L830-L831).
 
 ```text
 was: *GitHub authorship in a sourced child* → now: *Who the delegate posts as*
@@ -2166,7 +2166,7 @@ was: *Spawn availability* → now: *When create_session fails*
 
 ### DC42. Contents-list standfirst
 
-Credit: Oskar Austegard, declauding skill, register entry 42, [lines 859 to 861](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L859-L861).
+Credit: Oskar Austegard, declaude skill, register entry 42, [lines 859 to 861](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L859-L861).
 
 ```text
 was: *The create_session parameter surface, plus the behavior the schema
@@ -2180,7 +2180,7 @@ now: *Every parameter, and four behaviors that only show up in practice.*
 
 ### DC43. Flat-certainty adverb
 
-Credit: Oskar Austegard, declauding skill, register entry 43, [lines 900 to 901](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L900-L901), [lines 903 to 904](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L903-L904).
+Credit: Oskar Austegard, declaude skill, register entry 43, [lines 900 to 901](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L900-L901), [lines 903 to 904](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L903-L904).
 
 ```text
 was: *The retry is provably safe.*
@@ -2204,7 +2204,7 @@ The flag was dropped in 4.2. The changelog does not mention it.
 
 ### DC44. Juridical register
 
-Credit: Oskar Austegard, declauding skill, register entry 44, [lines 928 to 929](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L928-L929), [lines 931 to 932](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L931-L932).
+Credit: Oskar Austegard, declaude skill, register entry 44, [lines 928 to 929](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L928-L929), [lines 931 to 932](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L931-L932).
 
 ```text
 was: *The guard refuses any caller without standing.*
@@ -2220,7 +2220,7 @@ now: *The header check skips one-word titles.*
 
 ### DC45. Verification-provenance compound
 
-Credit: Oskar Austegard, declauding skill, register entry 45, [lines 959 to 961](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L959-L961), [lines 963 to 964](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L963-L964).
+Credit: Oskar Austegard, declaude skill, register entry 45, [lines 959 to 961](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L959-L961), [lines 963 to 964](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L963-L964).
 
 ```text
 was: *The rewrite is byte-identical and mutation-checked.*
@@ -2245,7 +2245,7 @@ I recomputed the threshold from the 46 chunks and got 0.20 again.
 
 ### DC46. Privative coinage
 
-Credit: Oskar Austegard, declauding skill, register entry 46, [lines 987 to 988](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L987-L988), [lines 990 to 991](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L990-L991).
+Credit: Oskar Austegard, declaude skill, register entry 46, [lines 987 to 988](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L987-L988), [lines 990 to 991](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L990-L991).
 
 ```text
 was: *Three of the paths are unguarded.*
@@ -2261,7 +2261,7 @@ now: *The assertion passes on an empty list, which is what the test supplies.*
 
 ### DC47. Exhaustive negation
 
-Credit: Oskar Austegard, declauding skill, register entry 47, [lines 1014 to 1015](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1014-L1015), [lines 1017 to 1019](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1017-L1019).
+Credit: Oskar Austegard, declaude skill, register entry 47, [lines 1014 to 1015](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1014-L1015), [lines 1017 to 1019](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1017-L1019).
 
 ```text
 was: *Nothing in the fit varies with time.*
@@ -2278,7 +2278,7 @@ assignments.*
 
 ### DC48. Performative candour
 
-Credit: Oskar Austegard, declauding skill, register entry 48, [lines 1042 to 1045](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1042-L1045).
+Credit: Oskar Austegard, declaude skill, register entry 48, [lines 1042 to 1045](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1042-L1045).
 
 ```text
 was: *Let's be honest: the benchmark does not measure what the README claims.
@@ -2293,7 +2293,7 @@ harness is `bench/run.py`, line 40.*
 
 ### DC49. Stranded auxiliary reversal
 
-Credit: Oskar Austegard, declauding skill, register entry 49, [lines 1065 to 1067](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1065-L1067).
+Credit: Oskar Austegard, declaude skill, register entry 49, [lines 1065 to 1067](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1065-L1067).
 
 ```text
 was: *The tool died; the data didn't.*
@@ -2307,7 +2307,7 @@ written are still in the bucket.*
 
 ### DC50. Retroactive significance
 
-Credit: Oskar Austegard, declauding skill, register entry 50, [lines 1091 to 1093](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1091-L1093).
+Credit: Oskar Austegard, declaude skill, register entry 50, [lines 1091 to 1093](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1091-L1093).
 
 ```text
 was: *That's why being able to open the environment mattered.*
@@ -2321,7 +2321,7 @@ run restarts at step 0.*
 
 ### DC51. Totalizing designation
 
-Credit: Oskar Austegard, declauding skill, register entry 51, [lines 1113 to 1115](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1113-L1115), [lines 1117 to 1119](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1117-L1119).
+Credit: Oskar Austegard, declaude skill, register entry 51, [lines 1113 to 1115](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1113-L1115), [lines 1117 to 1119](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1117-L1119).
 
 ```text
 was: *That's the whole point of the format.*
@@ -2339,7 +2339,7 @@ possible.*
 
 ### DC52. Obituary headline
 
-Credit: Oskar Austegard, declauding skill, register entry 52, [lines 1138 to 1139](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1138-L1139).
+Credit: Oskar Austegard, declaude skill, register entry 52, [lines 1138 to 1139](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1138-L1139).
 
 ```text
 was: *Peer code review is dead*
@@ -2352,7 +2352,7 @@ now: *Three of our four teams dropped the second-approval requirement in July*
 
 ### DC53. Noun stack
 
-Credit: Oskar Austegard, declauding skill, register entry 53, [lines 1201 to 1204](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1201-L1204), [lines 1206 to 1209](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1206-L1209).
+Credit: Oskar Austegard, declaude skill, register entry 53, [lines 1201 to 1204](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1201-L1204), [lines 1206 to 1209](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1206-L1209).
 
 ```text
 was: *New tests for paths with spaces, dry-run write prevention, and
@@ -2372,7 +2372,7 @@ concern about distraction.*
 
 ### DC54. Verbed noun
 
-Credit: Oskar Austegard, declauding skill, register entry 54, [lines 1229 to 1231](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1229-L1231).
+Credit: Oskar Austegard, declaude skill, register entry 54, [lines 1229 to 1231](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1229-L1231).
 
 ```text
 was: *…the convoluted sentence you are currently reading is quietly eating
@@ -2386,7 +2386,7 @@ now: *…this sentence is hard to read. Move it to a footnote.*
 
 ### DC55. Dropped *that*
 
-Credit: Oskar Austegard, declauding skill, register entry 55, [lines 1259 to 1262](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1259-L1262).
+Credit: Oskar Austegard, declaude skill, register entry 55, [lines 1259 to 1262](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1259-L1262).
 
 ```text
 was: *Three fail on the old code; the others check behaviour the old code never
@@ -2407,7 +2407,7 @@ Three fail on the old code. The others check behaviour that the old code never r
 
 ### DC56. Distant verb
 
-Credit: Oskar Austegard, declauding skill, register entry 56, [lines 1283 to 1288](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1283-L1288).
+Credit: Oskar Austegard, declaude skill, register entry 56, [lines 1283 to 1288](https://github.com/oaustegard/claude-skills/blob/6baa7290da972191749acda03c63297e67b3fc26/declauding/references/register.md?plain=1#L1283-L1288).
 
 ```text
 was: *All five expression shapes — attribute access, subscript, calls, nested

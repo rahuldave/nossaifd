@@ -1,4 +1,4 @@
-"""Check the copy of the declauding skill by Oskar Austegard, the examples taken from it, and its credit."""
+"""Check the copy of the declaude skill by Oskar Austegard, the examples taken from it, and its credit."""
 import json
 from pathlib import Path
 import re
@@ -7,14 +7,14 @@ import unittest
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'tests'))
-import declauding_manifest  # noqa: E402
+import declaude_manifest  # noqa: E402
 
-SKILL = REPO / '.agents/skills/declauding'
-RECORD = json.loads((REPO / 'sources/declauding.json').read_text())
-COMMIT = re.search(r'^declauding_commit := "([0-9a-f]{40})"$', (REPO / 'Justfile').read_text(), re.M).group(1)
+SKILL = REPO / '.agents/skills/declaude'
+RECORD = json.loads((REPO / 'sources/declaude.json').read_text())
+COMMIT = re.search(r'^declaude_commit := "([0-9a-f]{40})"$', (REPO / 'Justfile').read_text(), re.M).group(1)
 REGISTER = (SKILL / 'references/register.md').read_text().split('\n')
 # Every page that uses the skill, and so must credit Oskar Austegard
-PAGES = ['README.md', 'GUIDE.md', 'EXAMPLES.md', 'docs/sources.md', 'docs/declauding.md', 'docs/why.md',
+PAGES = ['README.md', 'GUIDE.md', 'EXAMPLES.md', 'docs/sources.md', 'docs/declaude.md', 'docs/why.md',
          'docs/checker.md', '.agents/skills/nossaifd/SKILL.md']
 # A link to his repository that names a commit, a branch or a tag
 LINK = re.compile(r'(?:github\.com/oaustegard/claude-skills/(?:blob|tree|raw|commit|blame)/'
@@ -61,18 +61,18 @@ def examples(text):
 class CopyTest(unittest.TestCase):
     def test_the_record_names_the_commit_of_the_justfile_and_the_version_of_the_copy(self):
         self.assertEqual(RECORD['commit'], COMMIT)
-        self.assertEqual(RECORD['version'], declauding_manifest.version())
+        self.assertEqual(RECORD['version'], declaude_manifest.version())
         self.assertEqual(RECORD['version'], '0.14.0')
 
     def test_each_file_of_the_copy_is_the_file_of_the_record(self):
-        self.assertEqual(declauding_manifest.digests(), {**RECORD['files'], **RECORD['changed']},
-                         'the copy changed: run just declauding')
+        self.assertEqual(declaude_manifest.digests(), {**RECORD['files'], **RECORD['changed']},
+                         'the copy changed: run just declaude')
 
     def test_the_patch_changes_only_the_files_that_the_record_marks_as_changed(self):
-        patch = (REPO / 'sources/declauding.patch').read_text()
-        named = sorted(set(re.findall(r'^\+\+\+ b/\.agents/skills/declauding/(\S+)$', patch, re.M)))
+        patch = (REPO / 'sources/declaude.patch').read_text()
+        named = sorted(set(re.findall(r'^\+\+\+ b/\.agents/skills/declaude/(\S+)$', patch, re.M)))
         self.assertEqual(named, sorted(RECORD['changed']))
-        self.assertEqual(named, ['references/fresh-eyes.md'])
+        self.assertEqual(named, ['SKILL.md', 'references/fresh-eyes.md'])
         for path in named:
             self.assertNotEqual(RECORD['changed'][path], RECORD['files'][path])
 
@@ -80,12 +80,12 @@ class CopyTest(unittest.TestCase):
         import hashlib, shutil, subprocess, tempfile
         with tempfile.TemporaryDirectory() as temp:
             for path in RECORD['changed']:
-                target = Path(temp) / '.agents/skills/declauding' / path
+                target = Path(temp) / '.agents/skills/declaude' / path
                 target.parent.mkdir(parents=True)
                 shutil.copy(SKILL / path, target)
-            subprocess.run(['git', 'apply', '-R', str(REPO / 'sources/declauding.patch')], cwd=temp, check=True)
+            subprocess.run(['git', 'apply', '-R', str(REPO / 'sources/declaude.patch')], cwd=temp, check=True)
             for path in RECORD['changed']:
-                data = (Path(temp) / '.agents/skills/declauding' / path).read_bytes()
+                data = (Path(temp) / '.agents/skills/declaude' / path).read_bytes()
                 self.assertEqual(hashlib.sha1(b'blob %d\0' % len(data) + data).hexdigest(), RECORD['files'][path])
 
     def test_no_reference_names_a_docs_path_in_code_that_the_lint_reads_as_missing(self):
@@ -93,13 +93,13 @@ class CopyTest(unittest.TestCase):
         for path in (SKILL / 'references').glob('*.md'):
             self.assertNotRegex(path.read_text(), r'`docs/', path.name)
 
-    def test_each_page_that_describes_the_copy_says_that_one_line_changed(self):
-        for name in ('README.md', 'GUIDE.md', 'docs/sources.md', 'docs/declauding.md', '.agents/skills/nossaifd/SKILL.md'):
+    def test_each_page_that_describes_the_copy_says_that_it_has_three_changes(self):
+        for name in ('README.md', 'GUIDE.md', 'docs/sources.md', 'docs/declaude.md', '.agents/skills/nossaifd/SKILL.md'):
             text = re.sub(r'\s+', ' ', (REPO / name).read_text())
-            self.assertRegex(text, r'one (changed )?sentence', name)
+            self.assertIn('three changes', text, name)
         for path in pages():
             for block in blocks(path.read_text()):
-                if re.search(r'declauding|Austegard', block):
+                if re.search(r'declaude|Austegard', block):
                     with self.subTest(page=str(path.relative_to(REPO)), block=block[:80]):
                         self.assertNotRegex(block, r'(?i)without changes|\bunchanged\b|no changes|not changed|one changed line|one line')
 
@@ -112,8 +112,8 @@ class CopyTest(unittest.TestCase):
         self.assertNotIn('`', sentence)
 
     def test_the_recipe_checks_the_patch_before_it_removes_the_copy(self):
-        recipe = (REPO / 'Justfile').read_text().split('\ndeclauding:', 1)[1].split('\n\n', 1)[0]
-        self.assertLess(recipe.index('apply --check'), recipe.index('rm -rf .agents/skills/declauding'))
+        recipe = (REPO / 'Justfile').read_text().split('\ndeclaude-copy:', 1)[1].split('\n\n', 1)[0]
+        self.assertLess(recipe.index('apply --check'), recipe.index('rm -rf .agents/skills/declaude'))
 
     def declaude(self, *pages, code=1):
         "Run just declaude in a copy of the Justfile, with a stub linter that ends with this code."
@@ -122,7 +122,7 @@ class CopyTest(unittest.TestCase):
             self.skipTest('just is not installed')
         with tempfile.TemporaryDirectory() as temp:
             shutil.copy(REPO / 'Justfile', temp)
-            stub = Path(temp) / '.agents/skills/declauding/scripts/declaude_lint.py'
+            stub = Path(temp) / '.agents/skills/declaude/scripts/declaude_lint.py'
             stub.parent.mkdir(parents=True)
             stub.write_text(f'import sys\nprint("LINT", sys.argv[1:])\nsys.exit({code})\n')
             (Path(temp) / 'my page.md').write_text('A page.\n')
@@ -159,7 +159,7 @@ class CopyTest(unittest.TestCase):
     def test_the_readme_says_what_to_do_when_the_patch_no_longer_applies(self):
         readme = re.sub(r'\s+', ' ', (REPO / 'README.md').read_text())
         self.assertIn('If the patch no longer applies, the recipe stops before it changes the copy', readme)
-        self.assertIn('| `sources/declauding.patch` |', readme)
+        self.assertIn('| `sources/declaude.patch` |', readme)
 
     def test_the_copy_keeps_the_whole_licence(self):
         licence = (SKILL / 'LICENSE').read_text()
@@ -200,28 +200,28 @@ class ExamplesTest(unittest.TestCase):
 
     def test_each_example_credits_him_in_its_own_block(self):
         for number, block in self.examples:
-            self.assertIn(f'Credit: Oskar Austegard, declauding skill, register entry {number}, ', block, number)
+            self.assertIn(f'Credit: Oskar Austegard, declaude skill, register entry {number}, ', block, number)
 
 
 class CreditTest(unittest.TestCase):
     def test_each_page_that_uses_the_skill_credits_oskar_austegard(self):
         for name in PAGES:
             text = (REPO / name).read_text()
-            self.assertIn('declauding', text, name)
+            self.assertIn('declaude', text, name)
             self.assertIn('Oskar Austegard', text, name)
 
     def test_each_block_that_links_to_his_work_names_him(self):
         "A paragraph, a list item or a table row copied alone keeps his credit, as the blocks with Reid's PDFs do."
         for path in pages():
             for block in blocks(path.read_text()):
-                if 'oaustegard/claude-skills' in block or '.agents/skills/declauding' in block:
+                if 'oaustegard/claude-skills' in block or '.agents/skills/declaude' in block:
                     with self.subTest(page=str(path.relative_to(REPO)), block=block[:80]):
                         self.assertIn('Oskar Austegard', re.sub(r'\s+', ' ', block))
 
     def test_any_other_page_that_names_the_skill_credits_him(self):
         for path in pages():
             text = path.read_text()
-            if re.search(r'declauding|oaustegard', text):
+            if re.search(r'declaude|oaustegard', text):
                 self.assertIn('Oskar Austegard', re.sub(r'\s+', ' ', text), path.relative_to(REPO))
 
     def test_every_link_to_his_repository_names_the_commit_that_ships(self):
@@ -232,7 +232,7 @@ class CreditTest(unittest.TestCase):
     def test_every_commit_and_version_in_the_prose_is_the_one_that_ships(self):
         for path in pages():
             # Only the blocks about the skill: other pages also name versions and commits of other things
-            text = '\n'.join(b for b in blocks(path.read_text()) if re.search(r'declauding|Austegard', b))
+            text = '\n'.join(b for b in blocks(path.read_text()) if re.search(r'declaude|Austegard', b))
             for short in re.findall(r'commit `?([0-9a-f]{7,40})\b', text):
                 if 'f0d3630'.startswith(short[:7]):
                     continue  # the commit of Shreya Shankar's skill
@@ -249,14 +249,14 @@ class CreditTest(unittest.TestCase):
         # Rules 50 to 55 come from the skill, and the others take a part of it
         for number in [*range(50, 56), 9, 10, 20, 32, 34, 36, 37, 38, 43]:
             rule = re.search(rf'^{number}\. \*\*.*?(?=^\d+\. \*\*|^## )', guide, re.M | re.S).group(0)
-            self.assertIn("Oskar Austegard's declauding skill", rule, number)
+            self.assertIn("Oskar Austegard's declaude skill", rule, number)
 
 
 class PassesTest(unittest.TestCase):
     "The steps for a pass of the skill after the guide, and the record of the passes on this repository"
 
     def setUp(self):
-        self.page = re.sub(r'\s+', ' ', (REPO / 'docs/declauding.md').read_text())
+        self.page = re.sub(r'\s+', ' ', (REPO / 'docs/declaude.md').read_text())
         self.skill = re.sub(r'\s+', ' ', (REPO / '.agents/skills/nossaifd/SKILL.md').read_text())
 
     def test_the_skill_and_the_page_keep_bad_examples_and_run_the_three_passes(self):
@@ -265,8 +265,8 @@ class PassesTest(unittest.TestCase):
             self.assertRegex(text, r'Do not change a bad example that (a|the) page shows on purpose')
             self.assertRegex(text, r'read each sentence against the register')
             self.assertIn('fix only what the revision broke', text)
-            self.assertRegex(text, r'(?i)run the linter once more')
-            self.assertIn('Where the skill and the guide disagreed', text)
+            self.assertRegex(text, r'(?i)run the linter( of the declaude skill)? once more')
+            self.assertRegex(text, r'Where the (declaude )?skill and the guide disagreed')
 
     def test_the_page_does_not_claim_what_the_passes_did_not_show(self):
         for claim in ('cannot find a staged paragraph, a riddle or a verb that needs a mind',
@@ -281,6 +281,82 @@ class PassesTest(unittest.TestCase):
     def test_rule_13_keeps_the_wording_of_its_credit(self):
         guide = re.sub(r'\s+', ' ', (REPO / 'GUIDE.md').read_text())
         self.assertIn("The reason that a reader gives the end the most weight is this guide's own", guide)
+
+
+class NameAndCallTest(unittest.TestCase):
+    "The package calls the skill declaude, installs it with npx, and calls it from step 6 of the nossaifd skill"
+
+    def test_the_copy_names_the_skill_declaude_and_the_pages_say_that_he_calls_it_declauding(self):
+        self.assertRegex((SKILL / 'SKILL.md').read_text(), r'(?m)^name: declaude$')
+        for name in ('README.md', 'GUIDE.md', 'EXAMPLES.md', 'docs/declaude.md', '.agents/skills/nossaifd/SKILL.md'):
+            self.assertRegex(re.sub(r'\s+', ' ', (REPO / name).read_text()), r'calls (it )?declauding', name)
+        self.assertIn('wrote [the declauding skill]', (REPO / 'docs/sources.md').read_text())
+        self.assertIn('the folder `declauding` of his repository', (REPO / 'docs/declaude.md').read_text())
+        self.assertIn('folder `declauding`, version 0.14.0', re.sub(r'\s+', ' ', (REPO / 'GUIDE.md').read_text()))
+
+    def test_no_page_uses_the_old_name_except_for_his_folder_and_his_own_name_for_it(self):
+        for path in pages():
+            text = re.sub(r'\s+', ' ', path.read_text())
+            text = re.sub(r'github\.com/oaustegard/claude-skills/\S*?declauding', '', text)
+            text = re.sub(r'(calls( it)?|named it|the name|wrote \[the|folder `|folder, `|old name of the skill,)\s*declauding', '', text)
+            text = text.replace('src/declauding', '')
+            self.assertNotRegex(text, r'declauding', path.relative_to(REPO))
+
+    def test_npx_installs_both_skills(self):
+        manifest = json.loads((REPO / 'skill-package.json').read_text())
+        self.assertEqual(manifest['npx']['install'], "npx skills add rahuldave/nossaifd -a codex --skill '*' -y")
+        self.assertEqual([s['name'] for s in manifest['skills']], ['nossaifd', 'declaude'])
+        self.assertIn(manifest['npx']['install'], (REPO / 'README.md').read_text())
+
+    def test_the_description_of_the_copy_waits_for_the_draft_and_names_step_6(self):
+        description = re.search(r'(?m)^description: (.*)$', (SKILL / 'SKILL.md').read_text()).group(1)
+        for part in ('The nossaifd skill calls it at its step 6', 'after the draft passes the nossaifd checker',
+                     'an agent that did not write the draft', 'Do not load it before the draft exists',
+                     'Do not change a bad example'):
+            self.assertIn(part, description)
+        self.assertNotIn('at the start of any task', description)
+
+    def assertInOrder(self, text, parts, where):
+        "Each part comes after the one before it in the text"
+        at = -1
+        for part in parts:
+            found = text.find(part, at + 1)
+            self.assertGreater(found, at, f'{where}: {part!r} is missing or out of order')
+            at = found
+
+    def test_the_passes_run_in_order_with_a_fresh_agent_for_the_declaude_pass(self):
+        "Guide and checker, then the declaude pass in a fresh agent, then the checker, then the linter once more"
+        def flat(name):
+            return re.sub(r'\s+', ' ', (REPO / name).read_text())
+        skill = flat('.agents/skills/nossaifd/SKILL.md')
+        self.assertInOrder(skill[skill.index('## Steps'):], ['4. Run the checker', 'give the page to a subagent that did not write it',
+                           'steps of the declaude skill', '7. Run the checker again', 'fix only what the revision broke',
+                           '8. Run the linter of the declaude skill once more'], 'SKILL.md')
+        guide = flat('GUIDE.md')
+        guide = guide[guide.index('## Check the result'):guide.index('## Sources')]
+        self.assertInOrder(guide, ['uv run --no-project python check.py page.md', 'an agent that did not write it',
+                           'declaude_diff.py', 'Then run `check.py` again, and fix only what the revision broke',
+                           'Run the linter once more'], 'GUIDE.md')
+        page = flat('docs/declaude.md')
+        page = page[page.index('## How to use it with the guide'):page.index('## The passes on the pages')]
+        self.assertInOrder(page, ['2. Run `check.py` on the draft', 'an agent that did not write it', '4. Run its diff',
+                           '5. Run `check.py` again, and fix only what the revision broke', '6. Run the linter once more'],
+                           'docs/declaude.md')
+        readme = flat('README.md')
+        self.assertInOrder(readme, ['3. Run the checker on the result', 'an agent that did not write it',
+                           '5. Run the checker again, and fix only what the revision broke',
+                           'run the linter of the declaude skill once more'], 'README.md')
+
+    def test_every_link_to_his_repository_names_his_folder(self):
+        for path in pages():
+            for link in re.findall(r'https://github\.com/oaustegard/claude-skills/(?:tree|blob)/\S+?(?=[)\s])', path.read_text()):
+                with self.subTest(page=str(path.relative_to(REPO)), link=link[:90]):
+                    self.assertIn(f'/{COMMIT}/declauding', link)
+
+    def test_rule_55_keeps_bad_examples(self):
+        guide = re.sub(r'\s+', ' ', (REPO / 'GUIDE.md').read_text())
+        rule = guide[guide.index('55. **'):guide.index('## Check the result')]
+        self.assertIn('Keep word for word each bad example that the page shows on purpose', rule)
 
 
 if __name__ == '__main__':

@@ -24,10 +24,12 @@ For a report:
    uv run --no-project python check.py -v docs/page.md
    ```
 
-4. Keep a copy of the result. Then revise it with the declauding skill by Oskar Austegard, in
-   `.agents/skills/declauding/`, which finds and rewrites the sentences that sound like a model.
-   [The declauding skill](docs/declauding.md) gives the steps. Run the checker again after the revision.
-5. Read the result. The checker cannot judge meaning or tone.
+4. Keep a copy of the result. Then give it to an agent that did not write it. That agent revises it with
+   the declaude skill by Oskar Austegard, in `.agents/skills/declaude/`, which finds and rewrites the
+   sentences that sound like a model. [The declaude skill](docs/declaude.md) gives the steps.
+5. Run the checker again, and fix only what the revision broke. Then run the linter of the declaude skill
+   once more.
+6. Read the result. The checker cannot judge meaning or tone.
 
 The checker needs only Python 3.11 or later, with no other packages. `uv run` gives that Python, so the
 machine needs only `uv`.
@@ -38,21 +40,28 @@ machine needs only `uv`.
 |---|---|
 | [`GUIDE.md`](GUIDE.md) | The rules for reports: words, sentences, instructions, paragraphs, long documents, figures, tone, punctuation, formatting and short items |
 | [`check.py`](https://github.com/rahuldave/nossaifd/blob/main/check.py) | It checks a report against the rules that a program can measure. See [the checker](docs/checker.md) |
-| [`EXAMPLES.md`](EXAMPLES.md) | Worked examples for the rules, from Rosalind Reid, Shreya Shankar and the declauding skill by Oskar Austegard. Each example names its source |
+| [`EXAMPLES.md`](EXAMPLES.md) | Worked examples for the rules, from Rosalind Reid, Shreya Shankar and the declaude skill by Oskar Austegard. Each example names its source |
 | `sources/reid/` | The PDFs of Rosalind Reid's tutorial, which the guide cites page by page |
-| `sources/declauding.json` | The commit and the version of the declauding skill by Oskar Austegard that ships here, with the git id of each file of that commit and of each file that the patch changes. `just declauding` writes it |
-| `sources/declauding.patch` | The one sentence that the copy of the declauding skill by Oskar Austegard changes. See [the declauding skill](docs/declauding.md#where-it-comes-from) |
+| `sources/declaude.json` | The commit and the version of the declaude skill by Oskar Austegard that ships here, with the git id of each file of that commit and of each file that the patch changes. `just declaude-copy` writes it |
+| `sources/declaude.patch` | The three changes that the copy makes to the declaude skill by Oskar Austegard: its name and the path of its folder, its description, and one sentence. See [the declaude skill](docs/declaude.md#where-it-comes-from) |
 | `docs/` | The pages of the site, which smalldocs builds from `_smalldocs.yml` |
 | `.agents/skills/nossaifd/` | The agent skill, with copies of `GUIDE.md`, `EXAMPLES.md` and `check.py` |
-| `.agents/skills/declauding/` | The declauding skill by Oskar Austegard, with its licence and one changed sentence. See [the declauding skill](docs/declauding.md) |
+| `.agents/skills/declaude/` | The declaude skill by Oskar Austegard, with its licence and three changes. See [the declaude skill](docs/declaude.md) |
 
 ## Install the skill in a repository
 
 The repository is also a package of two agent skills. The first, `.agents/skills/nossaifd/`, holds
 copies of the guide, the examples and the checker, and a `SKILL.md` that tells an agent how to use them.
-The second, `.agents/skills/declauding/`, is the declauding skill by Oskar Austegard. The command
-`npx skills add rahuldave/nossaifd --skill nossaifd` installs only the first. An agent that has only the
-nossaifd skill follows rules 50 to 55 of the guide in place of the declauding skill.
+The second, `.agents/skills/declaude/`, is the declaude skill by Oskar Austegard, which he calls
+declauding. Step 6 of the nossaifd skill calls the declaude skill, so install both. With npx, run this
+command:
+
+```
+npx skills add rahuldave/nossaifd -a codex --skill '*' -y
+```
+
+An agent that has only the nossaifd skill follows rules 50 to 55 of the guide in place of the declaude
+skill.
 
 [jnterfaces](https://github.com/rahuldave/jnterfaces) is a package of agent skills for the command
 interface of a project. Its installer adds other packages. Each package does one job, which
@@ -77,14 +86,14 @@ jnterfaces did not set up adds the recipe with the line
 After you change the guide, the examples or the checker, run `just sync` to copy them into the nossaifd
 skill. `just check` fails while the copies differ.
 
-`just declaude page.md` prints the passages of a page that the linter of Oskar Austegard's declauding
+`just declaude page.md` prints the passages of a page that the linter of Oskar Austegard's declaude
 skill marks as possible model prose. It does not fail on them, because a person judges each one.
 
-`just declauding` is a different recipe from `just declaude`. It copies the declauding skill by Oskar Austegard again from its
-fixed commit in oaustegard/claude-skills, and it applies `sources/declauding.patch`. To take a newer version, change the
-commit in the Justfile and run `just declauding`. If the patch no longer applies, the recipe stops before
+`just declaude-copy` is a different recipe from `just declaude`. It copies the declaude skill by Oskar Austegard again from its
+fixed commit in oaustegard/claude-skills, and it applies `sources/declaude.patch`. To take a newer version, change the
+commit in the Justfile and run `just declaude-copy`. If the patch no longer applies, the recipe stops before
 it changes the copy. Then update or remove the patch, and the names of the changed files and the version
-in `tests/test_declauding.py`.
+in `tests/test_declaude.py`.
 
 ## Build the site
 
@@ -133,15 +142,15 @@ The guide joins five sources. [Sources and credit](docs/sources.md) says what ea
 - **["Five Principles for Generating Readable AI Text in Bulk"](https://fsdatalab.github.io/blog/agent-text-at-scale/),
   by Shreya Shankar.** It gives the rules for short items that a reader skims, such as titles, list items
   and the rows of a dashboard.
-- **[The declauding skill](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding) by Oskar
+- **[The declaude skill](https://github.com/oaustegard/claude-skills/tree/6baa7290da972191749acda03c63297e67b3fc26/declauding) by Oskar
   Austegard**, under the MIT licence. It gives the rules for the revision of a draft that reads as if a
   model wrote it. Its register, the file that lists its patterns, gives a pair of sentences, before and
-  after, for most of the patterns. This repository ships the skill in `.agents/skills/declauding/`. See
-  [the declauding skill](docs/declauding.md).
+  after, for most of the patterns. This repository ships the skill in `.agents/skills/declaude/`. See
+  [the declaude skill](docs/declaude.md).
 
 ## Licence
 
-The code and the guide are under the MIT licence, in [`LICENSE`](https://github.com/rahuldave/nossaifd/blob/main/LICENSE). The declauding skill in `.agents/skills/declauding/` is
+The code and the guide are under the MIT licence, in [`LICENSE`](https://github.com/rahuldave/nossaifd/blob/main/LICENSE). The declaude skill in `.agents/skills/declaude/` is
 under its own MIT licence, copyright (c) 2025 Oskar Austegard, in the file `LICENSE` of that folder. Rosalind Reid's PDFs in `sources/reid/`
 are her work, used with her permission, and they are not under the MIT licence.
 

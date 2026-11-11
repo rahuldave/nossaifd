@@ -74,7 +74,7 @@ The checker cannot judge meaning, tone, or a term that a page uses before it def
 after it passes.
 
 The checker finds only a few of the patterns of model prose in rules 50 to 54, such as "not just" and the
-words of rule 5. The linter of the declauding skill by Oskar Austegard looks for more of them. [The declauding skill](declauding.md) says how to run it.
+words of rule 5. The linter of the declaude skill by Oskar Austegard looks for more of them. [The declaude skill](declaude.md) says how to run it.
 
 ## How it splits sentences and sets length limits
 

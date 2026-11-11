@@ -1,0 +1,36 @@
+diff --git a/.agents/skills/declaude/SKILL.md b/.agents/skills/declaude/SKILL.md
+index e31ffe9..4f7d879 100644
+--- a/.agents/skills/declaude/SKILL.md
++++ b/.agents/skills/declaude/SKILL.md
+@@ -1,6 +1,6 @@
+ ---
+-name: declauding
+-description: Load it without being asked at the start of any task whose deliverable is prose that another person will read, such as a PR description, commit message, README, doc, postmortem, blog post, issue or review comment, report, release note or essay, and run it on the draft before the text is pushed, posted, published or saved. Draft first without this skill in context, from a positive writing brief if one exists. Also use it when someone says "de-claude", "de-slop", "humanize this", "this reads like AI" or "make it sound human", or asks for a voice, tone or register edit. It rewrites the constructions that mark prose as model-written into plain technical prose, and checks that the rewrite kept the draft's claims. The constructions include staged reveals, verdict headers, aphoristic closers, "it's not X, it's Y", em-dash drama, forced triads, flat-certainty adverbs, noun stacks and dropped 'that'. Do not use it on fiction, poetry, code or quoted text. For a full adversarial review of a deliverable, use challenging.
++name: declaude
++description: Revise a draft that reads as if an AI model wrote it into plain technical prose, and keep every claim. The nossaifd skill calls it at its step 6, after the draft passes the nossaifd checker, and the checker runs again after it. Run it in an agent that did not write the draft. Do not load it before the draft exists. Do not change a bad example that the page shows on purpose. Also use it on a finished draft when someone says "de-claude", "de-slop", "humanize this", "this reads like AI" or "make it sound human". Do not use it on fiction, poetry, code or quoted text.
+ metadata:
+   version: 0.14.0
+ ---
+@@ -107,7 +107,7 @@ the current draft is not.
+ ## Workflow
+ 
+ Script paths below are relative to this skill's directory. From any other
+-working directory, prefix them with `/mnt/skills/user/declauding/`.
++working directory, prefix them with `/mnt/skills/user/declaude/`.
+ 
+ **1. Read the whole piece before editing anything.** Tics carry factual errors.
+ A sentence written to sound important is disproportionately likely to be wrong,
+diff --git a/.agents/skills/declaude/references/fresh-eyes.md b/.agents/skills/declaude/references/fresh-eyes.md
+index 106255a..5dae3ad 100644
+--- a/.agents/skills/declaude/references/fresh-eyes.md
++++ b/.agents/skills/declaude/references/fresh-eyes.md
+@@ -11,7 +11,8 @@ contradicted itself.
+ 
+ Three ways of catching it automatically were measured on Claude-written commits to READMEs, docs, write-ups and
+ pages. A fire is a passage the check flagged; whether a fire was real was judged by a separate model that had not
+-written the check (oaustegard/claude-workspace `docs/failure-modes.md` has the details):
++written the check (the file failure-modes.md, in the folder docs of Oskar Austegard's repository
++oaustegard/claude-workspace, has the details):
+ 
+ | check | result |
+ |---|---|
