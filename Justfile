@@ -75,6 +75,11 @@ prose:
 pages +paths:
     {{python}} .agents/skills/nossaifd/scripts/prose_gate.py pages -- "$@"
 
+# Check each page with its checker: check.py, or the one that .agents/nossaifd-checkers.json names for it. -v adds
+# the soft notes: just check-page -v README.md
+check-page +args:
+    {{python}} .agents/skills/nossaifd/scripts/prose_gate.py check "$@"
+
 # Print the passages of each page that the declaude linter by Oskar Austegard marks as possible model
 # prose. It does not fail on them, because a person judges each one. It fails on a missing page, or when
 # the linter cannot run

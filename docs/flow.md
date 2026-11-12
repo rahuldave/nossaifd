@@ -31,9 +31,10 @@ Codex run `.agents/skills/nossaifd/scripts/prose_gate.py` at both moments.
   made. Such a commit has the same author and was made after the turn started. A pull or a checkout
   brings commits that were made before the turn, so they do not count.
 
-For each page that counts, the hook runs `check.py`, and it looks up the page in the record of passes. A
-page passes when it has no hard problem and the record holds the page as it is now. After step 8 of the
-nossaifd skill, the agent records each page:
+For each page that counts, the hook runs the checker of the page, and it looks up the page in the record
+of passes. The checker is `check.py`, or another checker that the map of checkers of the project names
+for the page. A page passes when its checker finds no hard problem and the record holds the page as it is now.
+After step 8 of the nossaifd skill, the agent records each page:
 
 ```bash
 uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py record page.md
@@ -65,11 +66,116 @@ An error in the hook never blocks, and a missing script never blocks either. Set
 variable `NOSSAIFD_GATE=off` before you start Claude Code or Codex to turn the hooks off. Setting it in a
 command of the agent has no effect.
 
-To see which changed pages still need their steps, run:
+To see which changed pages still need their steps, and the checker of each changed page, run:
 
 ```bash
 uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py status
 ```
+
+## Another checker for some pages
+
+Some pages follow another guide, for example the slides of a talk. The script of a talk is in the
+speaker notes. The talk guide of nossaifd-talks asks for contractions in the script, because speech uses
+them. `check.py` marks each contraction as a hard problem, so it fails a good deck. The talk checker
+`check_talk.py` knows the slides from the notes, so it is the right checker for a deck.
+
+The map of checkers tells the gate which checker checks a page. It is the file
+`.agents/nossaifd-checkers.json` in the root of the project. The root is the top folder of the git
+repository. This map gives the decks and the plans of talks to the talk checker:
+
+```json
+{
+  "version": 1,
+  "checkers": [
+    {
+      "pages": ["**/slides.qmd", "**/plan.md"],
+      "checker": ".agents/skills/presentations/scripts/check_talk.py"
+    }
+  ]
+}
+```
+
+- **`version`** is the number 1.
+- **`checkers`** is a list of rules. Each rule has a list `pages` of globs and the path of one `checker`.
+- **A glob** matches the whole path of a page from the root. A `*` matches any characters inside one
+  folder name, and a `?` matches one character. A `**` that is a whole folder name matches any number of
+  folders, also none. So `**/slides.qmd` matches `slides.qmd` and `talks/cache/slides.qmd`. Every other
+  character matches itself. A `./` at the start does not count. A map with a glob that starts with `/`,
+  ends with `/`, has a space at either end, or holds `\`, `//`, `.` or `..` as a folder name is broken,
+  because such a glob would match no page.
+- **The first rule** whose glob matches a page names its checker. A page that no rule matches gets
+  `check.py`.
+- **The path of a checker** is relative to the root, with `/` between folders. It names a Python file
+  inside the project. A map with an absolute path or a path with `..` is broken. The gate follows a
+  symlink, so a skill that the installer linked into `.agents/skills/` still works.
+
+`prose_gate.py pages` still decides what is a page, and the map decides which checker checks it. Every
+command of the gate that checks a page uses the map. These commands are `hook`, `status`, `record`,
+`check-diff` and `check`.
+
+### The command of a checker, and its exit codes
+
+The gate runs a checker with its own Python, in the root of the project, once for each page:
+
+```bash
+python -B CHECKER PAGE
+```
+
+- **`PAGE`** is the path of the page from the root. A path that starts with `-` gets `./` before it.
+- **`-B`** stops Python from writing `__pycache__` into the folder of the checker.
+- **Exit 0** means that the page has no hard problem.
+- **Exit 1** means that the page has hard problems. Each line of the output that starts with the word
+  `HARD`, after spaces, names one problem, as in `  HARD slide 4: the title is long`. A line that starts
+  with the path of the page is a summary, and it names no problem. The gate gives
+  these lines in the message of a block. A `HARD` line also fails a page when the checker exits 0.
+- **Any other exit** is a failure of the checker. So is exit 1 with no `HARD` line, which is what a crash of
+  Python gives.
+- **A checker that does not end** in 30 seconds also fails. The gate then stops the checker and each
+  program in its process group.
+- **The hook at the end of a turn** gives all its checkers 40 seconds together, because Claude Code and
+  Codex stop the hook after 60 seconds. A page whose checker gets no time is a hard problem. Run
+  `prose_gate.py check` on that page.
+
+The talk checker and `check.py` both keep this contract. `prose_gate.py check -v PAGE` also passes `-v`
+before the page, so that the checker prints its soft notes.
+
+A page never passes in silence when its checker cannot judge it. Each of these is a hard problem of the
+page, with a message that says what went wrong:
+
+- the checker is missing
+- the checker fails, does not end in time, or gets no time in the hook
+- the map is not JSON, or does not have the format above
+
+The gate names the checker of each page in the message of a block, in `status`, in `record` and in
+`check-diff`. When the checker is not `check.py`, the record of a pass also keeps its name. So a pass by
+the old checker does not count for the new one. `status` asks again about each changed page that the
+map gives to another checker. The hook asks again when such a page changes in a turn.
+
+A change to the map does not check the pages that did not change. After you change the map, check its
+pages with `prose_gate.py check`.
+
+To check pages by hand with the checker of each page, run:
+
+```bash
+uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check -v page.md
+```
+
+`check` exits with 0 when no page has a hard problem, 1 when a page has one, and 2 for a missing page. A
+file outside the project, such as a draft in a temporary folder, gets `check.py`.
+
+### Who may write the map
+
+The map names a program, and the hook runs that program at the end of each turn. So treat the map as
+code, as you treat a hook in `.claude/settings.json` or a recipe of the `Justfile`.
+
+- **Only the people who look after the project** write the map, and they review each change to it.
+- **The gate reads the map only from the root of the project.** It does not read a map in any other
+  folder, such as the folder of a page, of the skill or of the call.
+- **A change to the map shows.** It shows in the diff of a pull request, and the messages of the gate
+  name the new checker.
+- **The workflow runs on `pull_request`.** It runs the gate and the map of the pull request, with a
+  token that can only read. Do not run it on `pull_request_target`, which gives the
+  secrets of the repository to that code.
 
 ## Beside the commit gates
 
@@ -120,7 +226,8 @@ uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py
 
 `.agents/skills/nossaifd/assets/prose-check.yml` goes into `.github/workflows/` of the project. On each
 pull request, it runs `prose_gate.py check-diff`. That command checks each page that the pull request
-adds, changes or renames, and it skips the files that the hook skips. It fails on a hard problem.
+adds, changes or renames, with the checker of the page, and it skips the files that the hook skips. It
+fails on a hard problem.
 
 The workflow catches a page that a person edited without an agent. It cannot run the declaude pass,
 because that pass needs a model. It needs the skill committed in `.agents/skills/nossaifd/`.

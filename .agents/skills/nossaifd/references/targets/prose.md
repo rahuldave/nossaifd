@@ -48,13 +48,15 @@ code.
 1. Read `.agents/skills/nossaifd/references/GUIDE.md`, and the worked examples in `references/EXAMPLES.md`
    for each rule that you apply.
 2. Keep a copy of the page in a temporary folder outside the repository.
-3. Run the checker, and fix each hard problem:
+3. Run the checker of the page, and fix each hard problem:
 
    ```bash
-   uv run --no-project python .agents/skills/nossaifd/scripts/check.py -v PAGE
+   uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check -v PAGE
    ```
 
-   Fix each soft note that makes the page harder to read.
+   The command runs `check.py`, or the checker that the map of checkers of the project names for the
+   page. The map is `.agents/nossaifd-checkers.json`. Its first line of output for each page names the
+   checker. Fix each soft note that makes the page harder to read.
 4. Do the plain-writing pass. Read each sentence against the rules of the guide for words, sentences,
    paragraphs, long documents, figures, tone, punctuation and short items.
 5. Do the pass of the declaude skill by Oskar Austegard, by its steps, in the folder
@@ -63,7 +65,7 @@ code.
    follow the guide.
 6. Run the diff of the declaude skill on the copy and on the revision. Put back each claim that the
    revision lost.
-7. Run the checker again, and fix only what the revision broke. Run the linter of the declaude skill once
+7. Run the checker of the page again, with the same command, and fix only what the revision broke. Run the linter of the declaude skill once
    more, to check that the fixes brought back no pattern.
 8. Record the page:
 
@@ -71,7 +73,7 @@ code.
    uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py record PAGE
    ```
 
-   `record` refuses a page with a hard problem. A recorded page does not block a later turn, in any
+   `record` refuses a page with a hard problem of its checker. A recorded page does not block a later turn, in any
    worktree of the repository.
 
 Keep each bad example that a page shows on purpose, even when the checker or the linter marks it. If a
