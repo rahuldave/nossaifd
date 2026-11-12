@@ -71,6 +71,51 @@ To see which changed pages still need their steps, run:
 uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py status
 ```
 
+## Beside the commit gates
+
+A gate is a check that stops a commit when it fails. The commit gates of agent_gest_git_skills check each
+commit. A project has the gates when its file `.agents/stack.json` turns on the tasker role. The tasker
+role is the package of skills of agent_gest_git_skills. The hooks of this page make a turn gate. The turn
+gate stays beside the commit gates, and it has a different job:
+
+| Gate | When it runs | Its job |
+|---|---|---|
+| The turn gate, the hooks of this page | At the end of each turn | It asks early, at little cost. It blocks the end of a turn once |
+| The commit gate | At each commit | It gives the final answer. A commit that changes a page needs a `prose` record and a pass of the step `prose-check` |
+
+- **`just prose`.** With the gates, the message of the hook that blocks a turn says "run `just prose`".
+  The target gives the pages to a fresh agent, which is an agent that the harness starts for one task.
+  The fresh agent does the plain-writing pass and the pass of the declaude skill by Oskar Austegard. Then
+  it records each page that it passed, with `prose_gate.py record`. Its base task is
+  `.agents/skills/nossaifd/references/targets/prose.md`.
+- **The `prose` record.** The steps of the skill, done by hand, record a page, so the hook lets the turn
+  end. But a page pass is not a `prose` record. The commit gate needs the `prose` record of the tree, and
+  only `just prose` gives it.
+- **The store of page passes.** One store in `.git/nossaifd` holds the passes, with or without the gates.
+  So a page that `just prose` passed in one worktree does not block a later turn in another worktree.
+- **The rule for pages.** The step `prose-check` and the `@pages` of the commit gate take the pages from
+  `prose_gate.py pages`. So they use one rule with the hook, and they accept the same pages. A change to
+  `CHANGELOG.md` alone needs no `prose` record.
+
+`prose_gate.py pages` prints each path that is a page:
+
+```bash
+git diff -z --name-only --no-renames --diff-filter=AM HEAD | uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py pages -z
+uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py pages README.md AGENTS.md
+```
+
+- **The paths** come from the arguments. With no path, they come from standard input, one on each line.
+- **With `-z`,** a NUL character ends each path, in the input and in the output. Use `-z` for a path that
+  can hold a newline.
+- **Each path** is relative to the root of the repository, as git prints it. An absolute path inside the
+  repository is read as its path from the root of that repository. A symlink inside the repository is
+  not followed.
+- **The output** is each path that is a page, as written and in the order given. The command reads only
+  the names. It does not check that a file exists, so take out the deleted files first, as
+  `--diff-filter=AM` does.
+- **The exit code** is 0, also when no path is a page. It is 2 for an unknown option.
+- **A path that starts with `-`** must come after `--`.
+
 ## The workflow for GitHub
 
 `.agents/skills/nossaifd/assets/prose-check.yml` goes into `.github/workflows/` of the project. On each
@@ -79,6 +124,9 @@ adds, changes or renames, and it skips the files that the hook skips. It fails o
 
 The workflow catches a page that a person edited without an agent. It cannot run the declaude pass,
 because that pass needs a model. It needs the skill committed in `.agents/skills/nossaifd/`.
+
+With the commit gates, `just check` in CI runs the step `prose-check`, which does the same check. So the
+installer of jnterfaces removes the workflow when the tasker role is installed.
 
 ## Install the parts
 

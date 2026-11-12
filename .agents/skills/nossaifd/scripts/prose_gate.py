@@ -20,6 +20,14 @@ so every worktree of the repository shares it, and it never shows in git status.
 folder of git of each worktree. The record is a
 promise of the agent, not a proof: the hook cannot see whether the declaude pass ran.
 
+With the commit gates of agent_gest_git_skills, this turn gate stays and asks early, and the gate of the commit
+decides. The gates are installed when .agents/stack.json turns on the tasker role. Then the block message says
+"run `just prose`". That target gives the pages to a fresh agent, which records each page that it passed. The
+steps by hand give a page pass, but not the `prose` record that a commit needs.
+
+`prose_gate.py pages [-z] [PATH...]` prints each path that is a page. is_page is the one rule for pages: the
+step prose-check and the `@pages` of the commit gate use it through this command.
+
 The hook fails open: an error never blocks. Claude Code and Codex set stop_hook_active when the agent tries
 to stop again after a block, and the hook then lets it stop, so it cannot loop. The environment variable
 NOSSAIFD_GATE=off, set before Claude Code or Codex starts, turns the gate off. Submodules are out of scope.
@@ -47,7 +55,27 @@ CREDIT = 'the declaude skill, by Oskar Austegard'
 
 
 def is_page(rel):
+    """True when a path is a page for a person to read. The path is relative to the root of the repository, with
+    `/` between folders, as git prints it. A leading `./` does not change the answer."""
+    rel = re.sub(r'^(\./)+', '', rel)
     return bool(PAGE.search(rel)) and not SKIP.search(rel)
+
+
+def problems(path, check):
+    "The hard problems that check.py finds in one page. A page that cannot be read is one hard problem."
+    try:
+        return check.check(path)[0]
+    except (OSError, UnicodeDecodeError) as error:
+        return [f'the page cannot be read: {error.strerror if isinstance(error, OSError) else error}']
+
+
+def gates_installed(root):
+    "True when .agents/stack.json of the project turns on the tasker role, which brings the commit gates."
+    try:
+        choices = json.loads((root / '.agents/stack.json').read_text()).get('choices')
+    except (OSError, ValueError, AttributeError):
+        return False
+    return isinstance(choices, dict) and choices.get('tasker') is True
 
 
 def checker():
@@ -186,7 +214,7 @@ def gate(root, rels, check=None):
         if blob(root / rel) in passed:
             continue
         check = check or checker()
-        hard, _ = check.check(root / rel)
+        hard = problems(root / rel, check)
         if hard:
             hard_pages.append(f'{rel}: ' + '; '.join(hard[:3]) + (' ...' if len(hard) > 3 else ''))
         else:
@@ -198,10 +226,24 @@ def gate(root, rels, check=None):
         more = len(items) - LISTED
         return [f'- {p}' for p in items[:LISTED]] + ([f'- and {more} more'] if more > 0 else [])
     lines = ['nossaifd: this turn changed pages that have not passed the flow of the nossaifd skill.']
+    gates = gates_installed(root)
     if hard_pages:
-        lines += ['', 'Hard problems of check.py, which steps 4 and 7 fix:'] + listed(hard_pages)
+        lines += ['', 'Hard problems of check.py:' if gates else 'Hard problems of check.py, which steps 4 and 7 fix:']
+        lines += listed(hard_pages)
     if unrecorded:
         lines += ['', 'No recorded pass since the last change:'] + listed(unrecorded)
+    if gates:
+        lines += ['', 'This project has the commit gates, so run `just prose`. It gives the changed pages to a fresh '
+                  f'agent, for the plain-writing pass and the pass of {CREDIT}. That agent fixes each hard problem '
+                  'and records each page that it passed. Keep each bad example that a page shows on purpose. The '
+                  'steps of the skill by hand record a page too, but a commit also needs the `prose` record, and '
+                  'only `just prose` gives it.', '',
+                  'If this project has no recipe `just prose` yet, do steps 6 to 8 of the nossaifd skill, and '
+                  'record each page:', '',
+                  f'    uv run --no-project --quiet python "{HERE / "prose_gate.py"}" record PAGE', '',
+                  'If a page is not prose for a person to read, do not record it. Tell the user so in one line.',
+                  'This hook asks once. It asks about a page again only when the page changes again.']
+        return '\n'.join(lines)
     lines += ['', f'For each page, run the steps of the nossaifd skill that remain: the pass of {CREDIT}, in a '
               'subagent that did not write the page (step 6), check.py again (step 7) and the linter once more '
               '(step 8). Keep each bad example that a page shows on purpose. Then record each page:', '',
@@ -282,7 +324,7 @@ def record(names):
             print(f'{name}: not recorded, there is no such file', file=sys.stderr)
             status = 1
             continue
-        hard, _ = check.check(path)
+        hard = problems(path, check)
         if hard:
             print(f'{rel}: not recorded, {len(hard)} hard problem(s). The first: {hard[0]}', file=sys.stderr)
             status = 1
@@ -311,12 +353,63 @@ def check_diff(base):
     check, status = checker(), 0
     rels = [p for p in filter(None, out.stdout.split('\0')) if is_page(p)]
     for rel in rels:
-        hard, _ = check.check(root / rel)
+        hard = problems(root / rel, check)
         for problem in hard:
             print(f'{rel}: {problem}')
         status |= bool(hard)
     print(f'nossaifd: checked {len(rels)} page(s), {"a hard problem" if status else "no hard problem"}.')
     return int(status)
+
+
+def pages(args, stdin=None):
+    """Print each path that is_page accepts, in the order given, for prose-check and the `@pages` of the commit
+    gate. The paths come from the arguments, or from standard input when no path follows the options. With -z,
+    standard input and the output put NUL after each path; without it, a newline. A path is relative to the
+    root of the repository, as git prints it. An absolute path counts by its path from the root of its
+    repository (see relative). The names alone count: a deleted file can be a page. Exit 0, also when no path is a page, and 2 on an unknown option."""
+    nul = False
+    while args and args[0].startswith('-'):
+        option, args = args[0], args[1:]
+        if option == '--':
+            break
+        if option != '-z':
+            print(f'prose_gate.py pages: unknown option {option}', file=sys.stderr)
+            return 2
+        nul = True
+    sep = '\0' if nul else '\n'
+    if not args:
+        source = stdin or sys.stdin
+        text = source.read() if source is not None else ''
+        args = [p.removesuffix('\r') if not nul else p for p in text.split(sep)]
+        args = [p for p in args if p]
+    roots = {}
+    for name in args:
+        if is_page(relative(name, roots)):
+            sys.stdout.write(name + sep)
+    return 0
+
+
+def relative(name, roots):
+    """A path as the rule of pages reads it. An absolute path becomes its path from the root of its repository,
+    with no symlink followed below that root. A path outside any repository stays as written."""
+    if not os.path.isabs(name):
+        return name
+    path = os.path.abspath(name)
+    folder = Path(path).parent
+    while not folder.is_dir() and folder != folder.parent:
+        folder = folder.parent                  # a deleted page: start from a folder that exists
+    for start in (Path.cwd(), folder):
+        if start not in roots:
+            roots[start] = git_root(start)
+        root = roots[start]
+        if root is None:
+            continue
+        real_root = os.path.realpath(root)
+        # the folder above the path that is the root, maybe through a symlink above the repository
+        for above in Path(path).parents:
+            if os.path.realpath(above) == real_root:
+                return Path(path).relative_to(above).as_posix()
+    return name
 
 
 def main(argv):
@@ -331,8 +424,11 @@ def main(argv):
         return status()
     if command == ['check-diff'] and len(argv) == 3:
         return check_diff(argv[2])
+    if command == ['pages']:
+        return pages(argv[2:])
     print(__doc__)
-    print('Usage: prose_gate.py hook [ROOT] | start [ROOT] | record PAGE... | status | check-diff BASE', file=sys.stderr)
+    print('Usage: prose_gate.py hook [ROOT] | start [ROOT] | record PAGE... | status | check-diff BASE'
+          ' | pages [-z] [PATH...]', file=sys.stderr)
     return 2
 
 
