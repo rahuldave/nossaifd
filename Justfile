@@ -63,13 +63,17 @@ lint:
     {{python}} -m py_compile check.py tests/*.py .agents/skills/nossaifd/scripts/prose_gate.py
     {{python}} -m json.tool skill-package.json > /dev/null
 
-# Run the tests. Extra arguments go to unittest: just test tests.test_skill
+# Run the tests. Extra arguments go to unittest discover: just test -p test_skill.py
 test *args:
     {{python}} -m unittest discover -s tests -q "$@"
 
 # Check the Markdown of this repository with its own checker
 prose:
-    {{python}} check.py README.md GUIDE.md EXAMPLES.md docs/*.md .agents/skills/nossaifd/SKILL.md
+    {{python}} check.py README.md GUIDE.md EXAMPLES.md docs/*.md .agents/skills/nossaifd/SKILL.md .agents/skills/nossaifd/references/targets/prose.md
+
+# Print each path that the gate counts as a page, by the rule is_page of prose_gate.py: just pages README.md AGENTS.md
+pages +paths:
+    {{python}} .agents/skills/nossaifd/scripts/prose_gate.py pages -- "$@"
 
 # Print the passages of each page that the declaude linter by Oskar Austegard marks as possible model
 # prose. It does not fail on them, because a person judges each one. It fails on a missing page, or when

@@ -14,7 +14,9 @@ uv run --no-project python check.py -v docs/page.md
 
 The first command shows the hard problems on each page. The `-v` option also shows the soft notes. The
 program ends with exit status 1 if a page has a hard problem, so a script or a CI job can stop on it. CI
-means continuous integration, a service that runs checks on every change to a repository.
+means continuous integration, a service that runs checks on every change to a repository. When the
+program cannot read a page, for example a deleted page, it names the page and ends with exit status 2.
+It still checks the other pages.
 
 ## What it checks
 

@@ -436,6 +436,181 @@ class CheckDiffTest(unittest.TestCase):
         self.assertIn('checked 1 page(s)', out.stdout)
 
 
+def pages(*args, stdin='', cwd=None):
+    "Run prose_gate.py pages. Return the exit code, the output and the errors."
+    out = subprocess.run([sys.executable, str(GATE), 'pages', *args], input=stdin, capture_output=True, text=True,
+                         cwd=cwd)
+    return out.returncode, out.stdout, out.stderr
+
+
+class PagesTest(unittest.TestCase):
+    "The command pages, the one rule for pages that prose-check and the @pages of the commit gate use."
+
+    NAMES = ['README.md', 'docs/index.qmd', './docs/a.md', 'CHANGELOG.md', 'docs/CHANGELOG.md', 'AGENTS.md',
+             '.agents/skills/x/SKILL.md', './.agents/x.md', 'notes.txt', '_site/a.md']
+    PAGES = ['README.md', 'docs/index.qmd', './docs/a.md']
+
+    def test_the_arguments_give_the_pages_in_their_order(self):
+        self.assertEqual(pages(*self.NAMES), (0, ''.join(p + '\n' for p in self.PAGES), ''))
+
+    def test_standard_input_gives_the_paths_one_on_each_line_or_with_nul_after_each(self):
+        self.assertEqual(pages(stdin='\n'.join(self.NAMES) + '\n')[1], ''.join(p + '\n' for p in self.PAGES))
+        self.assertEqual(pages('-z', stdin='\0'.join(self.NAMES + ['a\nb.md']) + '\0')[1],
+                         ''.join(p + '\0' for p in self.PAGES + ['a\nb.md']))
+
+    def test_no_page_exits_0_and_an_unknown_option_exits_2(self):
+        self.assertEqual(pages('CHANGELOG.md'), (0, '', ''))
+        self.assertEqual(pages(stdin=''), (0, '', ''))
+        code, _, err = pages('-x', 'README.md')
+        self.assertEqual(code, 2)
+        self.assertIn('unknown option -x', err)
+        self.assertEqual(pages('--', '-notes.md')[:2], (0, '-notes.md\n'))
+
+    def test_an_absolute_path_counts_by_its_path_from_the_root(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Project(temp)
+            skill, page = project.root / '.agents/x.md', project.root / 'docs/a.md'
+            self.assertEqual(pages(str(skill), str(page), cwd=project.root)[1], f'{page}\n')
+
+    def test_a_symlink_inside_the_repository_is_not_followed_for_an_absolute_path(self):
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as outside:
+            project = Project(temp)
+            (project.root / '.agents').mkdir()
+            (project.root / '.agents/skills').symlink_to(outside)        # skills installed from elsewhere
+            (Path(outside) / 'x.md').write_text(CLEAN)
+            project.write('.agents/guide.md', CLEAN)
+            (project.root / 'docs').mkdir()
+            (project.root / 'docs/guide.md').symlink_to(project.root / '.agents/guide.md')
+            names = ['.agents/skills/x.md', 'docs/guide.md']
+            relative = pages(*names, cwd=project.root)[1]
+            self.assertEqual(relative, 'docs/guide.md\n')
+            absolute = pages(*[str(project.root / n) for n in names], cwd=project.root)[1]
+            self.assertEqual(absolute, f'{project.root / "docs/guide.md"}\n')
+
+    def test_an_absolute_path_in_another_repository_or_deleted_counts_from_its_own_root(self):
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as other:
+            project, elsewhere = Project(temp), Project(other)
+            names = [str(elsewhere.root / '.agents/x.md'), str(elsewhere.root / 'gone/a.md')]
+            self.assertEqual(pages(*names, cwd=project.root)[1], f'{names[1]}\n')
+
+    def test_closed_standard_input_and_crlf_lines(self):
+        out = subprocess.run([sys.executable, str(GATE), 'pages'], stdin=subprocess.DEVNULL, capture_output=True,
+                             text=True)
+        self.assertEqual((out.returncode, out.stdout), (0, ''))
+        out = subprocess.run(f'"{sys.executable}" "{GATE}" pages <&-', shell=True, capture_output=True, text=True)
+        self.assertEqual((out.returncode, out.stdout, out.stderr), (0, '', ''))
+        self.assertEqual(pages(stdin='a.md\r\nCHANGELOG.md\r\n')[1], 'a.md\n')
+
+    def test_the_hook_and_the_command_accept_the_same_pages(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Project(temp)
+            project.start()
+            names = [n for n in self.NAMES if not n.startswith('./')] + ['docs/a page.md', 'Docs/AGENTS.md']
+            for name in names:
+                project.write(name, MORE)
+            project.git('mv', 'README.md', 'docs/README.md')
+            names = [n for n in names if n != 'README.md'] + ['docs/README.md']
+            reason = project.blocked()
+            listed = {line[2:] for line in reason.split('\n') if line.startswith('- ')}
+            self.assertNotIn('HARD', reason)
+            self.assertEqual(listed, set(pages('-z', *names)[1].split('\0')) - {''})
+            # the command that prose-check and the base task use gives the same pages as the hook
+            out = subprocess.run('git add -A && git diff -z --name-only --no-renames --diff-filter=AM HEAD | '
+                                 f'"{sys.executable}" "{GATE}" pages -z', shell=True, cwd=project.root,
+                                 capture_output=True, text=True)
+            self.assertEqual(set(out.stdout.split('\0')) - {''}, listed)
+
+    def test_another_program_can_load_the_script_and_call_is_page(self):
+        code = ('import importlib.util, sys; sys.dont_write_bytecode = True; '
+                f'spec = importlib.util.spec_from_file_location("prose_gate", {str(GATE)!r}); '
+                'gate = importlib.util.module_from_spec(spec); spec.loader.exec_module(gate); '
+                'print(gate.is_page("docs/a.qmd"), gate.is_page("CHANGELOG.md"), gate.is_page("./.agents/a.md"))')
+        out = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
+        self.assertEqual(out.stdout, 'True False False\n', out.stderr)
+
+
+class CommitGatesTest(unittest.TestCase):
+    "The turn gate beside the commit gates of agent_gest_git_skills."
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.project = Project(self.temp.name)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def stack(self, text):
+        self.project.write('.agents/stack.json', text)
+
+    def test_with_the_tasker_role_the_block_says_run_just_prose(self):
+        self.stack(json.dumps({'version': 2, 'choices': {'prose': True, 'tasker': True}}))
+        self.project.start()
+        self.project.write('README.md', MORE)
+        self.project.write('docs/bad.md', HARD)
+        reason = self.project.blocked()
+        self.assertIn('run `just prose`', reason)
+        self.assertIn('README.md', reason)
+        self.assertIn('a contraction', reason)
+        self.assertIn('declaude skill, by Oskar Austegard', reason)
+        self.assertIn('asks once', reason)
+        self.assertNotIn('steps 4 and 7', reason)
+        self.assertIn('Keep each bad example', reason)
+
+    def test_a_project_with_the_tasker_role_but_no_recipe_just_prose_still_gets_the_record_command(self):
+        "A project of an older tasker role has no `just prose`, so the message keeps the steps by hand"
+        self.stack(json.dumps({'choices': {'tasker': True}}))
+        self.project.start()
+        self.project.write('README.md', MORE)
+        reason = self.project.blocked()
+        self.assertIn('no recipe `just prose` yet', reason)
+        self.assertIn('record PAGE', reason)
+        self.assertIn('do not record it', reason)
+
+    def test_a_page_that_cannot_be_read_blocks_and_the_other_pages_are_still_named(self):
+        self.project.start()
+        (self.project.root / 'latin.md').write_bytes(b'caf\xe9\n')
+        self.project.write('docs/a.md', CLEAN)
+        reason = self.project.blocked()
+        self.assertIn('latin.md: the page cannot be read', reason)
+        self.assertIn('- docs/a.md', reason)
+        self.assertEqual(self.project.record('latin.md').returncode, 1)
+        self.project.git('checkout', '-qb', 'topic')
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'latin')
+        out = subprocess.run([sys.executable, str(GATE), 'check-diff', 'main'], cwd=self.project.root,
+                             capture_output=True, text=True)
+        self.assertEqual(out.returncode, 1)
+        self.assertNotIn('Traceback', out.stderr)
+        self.assertIn('latin.md: the page cannot be read', out.stdout)
+
+    def test_without_the_tasker_role_the_block_gives_the_steps_by_hand(self):
+        for text in (json.dumps({'choices': {'tasker': False}}), json.dumps({'choices': {'tasker': 'yes'}}),
+                     json.dumps({'choices': ['tasker']}), json.dumps(['tasker']), 'not json'):
+            with self.subTest(stack=text):
+                self.stack(text)
+                self.project.start()
+                self.project.write('README.md', MORE + text + '\n')
+                reason = self.project.blocked()
+                self.assertNotIn('just prose', reason)
+                self.assertIn('record PAGE', reason)
+
+    def test_a_page_that_the_fresh_agent_of_just_prose_passed_in_a_worktree_does_not_block_a_later_turn(self):
+        self.stack(json.dumps({'choices': {'tasker': True}}))
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'gates')
+        other = self.project.root.parent / (self.project.root.name + '-agent')
+        self.project.git('worktree', 'add', '-q', '-b', 'agent', str(other))
+        try:
+            (other / 'README.md').write_text(MORE)
+            self.assertEqual(self.project.record('README.md', cwd=other).returncode, 0)
+            self.assertTrue((self.project.root / '.git/nossaifd/passes.json').is_file())
+            self.project.start()
+            self.project.write('README.md', MORE)
+            self.assertIsNone(self.project.blocked())
+        finally:
+            self.project.git('worktree', 'remove', '--force', str(other))
+
+
 class InstallFilesTest(unittest.TestCase):
     def settings(self, name):
         return json.loads((SKILL / 'assets' / name).read_text())['hooks']
@@ -482,6 +657,19 @@ class InstallFilesTest(unittest.TestCase):
         self.assertIn('check-diff', text)
         self.assertIn('contents: read', text)
         self.assertIn('Oskar Austegard', text)
+
+    def test_the_base_task_of_just_prose_gives_both_passes_the_record_and_the_result(self):
+        text = re.sub(r'\s+', ' ', (SKILL / 'references/targets/prose.md').read_text())
+        for part in ('plain-writing pass', 'the declaude skill by Oskar Austegard', 'prose_gate.py pages -z',
+                     'prose_gate.py record PAGE', 'scripts/check.py', 'docstrings', 'smalldocs api module',
+                     'AGENT_RESULT v1', 'target: prose', 'nonce', 'role: changed', 'Keep each bad example',
+                     'Do not stage a file, and do not commit'):
+            self.assertIn(part, text)
+
+    def test_the_skill_and_the_instruction_name_just_prose_for_a_project_with_the_gates(self):
+        for name in ('SKILL.md', 'assets/agents-prose.md'):
+            text = re.sub(r'\s+', ' ', (SKILL / name).read_text())
+            self.assertIn('run `just prose` in place of steps 6 to 8', text, name)
 
     def test_the_skill_tells_the_agent_to_record_each_page(self):
         text = re.sub(r'\s+', ' ', (SKILL / 'SKILL.md').read_text())

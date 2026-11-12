@@ -83,6 +83,12 @@ guide says.
    page that your turn changed, at the end of the turn. The page must pass
    the checker and have a record. It asks once for the steps that remain. If a page is not
    prose for a person, do not record it, and tell the user so.
+
+   A project with the commit gates of agent_gest_git_skills turns on the tasker role in
+   `.agents/stack.json`. In such a project, run `just prose` in place of steps 6 to 8. It gives the
+   pages to a fresh agent, which is an agent that the harness starts for one task. The fresh agent does
+   those steps and records each page. A commit needs the `prose` record of `just prose`, and the steps
+   by hand do not give it.
 9. Read the page yourself. The checker cannot judge meaning, tone or a missing
    definition.
 
@@ -99,7 +105,11 @@ It needs only Python 3.11 or later, which `uv run` gives.
   measure. It exits with 1 when it finds a hard problem.
 - **`scripts/prose_gate.py`** records a page after its pass. It is also the
   hook at the start and at the end of a turn of Claude Code or Codex. It
-  also checks a pull request.
+  also checks a pull request. `prose_gate.py pages` prints the paths that
+  are pages, by the one rule that the hook and the commit gates use.
+- **`references/targets/prose.md`** is the base task of the target
+  `just prose` of the commit gates. It gives the fresh agent the
+  plain-writing pass and the pass of the declaude skill by Oskar Austegard.
 - **`assets/agents-prose.md`** is the instruction for the `AGENTS.md` and
   `CLAUDE.md` of a project.
 - **`assets/claude-settings-hook.json`** and **`assets/codex-hooks.json`**

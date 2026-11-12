@@ -137,6 +137,21 @@ class HardRules(unittest.TestCase):
             self.assertEqual(run_(bad).returncode, 1)
             self.assertEqual(run_(good).returncode, 0)
 
+    def test_a_page_that_cannot_be_read_exits_2_and_the_other_pages_are_still_checked(self):
+        "prose-check can be given a deleted page. The checker says so in one line, with no traceback"
+        import subprocess, sys
+        with tempfile.TemporaryDirectory() as temp:
+            bad, latin = Path(temp) / 'bad.md', Path(temp) / 'latin.md'
+            bad.write_text("It's fast.\n")
+            latin.write_bytes(b'caf\xe9\n')
+            for missing in (Path(temp) / 'gone.md', latin):
+                out = subprocess.run([sys.executable, REPO / 'check.py', missing, bad], capture_output=True,
+                                     text=True)
+                self.assertEqual(out.returncode, 2)
+                self.assertIn(f'{missing}: cannot be read', out.stderr)
+                self.assertNotIn('Traceback', out.stderr)
+                self.assertIn('bad.md: 1 hard', out.stdout)
+
 
 class IngNouns(unittest.TestCase):
     def test_an_ing_noun_or_name_is_not_an_ing_form(self):
