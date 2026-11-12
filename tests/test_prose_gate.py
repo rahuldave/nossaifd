@@ -20,6 +20,12 @@ HARD = "# Notes\n\nThe build isn't fast.\n"
 PAST = {'GIT_COMMITTER_DATE': f'@{int(time.time()) - 3600} +0000', 'GIT_AUTHOR_DATE': f'@{int(time.time()) - 3600} +0000'}
 
 
+def listing(folder):
+    "Each file under a folder, with its size and the time of its last change, to see what a run wrote."
+    return {p.relative_to(folder).as_posix(): (p.stat().st_size, p.stat().st_mtime_ns)
+            for p in sorted(Path(folder).rglob('*')) if p.is_file()}
+
+
 class Project:
     "A git repository in a temporary folder, with one committed page."
 
@@ -281,13 +287,31 @@ class TurnTest(unittest.TestCase):
         self.assertIn('asks once', reason)
 
     def test_the_gate_leaves_nothing_in_git_status(self):
+        "It compares the folder of the scripts before and after, so a file that another tool left there is no fault"
+        before = listing(SKILL / 'scripts')
         self.project.start()
         self.project.write('README.md', MORE)
         self.project.blocked()
         self.assertEqual(self.project.record('README.md').returncode, 0)
         self.assertEqual(self.project.git('status', '--porcelain'), ' M README.md\n')
-        self.assertFalse((SKILL / 'scripts/__pycache__').exists() and
-                         any((SKILL / 'scripts/__pycache__').glob('check*.pyc')))
+        self.assertEqual(listing(SKILL / 'scripts'), before)
+
+    def test_a_stale_pyc_of_another_tool_is_no_fault_and_the_gate_writes_none(self):
+        with tempfile.TemporaryDirectory() as other:
+            scripts = Path(other) / 'scripts'
+            scripts.mkdir()
+            for name in ('check.py', 'prose_gate.py'):
+                (scripts / name).write_bytes((SKILL / 'scripts' / name).read_bytes())
+            (scripts / '__pycache__').mkdir()
+            (scripts / '__pycache__/check.cpython-311.pyc').write_bytes(b'stale')
+            before = listing(scripts)
+            self.project.start()
+            self.project.write('README.md', MORE)
+            data = json.dumps({'cwd': str(self.project.root), 'session_id': 's1'})
+            out = subprocess.run([sys.executable, str(scripts / 'prose_gate.py'), 'hook'], input=data,
+                                 capture_output=True, text=True)
+            self.assertIn('README.md', json.loads(out.stdout)['reason'])
+            self.assertEqual(listing(scripts), before)
 
     def test_the_hook_fails_open_and_can_be_turned_off(self):
         out = subprocess.run([sys.executable, str(GATE), 'hook'], input='not json', capture_output=True, text=True)
@@ -364,7 +388,7 @@ class RecordTest(unittest.TestCase):
         self.project.write('a.md', HARD)
         self.project.write('docs/a.md', CLEAN)
         out = self.project.record('a.md', cwd=self.project.root / 'docs')
-        self.assertEqual((out.returncode, out.stdout), (0, 'docs/a.md: recorded\n'))
+        self.assertEqual((out.returncode, out.stdout), (0, 'docs/a.md: recorded, checked by check.py of the skill\n'))
 
     def test_a_bad_name_is_refused_and_the_other_pages_are_still_recorded(self):
         self.project.write('README.md', MORE)
@@ -511,7 +535,8 @@ class PagesTest(unittest.TestCase):
             project.git('mv', 'README.md', 'docs/README.md')
             names = [n for n in names if n != 'README.md'] + ['docs/README.md']
             reason = project.blocked()
-            listed = {line[2:] for line in reason.split('\n') if line.startswith('- ')}
+            listed = {line[2:].removesuffix(' (checked by check.py of the skill)')
+                      for line in reason.split('\n') if line.startswith('- ')}
             self.assertNotIn('HARD', reason)
             self.assertEqual(listed, set(pages('-z', *names)[1].split('\0')) - {''})
             # the command that prose-check and the base task use gives the same pages as the hook
@@ -571,8 +596,8 @@ class CommitGatesTest(unittest.TestCase):
         (self.project.root / 'latin.md').write_bytes(b'caf\xe9\n')
         self.project.write('docs/a.md', CLEAN)
         reason = self.project.blocked()
-        self.assertIn('latin.md: the page cannot be read', reason)
-        self.assertIn('- docs/a.md', reason)
+        self.assertIn('latin.md (checked by check.py of the skill): the page cannot be read', reason)
+        self.assertIn('- docs/a.md (checked by check.py of the skill)', reason)
         self.assertEqual(self.project.record('latin.md').returncode, 1)
         self.project.git('checkout', '-qb', 'topic')
         self.project.git('add', '-A')
@@ -609,6 +634,327 @@ class CommitGatesTest(unittest.TestCase):
             self.assertIsNone(self.project.blocked())
         finally:
             self.project.git('worktree', 'remove', '--force', str(other))
+
+
+def load_gate():
+    "The gate as a module, for the functions that a test calls in this process. It writes no __pycache__."
+    import importlib.util
+    sys.dont_write_bytecode = True
+    spec = importlib.util.spec_from_file_location('prose_gate_test', GATE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+TALK = '.agents/skills/talk/scripts/check_talk.py'
+# A checker that stands in for the talk checker of nossaifd-talks. It imports a module of its folder, so a test
+# sees that the gate runs it from its own file and that no __pycache__ appears there
+FAKE = '''import sys
+import helper
+args = sys.argv[1:]
+page = [a for a in args if a != '-v'][0]
+text = open(page, encoding='utf-8').read()
+print(f'{page}: {helper.WORDS} words: checked')
+if 'LONG' in text:
+    print('  HARD slide 1: the script is long')
+    sys.exit(1)
+if '-v' in args:
+    print('  soft slide 1: a soft note')
+'''
+# A deck whose script uses a contraction, as rule 34 of TALKS.md asks. check.py marks it as hard
+DECK = '## Students wait\n\n::: notes\nThe build isn\'t slow. It waits for the cache.\n:::\n'
+MAP = {'version': 1, 'checkers': [{'pages': ['**/slides.qmd', '**/plan.md'], 'checker': TALK}]}
+
+
+class CheckerMapTest(unittest.TestCase):
+    "The map of checkers, .agents/nossaifd-checkers.json, which names another checker for some pages."
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.project = Project(self.temp.name)
+        self.project.write(TALK, FAKE)
+        self.project.write(str(Path(TALK).parent / 'helper.py'), 'WORDS = 445\n')
+        self.map(MAP)
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'the talk checker')
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def map(self, value):
+        self.project.write('.agents/nossaifd-checkers.json', value if isinstance(value, str) else json.dumps(value))
+
+    def gate(self, *args, cwd=None):
+        return subprocess.run([sys.executable, str(GATE), *args], cwd=cwd or self.project.root,
+                              capture_output=True, text=True)
+
+    def check_diff(self):
+        return self.gate('check-diff', 'main')
+
+    def test_a_glob_matches_the_whole_path_from_the_root(self):
+        regex = load_gate().glob_regex
+        cases = {'**/slides.qmd': (['slides.qmd', 'a/slides.qmd', 'a/b/slides.qmd'],
+                                   ['xslides.qmd', 'a/slides.qmd.md', 'slides.qmd/a.md', 'a/my slides.qmd']),
+                 'talks/*.qmd': (['talks/a.qmd'], ['talks/a/b.qmd', 'other/talks/a.qmd', 'talks.qmd']),
+                 'talks/**': (['talks/a.md', 'talks/a/b.qmd'], ['other/a.md']),
+                 'docs/?.md': (['docs/a.md'], ['docs/ab.md', 'docs//.md']),
+                 'a.b[1].md': (['a.b[1].md'], ['axb1.md', 'a.b1.md']),
+                 'slides.qmd': (['slides.qmd'], ['a/slides.qmd'])}
+        for glob, (match, other) in cases.items():
+            for path in match:
+                self.assertTrue(regex(glob).fullmatch(path), (glob, path))
+            for path in other:
+                self.assertFalse(regex(glob).fullmatch(path), (glob, path))
+
+    def test_the_hook_checks_a_deck_with_its_checker_and_names_the_checker(self):
+        self.project.start()
+        self.project.write('talk/slides.qmd', DECK)
+        self.project.write('talk/notes.md', DECK)          # no glob matches it, so check.py checks it
+        reason = self.project.blocked()
+        self.assertIn(f'- talk/slides.qmd (checked by {TALK})', reason)
+        self.assertIn('talk/notes.md (checked by check.py of the skill): ', reason)
+        self.assertEqual(reason.count('a contraction'), 1)
+        self.assertEqual(self.project.record('talk/slides.qmd').stdout,
+                         f'talk/slides.qmd: recorded, checked by {TALK}\n')
+        self.project.write('talk/notes.md', CLEAN)
+        self.project.record('talk/notes.md')
+        self.assertIsNone(self.project.blocked())
+        self.assertFalse((self.project.root / Path(TALK).parent / '__pycache__').exists())
+
+    def test_a_hard_problem_of_the_checker_blocks_and_record_refuses_the_page(self):
+        self.project.start()
+        self.project.write('talk/slides.qmd', DECK + 'LONG\n')
+        reason = self.project.blocked()
+        self.assertIn(f'talk/slides.qmd (checked by {TALK}): slide 1: the script is long', reason)
+        out = self.project.record('talk/slides.qmd')
+        self.assertEqual(out.returncode, 1)
+        self.assertIn(f'1 hard problem(s) of {TALK}', out.stderr)
+
+    def test_a_missing_or_failing_checker_is_a_hard_problem(self):
+        cases = {'missing': (None, 'which the map .agents/nossaifd-checkers.json names, is missing'),
+                 'crash': ('raise SystemExit("cannot parse the deck")\n', 'failed with exit 1: cannot parse'),
+                 'usage': ('import sys\nprint("usage", file=sys.stderr)\nsys.exit(2)\n', 'failed with exit 2: usage'),
+                 'traceback': ('import nothing_of_this_name\n', 'failed with exit 1: ModuleNotFoundError'),
+                 'silent': ('import sys\nsys.exit(1)\n', 'failed with exit 1: no output'),
+                 'killed': ('import os, signal\nos.kill(os.getpid(), signal.SIGKILL)\n', 'failed with exit -9'),
+                 'contrary': ('print("  HARD a problem")\n', 'printed HARD problems but exited 0')}
+        for case, (program, problem) in cases.items():
+            with self.subTest(case=case):
+                path = self.project.root / TALK
+                if program is None:
+                    path.unlink(missing_ok=True)
+                else:
+                    path.write_text(program)
+                self.project.start()
+                self.project.write('talk/slides.qmd', DECK + case + '\n')
+                self.assertIn(problem, self.project.blocked())
+                self.assertEqual(self.project.record('talk/slides.qmd').returncode, 1)
+                out = self.gate('check', 'talk/slides.qmd')
+                self.assertEqual(out.returncode, 1)
+                self.assertIn(problem, out.stdout)
+
+    def test_a_checker_that_does_not_end_is_a_hard_problem(self):
+        gate = load_gate()
+        gate.TIMEOUT = 1
+        self.project.write(TALK, 'import time\ntime.sleep(30)\n')
+        self.project.write('slides.qmd', DECK)
+        hard, _ = gate.Checkers(self.project.root).problems('slides.qmd')
+        self.assertEqual(hard, [f'its checker {TALK} did not end in 1 seconds'])
+
+    def test_the_hook_gives_its_checkers_less_time_than_the_harness_gives_the_hook(self):
+        "A hook that the harness kills prints nothing, and the stop goes through: a page would pass in silence"
+        gate = load_gate()
+        for name in ('claude-settings-hook.json', 'codex-hooks.json'):
+            stop = json.loads((SKILL / 'assets' / name).read_text())['hooks']['Stop'][0]['hooks'][0]['timeout']
+            self.assertLessEqual(gate.BUDGET + 15, stop, name)
+        self.assertLessEqual(gate.TIMEOUT, gate.BUDGET)
+        self.project.write('slides.qmd', DECK)
+        checkers = gate.Checkers(self.project.root, budget=0.5)
+        time.sleep(0.6)
+        hard, _ = checkers.problems('slides.qmd')
+        self.assertEqual(len(hard), 1)
+        self.assertIn('the hook had no time left to run its checker', hard[0])
+
+    def test_a_timeout_stops_the_checker_and_the_programs_that_it_started(self):
+        gate = load_gate()
+        gate.TIMEOUT = 1
+        self.project.write(TALK, 'import subprocess, time\nchild = subprocess.Popen(["sleep", "60"])\n'
+                                 'open("child.pid", "w").write(str(child.pid))\ntime.sleep(60)\n')
+        self.project.write('slides.qmd', DECK)
+        started = time.monotonic()
+        hard, _ = gate.Checkers(self.project.root).problems('slides.qmd')
+        self.assertLess(time.monotonic() - started, 4)
+        self.assertEqual(hard, [f'its checker {TALK} did not end in 1 seconds'])
+        child = int((self.project.root / 'child.pid').read_text())
+        for _ in range(50):                                # the kill reaches the child at once, but give it time
+            try:
+                os.kill(child, 0)
+            except ProcessLookupError:
+                break
+            time.sleep(0.1)
+        else:
+            os.kill(child, 9)
+            self.fail('the program that the checker started still runs')
+
+    def test_a_hard_line_with_a_colon_or_with_bytes_that_are_not_utf8_still_counts(self):
+        cases = {'colon, exit 0': 'print("HARD: the deck is bad")\n',
+                 'bytes, exit 1': 'import sys\nsys.stdout.buffer.write(b"  HARD caf\\xe9 slide\\n")\nsys.exit(1)\n'}
+        for case, program in cases.items():
+            with self.subTest(case=case):
+                self.project.write(TALK, program)
+                self.project.start()
+                self.project.write('talk/slides.qmd', DECK + case + '\n')
+                reason = self.project.blocked()
+                self.assertIsNotNone(reason)
+                self.assertIn(f'talk/slides.qmd (checked by {TALK}): ', reason)
+                self.assertEqual(self.project.record('talk/slides.qmd').returncode, 1)
+
+    def test_the_summary_of_a_page_named_hard_is_not_a_hard_problem(self):
+        "A checker prints a summary that starts with the page, so a page named HARD.qmd starts a line with HARD"
+        self.map({'version': 1, 'checkers': [{'pages': ['**'], 'checker': TALK}]})
+        for name in ('HARD.qmd', 'HARD notes.qmd', 'HARD-copy.qmd', 'HARD/slides.qmd'):
+            with self.subTest(page=name):
+                self.project.write(name, DECK)
+                out = self.gate('check', name)
+                self.assertEqual(out.returncode, 0, out.stdout)
+                self.assertEqual(self.project.record(name).returncode, 0)
+        self.project.write('HARD.qmd', DECK + 'LONG\n')
+        self.assertIn('HARD slide 1: the script is long', self.gate('check', 'HARD.qmd').stdout)
+
+    def test_the_hook_keeps_time_to_collect_the_output_of_a_stopped_checker(self):
+        gate = load_gate()
+        self.project.write('slides.qmd', DECK)
+        hard, _ = gate.Checkers(self.project.root, budget=gate.GRACE + 0.5).problems('slides.qmd')
+        self.assertIn('the hook had no time left', hard[0])
+
+    def test_a_checker_that_reads_standard_input_does_not_wait(self):
+        self.project.write(TALK, 'import sys\nsys.stdin.read()\n')
+        self.project.write('slides.qmd', DECK)
+        proc = subprocess.Popen([sys.executable, str(GATE), 'check', 'slides.qmd'], cwd=self.project.root,
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        try:
+            out, _ = proc.communicate(timeout=20)         # standard input of the gate stays open
+        finally:
+            proc.kill()
+        self.assertEqual(proc.returncode, 0, out)
+
+    def test_check_gives_a_file_outside_the_project_to_check_py(self):
+        self.map({'version': 1, 'checkers': [{'pages': ['**'], 'checker': TALK}]})
+        with tempfile.TemporaryDirectory() as other:
+            (Path(other) / 'draft.md').write_text(CLEAN)
+            out = self.gate('check', str(Path(other) / 'draft.md'))
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('checked by check.py of the skill', out.stdout)
+
+    def test_a_glob_with_dot_slash_works_and_a_glob_that_matches_nothing_breaks_the_map(self):
+        self.map({'version': 1, 'checkers': [{'pages': ['./talk/slides.qmd'], 'checker': f'./{TALK}'}]})
+        self.project.write('talk/slides.qmd', DECK)
+        self.assertIn(f'checked by {TALK}', self.gate('check', 'talk/slides.qmd').stdout)
+        for glob in ('talk\\slides.qmd', 'talk/', 'talk//slides.qmd', './', 'talk/./slides.qmd', '.',
+                     'talk/../slides.qmd', ' **/slides.qmd', '**/slides.qmd '):
+            with self.subTest(glob=glob):
+                self.map({'version': 1, 'checkers': [{'pages': [glob], 'checker': TALK}]})
+                out = self.gate('check', 'talk/slides.qmd')
+                self.assertEqual(out.returncode, 1)
+                self.assertIn('is broken', out.stdout)
+
+    def test_a_broken_map_is_a_hard_problem_of_every_page(self):
+        cases = {'not json': '{"version": 1,', 'no version': json.dumps({'checkers': []}),
+                 'another version': json.dumps({'version': 2, 'checkers': []}),
+                 'a version of true': json.dumps({'version': True, 'checkers': []}),
+                 'too deep for json': '[' * 100000,
+                 'a list': json.dumps([MAP]),
+                 'no pages': json.dumps({'version': 1, 'checkers': [{'checker': TALK}]}),
+                 'empty globs': json.dumps({'version': 1, 'checkers': [{'pages': [], 'checker': TALK}]}),
+                 'a glob from /': json.dumps({'version': 1, 'checkers': [{'pages': ['/a.md'], 'checker': TALK}]}),
+                 'not python': json.dumps({'version': 1, 'checkers': [{'pages': ['*.md'], 'checker': 'run.sh'}]})}
+        for case, text in cases.items():
+            with self.subTest(case=case):
+                self.map(text)
+                self.project.start()
+                self.project.write('README.md', MORE + case + '\n')
+                reason = self.project.blocked()
+                self.assertIn('README.md (checked by none, the map .agents/nossaifd-checkers.json is broken): '
+                              'the map of checkers .agents/nossaifd-checkers.json is broken', reason)
+                self.assertEqual(self.project.record('README.md').returncode, 1)
+
+    def test_a_checker_outside_the_project_is_refused(self):
+        for checker in ('/usr/bin/check.py', '../check.py', 'a/../../check.py', 'C:/check.py', 'a\\check.py'):
+            with self.subTest(checker=checker):
+                self.map({'version': 1, 'checkers': [{'pages': ['**/*.md'], 'checker': checker}]})
+                out = self.gate('check', 'README.md')
+                self.assertEqual(out.returncode, 1)
+                self.assertIn('Give a path inside the project', out.stdout)
+
+    def test_the_map_is_read_only_from_the_root_of_the_project(self):
+        self.project.write('docs/.agents/nossaifd-checkers.json', json.dumps(
+            {'version': 1, 'checkers': [{'pages': ['**/*.md'], 'checker': 'nothing.py'}]}))
+        self.project.write('docs/a.md', CLEAN)
+        self.project.write('docs/slides.qmd', DECK)
+        out = self.gate('check', 'a.md', 'slides.qmd', cwd=self.project.root / 'docs')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('docs/a.md: checked by check.py of the skill', out.stdout)
+        self.assertIn(f'docs/slides.qmd: checked by {TALK}', out.stdout)
+
+    def test_status_names_the_checker_of_each_changed_page(self):
+        self.project.write('talk/slides.qmd', DECK)
+        self.project.write('README.md', MORE)
+        self.project.record('talk/slides.qmd', 'README.md')
+        out = self.gate('status')
+        self.assertEqual(out.returncode, 0, out.stdout)
+        self.assertIn('every changed page passed', out.stdout)
+        self.assertIn(f'The checker of each changed page:\n- README.md: check.py of the skill\n'
+                      f'- talk/slides.qmd: {TALK}\n', out.stdout)
+
+    def test_a_change_of_checker_asks_again(self):
+        self.project.write('talk/plan.md', CLEAN)
+        self.assertEqual(self.project.record('talk/plan.md').returncode, 0)
+        self.assertEqual(self.gate('status').returncode, 0)
+        self.map({'version': 1, 'checkers': [{'pages': ['**/slides.qmd'], 'checker': TALK}]})
+        out = self.gate('status')                          # the pass was of the talk checker, so check.py asks
+        self.assertEqual(out.returncode, 1)
+        self.assertIn('- talk/plan.md (checked by check.py of the skill)', out.stdout)
+        self.project.record('talk/plan.md')
+        self.map(MAP)                                      # and back: the pass of check.py is not one of the talk checker
+        self.assertIn(f'- talk/plan.md (checked by {TALK})', self.gate('status').stdout)
+
+    def test_check_diff_uses_the_map_and_names_the_checker(self):
+        self.project.git('checkout', '-qb', 'topic')
+        self.project.write('talk/slides.qmd', DECK)
+        self.project.write('docs/a.md', CLEAN)
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'a talk')
+        out = self.check_diff()
+        self.assertEqual(out.returncode, 0, out.stdout)
+        self.assertIn(f'talk/slides.qmd: checked by {TALK}, 0 hard problem(s)', out.stdout)
+        self.assertIn('docs/a.md: checked by check.py of the skill, 0 hard problem(s)', out.stdout)
+        self.project.write('talk/slides.qmd', DECK + 'LONG\n')
+        self.project.git('commit', '-qam', 'a long talk')
+        out = self.check_diff()
+        self.assertEqual(out.returncode, 1)
+        self.assertIn('talk/slides.qmd: slide 1: the script is long', out.stdout)
+
+    def test_the_command_check_runs_the_checker_of_each_page(self):
+        self.project.write('talk/slides.qmd', DECK)
+        self.project.write('-talk.md', HARD)
+        out = self.gate('check', '-v', 'talk/slides.qmd', 'README.md')
+        self.assertEqual(out.returncode, 0, out.stdout)
+        self.assertIn(f'talk/slides.qmd: checked by {TALK}, 0 hard problem(s)\n  talk/slides.qmd: 445 words: '
+                      'checked\n    soft slide 1: a soft note\n', out.stdout)
+        self.assertIn('README.md: checked by check.py of the skill, 0 hard, ', out.stdout)
+        out = self.gate('check', '--', '-talk.md')
+        self.assertEqual(out.returncode, 1)
+        self.assertIn('HARD 3: a contraction', out.stdout)
+        self.assertEqual(self.gate('check', 'gone.md').returncode, 2)
+        self.assertEqual(self.gate('check', '-x', 'README.md').returncode, 2)
+        self.assertEqual(self.gate('check').returncode, 2)
+
+    def test_a_page_whose_name_starts_with_a_dash_reaches_the_checker_as_a_page(self):
+        self.map({'version': 1, 'checkers': [{'pages': ['**/*.md'], 'checker': TALK}]})
+        self.project.write('-v.md', CLEAN)
+        out = self.gate('check', '--', '-v.md')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('./-v.md: 445 words: checked', out.stdout)
 
 
 class InstallFilesTest(unittest.TestCase):
@@ -670,6 +1016,31 @@ class InstallFilesTest(unittest.TestCase):
         for name in ('SKILL.md', 'assets/agents-prose.md'):
             text = re.sub(r'\s+', ' ', (SKILL / name).read_text())
             self.assertIn('run `just prose` in place of steps 6 to 8', text, name)
+
+    def test_the_page_of_the_flow_gives_a_map_that_the_gate_reads_and_its_contract(self):
+        text = (REPO / 'docs/flow.md').read_text()
+        example = re.search(r'```json\n(.*?)```', text, re.S).group(1)
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp) / '.agents').mkdir()
+            (Path(temp) / '.agents/nossaifd-checkers.json').write_text(example)
+            rules, broken = load_gate().map_rules(Path(temp))
+        self.assertIsNone(broken)
+        self.assertEqual([c for _, c in rules], ['.agents/skills/presentations/scripts/check_talk.py'] * 2)
+        flat = re.sub(r'\s+', ' ', text)
+        for part in ('.agents/nossaifd-checkers.json', 'python -B CHECKER PAGE', '**Exit 0**', '**Exit 1**',
+                     '**Any other exit**', 'only from the root of the project', 'pull_request_target',
+                     'treat the map as code', 'The hook asks again when such a page changes',
+                     'A change to the map does not check the pages that did not change'):
+            self.assertIn(part, flat)
+        self.assertIn(f'in {load_gate().TIMEOUT} seconds', flat)
+        self.assertIn(f'{load_gate().BUDGET} seconds together', flat)
+
+    def test_the_skill_and_the_base_task_check_a_page_with_its_checker(self):
+        for name in ('SKILL.md', 'references/targets/prose.md'):
+            text = re.sub(r'\s+', ' ', (SKILL / name).read_text())
+            self.assertIn('prose_gate.py check', text, name)
+            self.assertIn('.agents/nossaifd-checkers.json', text, name)
+        self.assertIn('pull_request_target', (SKILL / 'assets/prose-check.yml').read_text())
 
     def test_the_skill_tells_the_agent_to_record_each_page(self):
         text = re.sub(r'\s+', ' ', (SKILL / 'SKILL.md').read_text())

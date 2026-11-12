@@ -1,8 +1,10 @@
 """Check the copy of the declaude skill by Oskar Austegard, the examples taken from it, and its credit."""
 import json
+import os
 from pathlib import Path
 import re
 import sys
+import tempfile
 import unittest
 
 REPO = Path(__file__).resolve().parents[1]
@@ -21,13 +23,19 @@ LINK = re.compile(r'(?:github\.com/oaustegard/claude-skills/(?:blob|tree|raw|com
                   r'|raw\.githubusercontent\.com/oaustegard/claude-skills/)([^/\s)#?]+)')
 
 
-def pages():
-    "The Markdown pages of the repository, outside the copy of the skill and the built site."
-    skip = {'.git', '_site', '.quarto', '__pycache__'}
-    for path in sorted(REPO.rglob('*')):
-        parts = set(path.relative_to(REPO).parts)
-        if path.is_file() and path.suffix in {'.md', '.qmd'} and not skip & parts and SKILL not in path.parents:
-            yield path
+def pages(root=REPO):
+    """The Markdown pages of the repository, outside the copy of the skill and the built site. The walk skips
+    `.claude/`, where the worktrees of agents live, and any other folder with its own `.git`, which is another
+    worktree or another repository."""
+    skip = {'.git', '_site', '.quarto', '__pycache__', '.claude'}
+    found = []
+    for folder, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if d not in skip and not os.path.lexists(os.path.join(folder, d, '.git'))]
+        for name in files:
+            path = Path(folder) / name
+            if path.suffix in {'.md', '.qmd'} and SKILL not in path.parents:
+                found.append(path)
+    yield from sorted(found)
 
 
 def blocks(text):
@@ -211,6 +219,19 @@ class ExamplesTest(unittest.TestCase):
 
 
 class CreditTest(unittest.TestCase):
+    def test_the_walk_of_the_pages_skips_the_worktrees_of_agents_and_other_repositories(self):
+        "The main checkout holds the worktrees of agents in .claude/worktrees. Their pages are not pages of this one"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for name in ('README.md', 'docs/a.qmd', '.claude/worktrees/agent-1/README.md', '.claude/notes.md',
+                         'worktree/README.md', 'nested/repo/a.md', '_site/a.md'):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text('# A page\n')
+            (root / '.claude/worktrees/agent-1/.git').write_text('gitdir: /elsewhere\n')   # a worktree has a .git file
+            (root / 'worktree/.git').write_text('gitdir: /elsewhere\n')
+            (root / 'nested/repo/.git').mkdir()                                              # a repository has a folder
+            self.assertEqual([p.relative_to(root).as_posix() for p in pages(root)], ['README.md', 'docs/a.qmd'])
+
     def test_each_page_that_uses_the_skill_credits_oskar_austegard(self):
         for name in PAGES:
             text = (REPO / name).read_text()

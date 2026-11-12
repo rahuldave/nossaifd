@@ -79,12 +79,13 @@ def render_list(text):  # The entries under project.render of a _smalldocs.yml, 
     return out
 
 
-def files():  # Every text file in the repository that git tracks or would add, outside tests/
+def files():  # Every text file in the repository that git tracks or would add, outside tests/ and .claude/
+    "git lists another worktree or repository inside this one as one folder, so the walk does not go into it."
     listed = subprocess.run(['git', 'ls-files', '--cached', '--others', '--exclude-standard'], cwd=REPO,
                             capture_output=True, text=True, check=True).stdout.split('\n')
     for name in listed:
         path = REPO / name
-        if name and path.suffix in TEXT and path.is_file() and not name.startswith('tests/'):
+        if name and path.suffix in TEXT and path.is_file() and not name.startswith(('tests/', '.claude/')):
             yield name, path.read_text(encoding='utf-8')
 
 

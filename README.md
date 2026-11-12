@@ -99,7 +99,8 @@ in `tests/test_declaude.py`.
 
 An agent follows the steps of the nossaifd skill only when it loads the skill. Three parts make the flow
 happen. The first is an instruction in `AGENTS.md` and `CLAUDE.md`. The second is a hook at the start and
-at the end of each turn. The third is a workflow for GitHub that checks each pull request.
+at the end of each turn. The third is a workflow for GitHub that checks each pull request. A project can
+also name another checker for some pages, for example the talk checker for the slides of a talk.
 
 The skill ships the parts in `.agents/skills/nossaifd/scripts/` and `.agents/skills/nossaifd/assets/`.
 [Make the flow happen](docs/flow.md) says what each part does and how
