@@ -104,11 +104,12 @@ def map_rules(root):
 
         {"version": 1,
          "checkers": [{"pages": ["**/slides.qmd", "**/plan.md"],
-                       "checker": ".agents/skills/presentations/scripts/check_talk.py"}]}
+                       "checker": "tools/check_talk.py"}]}
 
     The first rule whose glob matches the path of a page from the root names its checker. A page that no rule
     matches gets check.py. The path of a checker is relative to the root, with `/`, and names a Python file
-    inside the project: no absolute path and no `..`. A project without the file has no rules."""
+    inside the project: no absolute path and no `..`. A project without the file has no rules. A checker that
+    is not there is a hard problem of each page that its rule matches."""
     path = root / MAP
     if not os.path.lexists(path):
         return [], None
