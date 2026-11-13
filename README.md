@@ -91,9 +91,24 @@ step `prose-check` of `just check`.
 - **Each page gets its own checker,** by the map of checkers. `-v` also shows the soft notes.
 - **It writes nothing** into the project.
 
-A project that jnterfaces did not set up adds the recipe with the line
-`import? '.agents/just/roles/nossaifd.just'` in its Justfile. First remove any recipe `prose-check` of
-the Justfile, because `just` stops on a recipe that is defined twice.
+The last line of the recipe is `jlog step prose-check`. The index of jnterfaces runs each line through
+[jlog](https://github.com/rahuldave/jlog), which logs the lines of a run. The last line runs only when the
+check passed. It records the step, and `jlog pass` at the end of `just check` needs that record. The index
+sets that shell from jnterfaces #37 on, so an older clone of jnterfaces needs `just install --update`.
+
+That line fails in a project without the index of jnterfaces. It fails when the shell of the Justfile is
+not jlog, even with jlog installed. So such a project does not import the file. It copies this recipe
+into its Justfile in place of any recipe `prose-check` that the Justfile has:
+
+```just
+# Check the pages that changed since HEAD against the writing guide, each with its checker
+[positional-arguments]
+prose-check *args:
+    uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"
+```
+
+If your Justfile has the line `import? '.agents/just/roles/nossaifd.just'`, from an earlier version of
+this README, replace that line with the recipe above.
 
 The name `just prose` is for a different target, of the commit gates. See "Beside the commit gates" in
 [the flow](docs/flow.md).
