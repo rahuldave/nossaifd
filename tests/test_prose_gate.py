@@ -1275,8 +1275,7 @@ class CheckChangedInCITest(unittest.TestCase):
         gone = self.sha()
         self.project.git('reset', '-q', '--hard', 'HEAD^')      # a commit that a force-push replaced
         self.two_commits()
-        cases = {'zeros': ('0' * 40, 'is all zeros, as for a new branch'),
-                 'not in the history': ('ab' * 20, 'is not an ancestor of HEAD, as after a force-push'),
+        cases = {'not in the history': ('ab' * 20, 'is not an ancestor of HEAD, as after a force-push'),
                  'not an ancestor': (gone, 'is not an ancestor of HEAD, as after a force-push'),
                  'no key': (None, 'gives no commit before a push'),
                  'not a sha': ('--all', 'is not the id of a commit')}
@@ -1350,12 +1349,84 @@ class CheckChangedInCITest(unittest.TestCase):
         out = self.check(**variables)
         self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
         self.assertEqual(self.checked(out), ['README.md'])
-        self.assertIn('compared with the empty tree, as HEAD is the first commit, for a push to the default '
-                      'branch first, a hard problem', out.stdout)
+        self.assertIn('compared with the empty tree, as the key before of the push to the default branch first is '
+                      'all zeros, a hard problem', out.stdout)
         # the line of the fallback names the base that was chosen
-        self.assertIn('nossaifd: the base is the empty tree, because the commit before the push is all zeros',
+        self.assertIn('nossaifd: the base is the empty tree, because the key before of the event file is all zeros',
                       out.stdout)
         self.assertNotIn('HEAD^', out.stdout)
+        # with no before, a first commit falls back to the empty tree too, by way of HEAD^
+        out = self.check(**self.push(ref='refs/heads/first', repository={'default_branch': 'first'}))
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn('compared with the empty tree, as HEAD is the first commit, for a push to the default '
+                      'branch first, a hard problem', out.stdout)
+
+    def orphan(self, name='first'):
+        "A branch with no commit and no file, so that only the pages of the test are in it"
+        self.project.git('checkout', '-q', '--orphan', name)
+        self.project.git('rm', '-rqf', '.')
+
+    def zero_push(self, name='first'):
+        "The variables of the push that makes the default branch name, with before all zeros"
+        return self.push('0' * 40, ref=f'refs/heads/{name}', repository={'default_branch': name})
+
+    def test_a_push_with_before_all_zeros_checks_each_page_of_head(self):
+        "A bad page of the first commit of the push, which the last commit does not touch, is checked"
+        self.orphan()
+        self.project.write('docs/first.md', HARD)
+        self.commit('first')
+        self.project.write('docs/second.md', CLEAN)
+        self.commit('second')
+        self.project.write('docs/third.md', CLEAN)
+        self.commit('third')
+        for width in (40, 64):           # the ids of SHA-1 and of SHA-256
+            with self.subTest(width=width):
+                variables = self.push('0' * width, ref='refs/heads/first', repository={'default_branch': 'first'})
+                out = self.check(**variables)
+                self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+                self.assertEqual(self.checked(out), ['docs/first.md', 'docs/second.md', 'docs/third.md'])
+                self.assertEqual(len(re.findall(r'^nossaifd: the base is the empty tree, because the key before of '
+                                                r'the event file is all zeros', out.stdout, re.M)), 1, out.stdout)
+                self.assertIn('compared with the empty tree, as the key before of the push to the default branch '
+                              'first is all zeros, a hard problem', out.stdout)
+                self.assertNotIn('HEAD^', out.stdout)
+
+    def test_a_push_with_before_all_zeros_and_good_pages_passes(self):
+        self.orphan()
+        self.project.write('docs/first.md', CLEAN)
+        self.project.write('notes.txt', 'not a page\n')
+        self.commit('first')
+        self.project.write('docs/second.md', CLEAN)
+        self.commit('second')
+        out = self.check(**self.zero_push())
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/first.md', 'docs/second.md'])
+        self.assertIn('compared with the empty tree, as the key before of the push to the default branch first is '
+                      'all zeros, no hard problem', out.stdout)
+
+    def test_a_push_with_before_all_zeros_in_a_sha256_repository_uses_its_empty_tree(self):
+        "The empty tree of SHA-256 differs from that of SHA-1, so a fixed id of SHA-1 would fail here"
+        root = Path(self.temp.name) / 'sha256'
+        root.mkdir()
+        made = subprocess.run(['git', 'init', '-q', '--object-format=sha256', '-b', 'main', str(root)],
+                              capture_output=True, text=True)
+        if made.returncode:
+            self.skipTest(f'this git cannot make a SHA-256 repository: {made.stderr.strip()}')
+        project = Project.__new__(Project)
+        project.root = root
+        project.git('config', 'user.email', 'test@example.com')
+        project.git('config', 'user.name', 'Test')
+        project.write('docs/first.md', HARD)
+        project.git('add', '-A')
+        project.git('commit', '-qm', 'first')
+        project.write('docs/second.md', CLEAN)
+        project.git('add', '-A')
+        project.git('commit', '-qm', 'second')
+        out = self.check(cwd=root, **self.push('0' * 64))
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/first.md', 'docs/second.md'])
+        self.assertIn('compared with the empty tree, as the key before of the push to the default branch main is '
+                      'all zeros, a hard problem', out.stdout)
 
     def test_pull_request_target_exits_2_and_names_pull_request(self):
         self.two_commits()
@@ -1389,7 +1460,9 @@ class CheckChangedInCITest(unittest.TestCase):
             clone = Path(self.temp.name) / f'shallow{depth}'
             subprocess.run(['git', 'clone', '-q', '--depth', depth, '-b', 'topic', self.origin.as_uri(),
                             str(clone)], check=True)
-            for variables in (self.push(), {'GITHUB_BASE_REF': 'main'}, {'CI': None, 'args': ('--base', 'HEAD^')}):
+            for variables in (self.push(), self.push('0' * 40, ref='refs/heads/topic',
+                                                     repository={'default_branch': 'topic'}),
+                              {'GITHUB_BASE_REF': 'main'}, {'CI': None, 'args': ('--base', 'HEAD^')}):
                 with self.subTest(depth=depth, variables=variables):
                     variables = dict(variables)
                     out = self.check(*variables.pop('args', ()), cwd=clone, **variables)
