@@ -187,6 +187,53 @@ uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py
 
 `check-changed` exits with 1 on a hard problem, as `check` does.
 
+### The check in CI
+
+A checkout in CI is clean, so it has no page that changed since the last commit. So in CI, `check-changed`
+compares HEAD with a base, as `check-diff` does. It keeps the pages by the same rule, and it checks each
+page with its checker, by the map. It also checks each page that changed since the last commit, as on a
+machine, and it checks each page once. CI here means the variable `CI`, which GitHub sets to `true`.
+
+- **CI counts as set** when `CI` holds a value other than empty, `false` or `0`. Case and spaces around
+  the value do not count. So `CI=false` gives the check since the last commit.
+- **The default branch** comes from the key `repository.default_branch` of the event file of GitHub, at
+  `GITHUB_EVENT_PATH`, or else from `origin/HEAD`. When neither gives a branch, the step exits with 2.
+- **On a pull request,** the base is the merge base of HEAD and `origin/BRANCH`. BRANCH is the base
+  branch, from `GITHUB_BASE_REF`. So the check takes in only the commits of the pull request.
+- **On a push to the default branch,** the base is the commit before the push, the key `before` of the
+  event file. Each commit of the push is checked, because a commit can skip the commit gate with
+  `--no-verify`.
+- **When `before` is no use,** the base is the parent commit, `HEAD^`, and a line of the output says why.
+  That holds when `before` is all zeros, or not in the history, or not an ancestor of HEAD, as after a
+  force-push.
+- **On another push, a merge queue or another CI system,** the base is the merge base of HEAD and
+  the default branch. So each commit of a branch is checked, also after a force-push. When that merge
+  base is HEAD itself, HEAD has no commit of its own, and the base is `HEAD^`.
+- **On the first push,** HEAD has no parent. Then the base is the empty tree, so each page of HEAD is
+  checked.
+- **The event `pull_request_target`** checks out the base branch, so it has no change to check. The step
+  exits with 2, and it names the event `pull_request`.
+- **The last line names the base,** for example "compared with the merge base of origin/main and HEAD".
+
+The option `--base REF` gives the base as the merge base of `REF` and HEAD. `REF` is a branch or a
+commit. The option runs the same check outside CI, and it wins over CI. Write it as `--base REF` or
+`--base=REF`:
+
+```bash
+uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed --base origin/main
+```
+
+- **With names of pages,** CI changes nothing, and it checks the named pages. The option `--base` with
+  names of pages exits with 2.
+- **A deleted page** is not checked, also a page that the working tree deleted since the last commit.
+  A page that the diff names but that a sparse checkout left off the disk exits with 2.
+- **A clone with part of the history** exits with 2. Such a clone is called shallow. Its history is cut
+  off, so the base can be missing. A commit with a missing parent then looks like the first commit. Set
+  `fetch-depth: 0` on `actions/checkout`, so that the clone has the whole history.
+- **A base that is missing,** or a base with no merge base with HEAD, exits with 2. The check never
+  passes with no page checked because of an error.
+- **It writes nothing** in CI too.
+
 ### Who may write the map
 
 The map names a program, and the hook runs that program at the end of each turn. So treat the map as
@@ -258,11 +305,10 @@ The workflow catches a page that a person edited without an agent. It cannot run
 because that pass needs a model. It needs the skill committed in `.agents/skills/nossaifd/`.
 
 With the commit gates, `just check` runs the step `prose-check`, and the installer of jnterfaces removes
-the workflow when the tasker role is installed. But the recipe `just prose-check` checks the pages that
-changed since the last commit. A fresh checkout in CI has no such page, so there the recipe checks no page.
-So without the workflow, no check in CI catches a page that a person edited without an agent. Until the
-step in CI checks the pages of the pull request, copy the workflow back into `.github/workflows/` after
-each install.
+the workflow when the tasker role is installed. In CI, the recipe `just prose-check` checks the pages of
+the pull request or of the push, as "The check in CI" says. So the step `prose-check` in CI catches a page
+that a person edited without an agent. The job in CI must check out the whole history, with
+`fetch-depth: 0`. A shallow clone makes the step fail with exit 2.
 
 ## Install the parts
 

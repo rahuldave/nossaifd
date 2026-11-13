@@ -19,6 +19,15 @@ MORE = CLEAN + '\nThe tests run on each push.\n'
 HARD = "# Notes\n\nThe build isn't fast.\n"
 # A commit before the turn has a date an hour ago. A commit of the turn has the date of now
 PAST = {'GIT_COMMITTER_DATE': f'@{int(time.time()) - 3600} +0000', 'GIT_AUTHOR_DATE': f'@{int(time.time()) - 3600} +0000'}
+# The variables of CI turn on the CI mode of check-changed. The runner of GitHub sets them, also for these tests,
+# so every test starts without them, and a test of the CI mode sets them itself
+def ci_variable(name):
+    "CI and every variable of GitHub, such as GITHUB_BASE_REF, GITHUB_REF and GITHUB_EVENT_PATH."
+    return name == 'CI' or name.startswith('GITHUB_')
+
+
+for variable in [name for name in os.environ if ci_variable(name)]:
+    del os.environ[variable]
 
 
 def listing(folder):
@@ -1158,6 +1167,429 @@ class CheckChangedTest(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
         self.assertIn('checked 3 changed page(s), no hard problem', out.stdout)
         self.assertIn('docs/\u00e9 "q".md: checked by', out.stdout)
+
+
+class CheckChangedInCITest(unittest.TestCase):
+    """check-changed with a base: in CI, where the checkout is clean, or with --base. Each test builds a bare
+    origin and a clone with the whole history, as actions/checkout gives with fetch-depth: 0. The clone works on
+    the branch topic, which starts at main."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        top = Path(self.temp.name)
+        self.origin = top / 'origin.git'
+        subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(self.origin)], check=True)
+        (top / 'work').mkdir()
+        self.project = Project(top / 'work')
+        self.project.write('docs/old.md', HARD)       # a bad page from before the change, which no mode checks
+        self.commit('pages')
+        self.project.git('remote', 'add', 'origin', self.origin.as_uri())
+        self.project.git('push', '-q', 'origin', 'main')
+        self.project.git('fetch', '-q', 'origin')
+        self.project.git('checkout', '-qb', 'topic')
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def commit(self, message='change'):
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', message)
+
+    def check(self, *args, cwd=None, **variables):
+        """check-changed with CI set as GitHub sets it, and no other variable of GitHub, unless a test gives it.
+        None clears a variable."""
+        env = {k: v for k, v in os.environ.items() if not ci_variable(k)}
+        env.update({k: v for k, v in {'CI': 'true', **variables}.items() if v is not None})
+        return subprocess.run([sys.executable, str(GATE), 'check-changed', *args], cwd=cwd or self.project.root,
+                              capture_output=True, text=True, env=env)
+
+    def checked(self, out):
+        return sorted(re.findall(r'^(\S.*?): checked by ', out.stdout, re.M))
+
+    def event(self, value):
+        "A fake event file of GitHub, with the given JSON or text. A dict gets the default branch main."
+        if isinstance(value, dict):
+            value = {'repository': {'default_branch': 'main'}, **value}
+        path = Path(self.temp.name) / 'event.json'
+        path.write_text(value if isinstance(value, str) else json.dumps(value))
+        return str(path)
+
+    def push(self, before=None, ref='refs/heads/main', **keys):
+        "The variables of a push on GitHub, with an event file that gives before when it is not None."
+        return {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': ref,
+                'GITHUB_EVENT_PATH': self.event({**({'before': before} if before is not None else {}), **keys})}
+
+    def sha(self, rev='HEAD'):
+        return self.project.git('rev-parse', rev).strip()
+
+    def two_commits(self):
+        "A bad page in a first commit and a good page in a second, on top of main."
+        before = self.sha()
+        self.project.write('docs/first.md', HARD)
+        self.commit()
+        self.project.write('docs/second.md', CLEAN)
+        self.commit()
+        return before
+
+    def test_a_pull_request_with_a_bad_page_fails_and_one_with_good_pages_passes(self):
+        self.project.write('docs/good.md', CLEAN)
+        self.commit()
+        pr = {'GITHUB_EVENT_NAME': 'pull_request', 'GITHUB_BASE_REF': 'main'}
+        out = self.check(**pr)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/good.md'])
+        self.assertIn('checked 1 changed page(s), compared with the merge base of origin/main and HEAD, no hard '
+                      'problem', out.stdout)
+        self.project.write('docs/bad.md', HARD)
+        self.commit()
+        out = self.check(**pr)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/bad.md', 'docs/good.md'])
+        self.assertIn('compared with the merge base of origin/main and HEAD, a hard problem', out.stdout)
+
+    def test_a_pull_request_counts_from_the_merge_base_not_from_the_tip_of_the_base(self):
+        self.project.write('docs/mine.md', CLEAN)
+        self.commit()
+        self.project.git('checkout', '-q', 'main')
+        self.project.write('docs/theirs.md', HARD)
+        self.commit()
+        self.project.git('push', '-q', 'origin', 'main')
+        self.project.git('fetch', '-q', 'origin')
+        self.project.git('checkout', '-q', 'topic')
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/mine.md'])
+
+    def test_a_push_to_the_default_branch_checks_each_commit_since_before(self):
+        before = self.two_commits()
+        out = self.check(**self.push(before))
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/first.md', 'docs/second.md'])
+        self.assertIn(f'compared with {before[:12]}, the commit before the push to the default branch main, a '
+                      'hard problem', out.stdout)
+        self.assertNotIn('the base is HEAD^', out.stdout)
+
+    def test_a_push_to_the_default_branch_falls_back_to_the_parent_and_says_so(self):
+        self.project.write('docs/gone.md', CLEAN)
+        self.commit()
+        gone = self.sha()
+        self.project.git('reset', '-q', '--hard', 'HEAD^')      # a commit that a force-push replaced
+        self.two_commits()
+        cases = {'zeros': ('0' * 40, 'is all zeros, as for a new branch'),
+                 'not in the history': ('ab' * 20, 'is not an ancestor of HEAD, as after a force-push'),
+                 'not an ancestor': (gone, 'is not an ancestor of HEAD, as after a force-push'),
+                 'no key': (None, 'gives no commit before a push'),
+                 'not a sha': ('--all', 'is not the id of a commit')}
+        for case, (before, why) in cases.items():
+            with self.subTest(case=case):
+                out = self.check(**self.push(before))
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertEqual(self.checked(out), ['docs/second.md'])
+                self.assertEqual(len(re.findall(r'^nossaifd: the base is HEAD\^, because .*' + re.escape(why),
+                                                out.stdout, re.M)), 1, out.stdout)
+                self.assertIn('compared with HEAD^, the parent commit, for a push to the default branch main, no '
+                              'hard problem', out.stdout)
+
+    def test_another_push_checks_each_commit_since_the_merge_base_with_the_default_branch(self):
+        self.two_commits()
+        out = self.check(**self.push('0' * 40, ref='refs/heads/topic'))
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/first.md', 'docs/second.md'])
+        self.assertIn('compared with the merge base of origin/main and HEAD, a hard problem', out.stdout)
+
+    def test_the_default_branch_comes_from_the_event_file_then_from_origin_head(self):
+        self.two_commits()
+        self.project.git('push', '-q', 'origin', 'topic')
+        self.project.git('fetch', '-q', 'origin')
+        self.project.git('remote', 'set-head', 'origin', 'topic')
+        out = self.check(**self.push(ref='refs/heads/other'))          # the event file says main
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn('the merge base of origin/main and HEAD', out.stdout)
+        self.project.git('remote', 'set-head', 'origin', 'main')
+        for case, path in (('no file', None), ('no key', self.event('{"repository": {}}')),
+                           ('not json', self.event('{')), ('a list', self.event('[1]'))):
+            with self.subTest(case=case):
+                out = self.check(GITHUB_EVENT_PATH=path)
+                self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+                self.assertIn('the merge base of origin/main and HEAD', out.stdout)
+
+    def test_no_default_branch_or_one_that_does_not_resolve_exits_2(self):
+        self.two_commits()
+        self.project.git('config', 'remote.origin.followRemoteHEAD', 'never')   # a fetch of git 2.48 sets it
+        self.project.git('update-ref', '--no-deref', '-d', 'refs/remotes/origin/HEAD')
+        out = self.check()
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('no default branch', out.stderr)
+        out = self.check(GITHUB_EVENT_PATH=self.event({'repository': {'default_branch': 'trunk'}}))
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('the base origin/trunk does not resolve to a commit', out.stderr)
+        out = self.check(GITHUB_EVENT_PATH=self.event({'repository': {'default_branch': '-x'}}))
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('no default branch', out.stderr)
+
+    def test_another_ci_on_the_default_branch_checks_the_last_commit(self):
+        "The merge base of HEAD and the default branch is HEAD itself, which would check no page"
+        self.two_commits()
+        self.project.git('push', '-q', 'origin', 'topic:main')
+        self.project.git('fetch', '-q', 'origin')
+        self.project.git('remote', 'set-head', 'origin', 'main')
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/second.md'])
+        self.assertIn('compared with HEAD^, the parent commit, as HEAD has no commit of its own beside the default '
+                      'branch origin/main', out.stdout)
+
+    def test_the_first_push_compares_with_the_empty_tree(self):
+        "A commit with no parent, in a clone with the whole history, is a true first commit"
+        self.project.git('checkout', '-q', '--orphan', 'first')
+        self.project.git('rm', '-rqf', '.')
+        self.project.write('README.md', HARD)
+        self.project.write('notes.txt', 'not a page\n')
+        self.commit('first')
+        variables = self.push('0' * 40, ref='refs/heads/first', repository={'default_branch': 'first'})
+        out = self.check(**variables)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['README.md'])
+        self.assertIn('compared with the empty tree, as HEAD is the first commit, for a push to the default '
+                      'branch first, a hard problem', out.stdout)
+        # the line of the fallback names the base that was chosen
+        self.assertIn('nossaifd: the base is the empty tree, because the commit before the push is all zeros',
+                      out.stdout)
+        self.assertNotIn('HEAD^', out.stdout)
+
+    def test_pull_request_target_exits_2_and_names_pull_request(self):
+        self.two_commits()
+        out = self.check(GITHUB_EVENT_NAME='pull_request_target', GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('pull_request_target', out.stderr)
+        self.assertIn('the event pull_request.', out.stderr)
+        out = self.check('--base', 'main', GITHUB_EVENT_NAME='pull_request_target')   # the option wins
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+
+    def test_the_pages_changed_since_head_count_too_and_each_page_once(self):
+        self.project.write('docs/committed.md', CLEAN)
+        self.project.write('docs/both.md', CLEAN)
+        self.commit()
+        self.project.write('docs/both.md', MORE)
+        self.project.write('docs/untracked.md', CLEAN)
+        self.project.write('docs/old.md', MORE)             # in main, changed since HEAD
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/both.md', 'docs/committed.md', 'docs/old.md',
+                                             'docs/untracked.md'])
+        self.assertIn('checked 4 changed page(s)', out.stdout)
+
+    def test_a_shallow_clone_exits_2_and_names_fetch_depth(self):
+        self.project.write('docs/new.md', CLEAN)
+        self.commit()
+        self.project.write('docs/newer.md', CLEAN)
+        self.commit()
+        self.project.git('push', '-q', 'origin', 'topic')
+        for depth in ('1', '2'):
+            clone = Path(self.temp.name) / f'shallow{depth}'
+            subprocess.run(['git', 'clone', '-q', '--depth', depth, '-b', 'topic', self.origin.as_uri(),
+                            str(clone)], check=True)
+            for variables in (self.push(), {'GITHUB_BASE_REF': 'main'}, {'CI': None, 'args': ('--base', 'HEAD^')}):
+                with self.subTest(depth=depth, variables=variables):
+                    variables = dict(variables)
+                    out = self.check(*variables.pop('args', ()), cwd=clone, **variables)
+                    self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+                    self.assertIn('shallow', out.stderr)
+                    self.assertIn('fetch-depth: 0', out.stderr)
+                    self.assertNotIn('empty tree', out.stdout + out.stderr)
+
+    def test_a_base_that_does_not_resolve_exits_2(self):
+        self.project.write('docs/new.md', HARD)
+        self.commit()
+        out = self.check(GITHUB_BASE_REF='nosuch')
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('the base origin/nosuch does not resolve to a commit', out.stderr)
+        self.assertIn('fetch-depth: 0', out.stderr)
+        self.project.git('branch', 'main2')               # a local branch is not the base of a pull request
+        self.assertEqual(self.check(GITHUB_BASE_REF='main2').returncode, 2)
+        out = self.check('--base', 'nosuch', CI=None)
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('the base nosuch does not resolve to a commit', out.stderr)
+
+    def test_no_merge_base_exits_2(self):
+        self.project.git('checkout', '-q', '--orphan', 'alone')
+        self.project.write('docs/new.md', CLEAN)
+        self.commit()
+        for variables in ({'GITHUB_BASE_REF': 'main'}, self.push(ref='refs/heads/alone')):
+            with self.subTest(variables=variables):
+                out = self.check(**variables)
+                self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+                self.assertIn('no merge base', out.stderr)
+
+    def test_no_changed_page_passes_and_names_the_base(self):
+        self.project.write('notes.txt', 'not a page\n')
+        self.project.write('CHANGELOG.md', HARD)
+        self.commit()
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(out.stdout, 'nossaifd: no page changed, compared with the merge base of origin/main and '
+                                     'HEAD, so there is no page to check.\n')
+
+    def test_named_pages_ignore_ci(self):
+        self.project.write('docs/new.md', HARD)
+        self.commit()
+        self.project.write('other.md', CLEAN)
+        out = self.check('other.md', GITHUB_BASE_REF='nosuch', GITHUB_EVENT_NAME='pull_request_target')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['other.md'])
+
+    def test_the_map_of_checkers_applies(self):
+        self.project.write(TALK, FAKE)
+        self.project.write(str(Path(TALK).parent / 'helper.py'), 'WORDS = 445\n')
+        self.project.write('.agents/nossaifd-checkers.json', json.dumps(MAP))
+        self.project.write('talk/slides.qmd', DECK + 'LONG\n')
+        self.project.write('talk/notes.md', CLEAN)
+        self.commit()
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn(f'talk/slides.qmd: checked by {TALK}, 1 hard problem(s)', out.stdout)
+        self.assertIn('HARD slide 1: the script is long', out.stdout)
+        self.assertIn('talk/notes.md: checked by check.py of the skill', out.stdout)
+
+    def test_a_deleted_page_is_not_checked(self):
+        self.project.git('rm', '-q', 'docs/old.md')
+        self.project.write('docs/new.md', CLEAN)
+        self.commit()
+        self.project.write('docs/later.md', CLEAN)
+        self.commit()
+        (self.project.root / 'docs/later.md').unlink()     # gone from the disk since the commit
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/new.md'])
+        self.assertIn('docs/later.md: not checked, it is deleted since HEAD', out.stdout)
+
+    def test_a_page_that_a_sparse_checkout_hides_exits_2(self):
+        "A page of the commits that is not on disk, and that the working tree did not delete, is never skipped"
+        self.project.write('docs/bad.md', HARD)
+        self.commit()
+        self.project.git('update-index', '--skip-worktree', 'docs/bad.md')
+        (self.project.root / 'docs/bad.md').unlink()
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+        self.assertIn('1 changed page(s) are not files on disk, so they cannot be checked: docs/bad.md', out.stderr)
+        self.assertIn('sparse checkout', out.stderr)
+        self.assertNotIn('checked 1', out.stdout)
+        self.assertNotIn('no page changed', out.stdout)
+
+    def test_a_page_removed_from_the_index_but_on_disk_is_checked_and_not_called_deleted(self):
+        self.project.write('docs/bad.md', HARD)
+        self.commit()
+        self.project.git('rm', '-q', '--cached', 'docs/bad.md')
+        out = self.check(GITHUB_BASE_REF='main')
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/bad.md'])
+        self.assertNotIn('deleted since HEAD', out.stdout)
+
+    def test_ci_unset_empty_false_or_0_keeps_the_check_since_head(self):
+        self.project.write('docs/new.md', HARD)
+        self.commit()
+        for value in (None, '', 'false', 'FALSE', ' False ', '0'):
+            with self.subTest(CI=value):
+                out = self.check(CI=value, GITHUB_BASE_REF='main')
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertIn('no page changed since HEAD', out.stdout)
+        for value in ('true', '1', 'yes'):
+            with self.subTest(CI=value):
+                self.assertEqual(self.check(CI=value, GITHUB_BASE_REF='main').returncode, 1)
+
+    def test_the_option_base_runs_the_same_check_outside_ci_and_wins_over_ci(self):
+        self.project.write('docs/new.md', HARD)
+        self.commit()
+        for args in (('--base', 'main'), ('--base=main',), ('-v', '--base', 'main'), ('--base', 'main', '-v')):
+            with self.subTest(args=args):
+                out = self.check(*args, CI=None)
+                self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+                self.assertEqual(self.checked(out), ['docs/new.md'])
+                self.assertIn('compared with the merge base of main and HEAD, a hard problem', out.stdout)
+        out = self.check('--base', 'main', GITHUB_BASE_REF='nosuch')
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn('compared with the merge base of main and HEAD', out.stdout)
+        out = self.check('--base', 'HEAD', CI=None)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('no page changed, compared with the merge base of HEAD and HEAD', out.stdout)
+
+    def test_a_bad_use_of_the_option_exits_2(self):
+        for args, message in ((('--base',), 'needs a branch'), (('--base=',), 'needs a branch'),
+                              (('--base', 'main', 'README.md'), 'name no page'),
+                              (('README.md', '--base=main'), 'name no page'),
+                              (('--base', '-v'), 'cannot start with -'), (('--bases',), 'unknown option')):
+            with self.subTest(args=args):
+                out = self.check(*args, CI=None)
+                self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+                self.assertIn(message, out.stderr)
+
+    def test_a_repository_with_no_commit_exits_2(self):
+        with tempfile.TemporaryDirectory() as temp:
+            subprocess.run(['git', 'init', '-q'], cwd=temp, check=True)
+            (Path(temp) / 'new.md').write_text(CLEAN)
+            out = self.check(cwd=temp)
+            self.assertEqual(out.returncode, 2, out.stdout + out.stderr)
+            self.assertIn('no commit', out.stderr)
+
+    def test_it_writes_nothing(self):
+        self.project.write('docs/new.md', HARD)
+        self.commit()
+        before = listing(self.project.root)
+        self.assertEqual(self.check(GITHUB_BASE_REF='main').returncode, 1)
+        self.assertEqual(self.check(**self.push(ref='refs/heads/topic')).returncode, 1)
+        self.assertEqual(listing(self.project.root), before)
+
+    def test_check_diff_compares_the_empty_tree_with_head(self):
+        empty = self.project.git('hash-object', '-t', 'tree', '/dev/null').strip()
+        self.project.write('docs/new.md', CLEAN)
+        self.commit()
+        out = subprocess.run([sys.executable, str(GATE), 'check-diff', empty], cwd=self.project.root,
+                             capture_output=True, text=True)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn('checked 3 page(s), a hard problem', out.stdout)     # README.md, docs/new.md, docs/old.md
+
+
+class MissingCheckerTest(unittest.TestCase):
+    "A skill installed without its check.py prints the install line, not a traceback."
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        (Path(self.temp.name) / 'work').mkdir()
+        self.project = Project(Path(self.temp.name) / 'work')
+        scripts = self.project.root / '.agents/skills/nossaifd/scripts'
+        scripts.mkdir(parents=True)
+        shutil.copy(GATE, scripts / 'prose_gate.py')
+        self.gate_path = scripts / 'prose_gate.py'
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'the skill without check.py')
+        self.project.git('checkout', '-qb', 'topic')
+        self.project.write('docs/new.md', CLEAN)
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'a page')
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def gate(self, *args, data=None):
+        return subprocess.run([sys.executable, str(self.gate_path), *args], cwd=self.project.root,
+                              capture_output=True, text=True, input=json.dumps(data) if data else None)
+
+    def test_check_check_changed_and_check_diff_print_the_install_line(self):
+        for args in (('check', 'docs/new.md'), ('check-changed', '--base', 'main'), ('check-diff', 'main'),
+                     ('record', 'docs/new.md')):
+            with self.subTest(args=args):
+                out = self.gate(*args)
+                self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+                self.assertIn("npx skills add rahuldave/nossaifd -a codex --skill '*' -y", out.stdout + out.stderr)
+                self.assertNotIn('Traceback', out.stdout + out.stderr)
+
+    def test_the_stop_hook_lets_the_stop_go_through_and_prints_the_install_line(self):
+        data = {'cwd': str(self.project.root), 'session_id': 's1'}
+        self.gate('start', data=data)
+        self.project.write('docs/new.md', HARD)
+        out = self.gate('hook', data=data)
+        self.assertEqual((out.returncode, json.loads(out.stdout)), (0, {}))
+        self.assertIn("npx skills add rahuldave/nossaifd", out.stderr)
 
 
 RECIPES = REPO / '.agents/just/roles/nossaifd.just'
