@@ -203,14 +203,17 @@ machine, and it checks each page once. CI here means the variable `CI`, which Gi
 - **On a push to the default branch,** the base is the commit before the push, the key `before` of the
   event file. Each commit of the push is checked, because a commit can skip the commit gate with
   `--no-verify`.
+- **When `before` is all zeros,** the push made the branch, as the first push does. Then the base is the
+  empty tree, so the check takes in each page of HEAD. That holds also for a page of an earlier commit of
+  the push. A line of the output says so.
 - **When `before` is no use,** the base is the parent commit, `HEAD^`, and a line of the output says why.
-  That holds when `before` is all zeros, or not in the history, or not an ancestor of HEAD, as after a
+  That holds when `before` is missing, or not in the history, or not an ancestor of HEAD, as after a
   force-push.
 - **On another push, a merge queue or another CI system,** the base is the merge base of HEAD and
   the default branch. So each commit of a branch is checked, also after a force-push. When that merge
   base is HEAD itself, HEAD has no commit of its own, and the base is `HEAD^`.
-- **On the first push,** HEAD has no parent. Then the base is the empty tree, so each page of HEAD is
-  checked.
+- **When the base would be `HEAD^` and HEAD has no parent,** the base is the empty tree, so the check
+  takes in each page of HEAD.
 - **The event `pull_request_target`** checks out the base branch, so it has no change to check. The step
   exits with 2, and it names the event `pull_request`.
 - **The last line names the base,** for example "compared with the merge base of origin/main and HEAD".

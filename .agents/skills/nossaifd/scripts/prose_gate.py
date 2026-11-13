@@ -663,17 +663,16 @@ def default_branch(root):
 
 
 def pushed_before():
-    """The commit before a push on GitHub, the key before of the event file at GITHUB_EVENT_PATH, and None. Or
-    None and the reason when there is no such commit: no file or key, all zeros as for a new branch, or a value
-    that is not the id of a commit."""
+    """The commit before a push on GitHub, the key before of the event file at GITHUB_EVENT_PATH, and None. All
+    zeros, as for the push that makes a branch, comes back as it is: base_commit compares the empty tree with
+    HEAD then. Or None and the reason when there is no such commit: no file or key, or a value that is not the
+    id of a commit."""
     try:
         before = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text(encoding='utf-8'))['before']
     except (KeyError, OSError, ValueError, TypeError):
         return None, 'the event file at GITHUB_EVENT_PATH gives no commit before a push'
     if not isinstance(before, str) or not re.fullmatch(r'[0-9a-f]{40}|[0-9a-f]{64}', before):
         return None, 'the key before of the event file is not the id of a commit'
-    if not before.strip('0'):
-        return None, 'the commit before the push is all zeros, as for a new branch'
     return before, None
 
 
@@ -714,13 +713,14 @@ def base_commit(root, option):
     - On a pull request, with a nonempty GITHUB_BASE_REF, it is the merge base of origin/GITHUB_BASE_REF and HEAD.
     - On a push to the default branch, GITHUB_REF=refs/heads/DEFAULT, it is the commit before the push, the key
       before of the event file (see pushed_before), so each commit of the push is checked. A commit can skip the
-      commit gate with --no-verify. When before is missing, all zeros, not in the history or not an ancestor of
-      HEAD, as after a force-push, the base is HEAD^, and a line of the output says so.
+      commit gate with --no-verify. When before is all zeros, as when the push makes the branch, the base is
+      the empty tree, so each page of HEAD is checked. When before is missing, not in the history or not an
+      ancestor of HEAD, as after a force-push, the base is HEAD^. A line of the output names either fallback.
     - On another push, a merge queue or another CI system, it is the merge base of origin/DEFAULT and HEAD, so
       each commit of a branch is checked, also after a force-push. When that merge base is HEAD itself, HEAD is
       on the default branch, so the base is HEAD^, as for a push to the default branch.
     - The default branch DEFAULT comes from the event file of GitHub, or else from origin/HEAD (default_branch).
-    - When HEAD has no parent and the base would be HEAD^, the base is the empty tree: the first push.
+    - When the base would be HEAD^ and HEAD has no parent, the base is the empty tree.
 
     Each error gives exit 2, never a check of no page: the event pull_request_target, which checks out the base
     branch; a shallow clone, also with the option, because its history is cut off and a cut-off commit looks
@@ -744,6 +744,13 @@ def base_commit(root, option):
                       'and origin/HEAD is not set. Run git remote set-head origin --auto, or give --base REF.')
     if os.environ.get('GITHUB_REF') == f'refs/heads/{branch}':
         before, why = pushed_before()
+        if before and not before.strip('0'):
+            tree = empty_tree(root)
+            if tree is None:
+                return None, 'git cannot make the empty tree.'
+            print('nossaifd: the base is the empty tree, because the key before of the event file is all zeros, as '
+                  'when the push makes the branch, so each page of HEAD is checked.')
+            return tree, f'the empty tree, as the key before of the push to the default branch {branch} is all zeros'
         if before and git(root, 'merge-base', '--is-ancestor', before, 'HEAD').returncode == 0:
             return before, f'{before[:12]}, the commit before the push to the default branch {branch}'
         if before:
