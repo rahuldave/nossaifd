@@ -175,6 +175,10 @@ file outside the project, such as a draft in a temporary folder, gets `check.py`
 uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed -v
 ```
 
+The recipe of the role ends with the line `jlog step prose-check`, which records the step for `jlog pass`.
+That line needs the shell jlog of the index of jnterfaces. A project without that index copies the recipe
+of the [README](https://github.com/rahuldave/nossaifd#readme) instead, which has no such line.
+
 - **The changed pages** are the files that `git diff --diff-filter=AMT HEAD` names, with no rename, and
   the new files that git does not ignore. `T` is a change of type, such as a link that became a file. The rule `is_page` keeps the pages among them. So a deleted page
   is not checked, and a renamed page is checked under its new name.

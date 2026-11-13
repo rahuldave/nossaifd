@@ -1666,46 +1666,226 @@ class MissingCheckerTest(unittest.TestCase):
 
 
 RECIPES = REPO / '.agents/just/roles/nossaifd.just'
+# The line that records the step prose-check for jlog pass, the last line of the recipe of the role
+STEP_LINE = 'jlog step prose-check'
+# The steps of just check in jnterfaces that a profile gives. The role must not define one of them, or check
+STEPS_OF_PROFILES = ('fmt-check', 'lint', 'typecheck', 'test', 'coverage-check', 'integration', 'docstring-check',
+                     'docs-check', 'diff-check', 'check')
+# The variables that change what just runs. jlog pass refuses a run with one of them
+JUST_VARIABLES = ('JUST_NO_DEPS', 'JUST_SHELL', 'JUST_JUSTFILE', 'JUST_JUSTFILE_NAME', 'JUST_CEILING',
+                  'JUST_WORKING_DIRECTORY', 'JUST_DOTENV_FILENAME', 'JUST_DOTENV_PATH', 'JUST_NO_DOTENV')
+# The Justfile and the files of jnterfaces that a project with the index has, as jnterfaces #37 writes them
+JNTERFACES_FILES = {
+    'Justfile': "import? '.agents/install.just'\n\nexport JLOG_RUN := env(\"JLOG_RUN\", uuid())\n\n"
+                'set positional-arguments\n\nset allow-duplicate-recipes\n',
+    '.agents/install.just': "import? 'just/index.just'\n",
+    '.agents/just/index.just': 'set shell := ["jlog", "sh", "-cu"]\n\n'
+                               "import? 'roles/nossaifd.just'\n\ncheck: prose-check\n    jlog pass\n",
+    '.agents/stack.json': json.dumps({'version': 2, 'steps': ['prose-check'], 'provided_steps': ['prose-check']}),
+    '.gitignore': '.agents/log/\n',
+}
+
+
+def body_of(text):
+    "The lines of the recipe prose-check, without their indent."
+    body = re.search(r'^prose-check \*args:\n((?:    .*\n)*)', text, re.M).group(1)
+    return [line[4:] for line in body.splitlines()]
+
+
+def readme_recipe():
+    "The recipe that the README gives a project without the index of jnterfaces."
+    text = (REPO / 'README.md').read_text()
+    blocks = [block for block in re.findall(r'```just\n(.*?)```', text, re.S) if 'prose-check *args:' in block]
+    assert len(blocks) == 1, blocks
+    return blocks[0]
+
+
+def tool_bin(folder, *tools):
+    "A folder with links to the tools only, so that a PATH with it and the folders of the system has no jlog."
+    folder.mkdir()
+    for tool in tools:
+        (folder / tool).symlink_to(shutil.which(tool))
+    return f'{folder}:/usr/bin:/bin'
+
+
+def role_project(temp, justfiles):
+    "A project with the skill, the role file and the given Justfile and files of jnterfaces, all committed."
+    Path(temp).mkdir()
+    project = Project(temp)
+    (project.root / '.agents/skills').mkdir(parents=True)
+    (project.root / '.agents/skills/nossaifd').symlink_to(SKILL)
+    (project.root / '.agents/just/roles').mkdir(parents=True)
+    shutil.copy(RECIPES, project.root / '.agents/just/roles/nossaifd.just')
+    for name, text in justfiles.items():
+        project.write(name, text)
+    project.git('add', '-A')
+    project.git('commit', '-qm', 'the recipes')
+    return project
 
 
 class RoleRecipeTest(unittest.TestCase):
     "The recipe of the prose role, which just install of jnterfaces imports into a project."
 
-    def test_the_recipe_is_prose_check_with_one_line_and_no_shebang(self):
+    def test_the_recipe_is_prose_check_with_the_check_then_the_step_line(self):
         text = RECIPES.read_text()
-        self.assertNotIn('#!', text)
         self.assertEqual(re.findall(r'^([a-z][a-z-]*)\b[^\n]*:$', text, re.M), ['prose-check'])
         self.assertIn('[positional-arguments]\nprose-check *args:\n    uv run --no-project --quiet python '
-                      '.agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"\n', text)
-        body = re.search(r'^prose-check \*args:\n((?:    .*\n)*)', text, re.M).group(1)
-        self.assertEqual(len(body.splitlines()), 1)
+                      '.agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"\n'
+                      f'    {STEP_LINE}\n', text)
+        self.assertEqual(body_of(text), ['uv run --no-project --quiet python .agents/skills/nossaifd/scripts/'
+                                         'prose_gate.py check-changed "$@"', STEP_LINE])
+        self.assertTrue(text.endswith(f'\n    {STEP_LINE}\n'), 'the step line is the last line of the file')
 
-    @unittest.skipUnless(shutil.which('just') and shutil.which('uv'), 'needs just and uv')
-    def test_the_recipe_passes_a_name_with_spaces_whole(self):
+    def test_the_file_sets_no_shell_and_has_no_step_of_a_profile(self):
+        text = RECIPES.read_text()
+        self.assertNotRegex(text, r'(?m)^\s*set\s')
+        for name in STEPS_OF_PROFILES:
+            self.assertNotRegex(text, rf'(?m)^@?{re.escape(name)}(\s[^\n]*)?:', name)
+        self.assertNotRegex(text, r'(?m)^(alias|mod|import)\b')
+
+    def test_the_recipe_has_no_shebang_no_script_no_dash_line_and_no_folder_attribute(self):
+        text = RECIPES.read_text()
+        self.assertNotIn('#!', text)
+        self.assertEqual(re.findall(r'(?m)^\s*\[.*$', text), ['[positional-arguments]'])
+        for line in body_of(text):
+            self.assertNotRegex(line, r'^@?-', line)
+            self.assertFalse(line.endswith('\\'), line)
+
+    @unittest.skipUnless(shutil.which('just'), 'needs just')
+    def test_the_file_parses_alone_and_its_dump_has_one_plain_recipe(self):
+        out = subprocess.run(['just', '--justfile', str(RECIPES), '--summary'], capture_output=True, text=True)
+        self.assertEqual((out.returncode, out.stdout.strip()), (0, 'prose-check'), out.stderr)
+        out = subprocess.run(['just', '--justfile', str(RECIPES), '--dump', '--dump-format', 'json'],
+                             capture_output=True, text=True, check=True)
+        dump = json.loads(out.stdout)
+        self.assertEqual(list(dump['recipes']), ['prose-check'])
+        self.assertIsNone(dump['settings']['shell'])
+        self.assertEqual(dump['assignments'], {})
+        recipe = dump['recipes']['prose-check']
+        self.assertFalse(recipe['shebang'])
+        self.assertEqual(recipe['dependencies'], [])
+        self.assertTrue(all(not isinstance(a, dict) and a in ('positional-arguments', 'doc') or
+                            isinstance(a, dict) and set(a) <= {'doc'} for a in recipe['attributes']),
+                        recipe['attributes'])
+        self.assertEqual(recipe['body'][-1], [STEP_LINE], 'the last line has no interpolation')
+
+    def test_the_readme_gives_the_recipe_of_the_role_without_the_step_line(self):
+        "The two copies cannot drift: the README recipe is the recipe of the role less its last line"
+        role = RECIPES.read_text()
+        start = role.index('[positional-arguments]\n')
+        self.assertEqual(readme_recipe().split('\n', 1)[1], role[start:].replace(f'    {STEP_LINE}\n', ''))
+        self.assertNotIn('jlog', readme_recipe())
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_without_jlog_the_recipe_of_the_readme_passes_good_pages_and_fails_bad_ones(self):
         with tempfile.TemporaryDirectory() as temp:
-            project = Project(temp)
-            (project.root / '.agents/skills').mkdir(parents=True)
-            (project.root / '.agents/skills/nossaifd').symlink_to(SKILL)
-            (project.root / '.agents/just/roles').mkdir(parents=True)
-            shutil.copy(RECIPES, project.root / '.agents/just/roles/nossaifd.just')
-            project.write('Justfile', "import '.agents/just/roles/nossaifd.just'\n")
+            project = role_project(Path(temp) / 'p', {'Justfile': readme_recipe()})
+            path = tool_bin(Path(temp) / 'bin', 'just', 'uv', 'git')
+            env = {**os.environ, 'PATH': path}
+            run = lambda *args: subprocess.run(['just', 'prose-check', *args], cwd=project.root, capture_output=True,
+                                               text=True, env=env)
+            self.assertIsNone(shutil.which('jlog', path=path))
+            out = run()
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
             project.write('my page.md', CLEAN)
-            project.write('bad page.md', HARD)
-            run = lambda *args: subprocess.run(['just', 'prose-check', *args], cwd=project.root,
-                                               capture_output=True, text=True)
             out = run('my page.md')
             self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
             self.assertIn('my page.md: checked by check.py of the skill, 0 hard', out.stdout)
+            out = run()
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+            project.write('bad page.md', HARD)
             out = run('-v', 'bad page.md')
-            self.assertNotEqual(out.returncode, 0)
+            self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
             self.assertIn('bad page.md: checked by', out.stdout)
             out = run()
-            self.assertNotEqual(out.returncode, 0)
+            self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
             self.assertIn('checked 2 changed page(s), a hard problem', out.stdout)
             project.write('-x.md', CLEAN)
             out = run('--', '-x.md')
             self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
             self.assertIn('-x.md: checked by check.py of the skill, 0 hard', out.stdout)
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_without_the_shell_jlog_the_role_file_fails_after_a_good_check(self):
+        "Why a project without the index copies the README recipe: the step line needs the shell jlog"
+        with tempfile.TemporaryDirectory() as temp:
+            project = role_project(Path(temp) / 'p', {'Justfile': "import '.agents/just/roles/nossaifd.just'\n"})
+            path = tool_bin(Path(temp) / 'bin', 'just', 'uv', 'git')
+            # bash, the sh of macOS, says "jlog: command not found"; dash, the sh of Ubuntu, says "jlog: not found"
+            shells = [None] + (['/bin/dash'] if Path('/bin/dash').exists() else [])
+            for shell in shells:
+                with self.subTest(sh=shell or 'the sh of the system'):
+                    (Path(temp) / 'bin/sh').unlink(missing_ok=True)
+                    if shell:
+                        (Path(temp) / 'bin/sh').symlink_to(shell)
+                    out = subprocess.run(['just', 'prose-check'], cwd=project.root, capture_output=True, text=True,
+                                         env={**os.environ, 'PATH': path})
+                    self.assertEqual(out.returncode, 127, out.stdout + out.stderr)
+                    self.assertIn('no page changed since HEAD', out.stdout)
+                    self.assertRegex(out.stderr, r'jlog: (command )?not found')
+            (Path(temp) / 'bin/sh').unlink(missing_ok=True)
+            if shutil.which('jlog'):
+                # With jlog installed, the step line still fails, because the shell of the Justfile is not jlog
+                (Path(temp) / 'bin/jlog').symlink_to(shutil.which('jlog'))
+                out = subprocess.run(['just', 'prose-check'], cwd=project.root, capture_output=True, text=True,
+                                     env={**os.environ, 'PATH': path})
+                self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+                self.assertIn('must be a line of its own in a recipe that runs through jlog', out.stderr)
+
+    def test_ci_builds_jlog_so_that_the_jlog_test_runs_there(self):
+        "The workflow builds jlog v0.1.0 and sets NOSSAIFD_NEED_JLOG, which turns the skip into a failure"
+        text = (REPO / '.github/workflows/verify.yml').read_text()
+        self.assertIn('cargo install --locked --git https://github.com/rahuldave/jlog --rev '
+                      '6fccbf92d47a7b66f0e5b4dce7046c25c29a364a jlog', text)
+        self.assertIn("NOSSAIFD_NEED_JLOG: '1'", text)
+
+    def test_the_readme_tells_a_project_with_the_old_import_to_replace_it(self):
+        text = re.sub(r'\s+', ' ', (REPO / 'README.md').read_text())
+        self.assertIn("If your Justfile has the line `import? '.agents/just/roles/nossaifd.just'`", text)
+        self.assertIn('jnterfaces #37', text)
+
+    @unittest.skipUnless(os.environ.get('NOSSAIFD_NEED_JLOG') or shutil.which('jlog') and shutil.which('just')
+                         and shutil.which('uv') and shutil.which('git'),
+                         'needs jlog 0.1.0 on PATH, with just, uv and git; build it from github.com/rahuldave/jlog')
+    def test_under_the_index_of_jnterfaces_jlog_pass_needs_the_step_and_a_bad_page_fails(self):
+        self.assertTrue(shutil.which('jlog'), 'NOSSAIFD_NEED_JLOG is set, but jlog is not on PATH')
+        with tempfile.TemporaryDirectory() as temp:
+            project = role_project(Path(temp) / 'p', JNTERFACES_FILES)
+            env = {name: value for name, value in os.environ.items()
+                   if name != 'JLOG_RUN' and name not in JUST_VARIABLES}
+            log = project.root / '.agents/log/just.jsonl'
+
+            def check():
+                before = len(log.read_text().splitlines()) if log.exists() else 0
+                out = subprocess.run(['just', 'check'], cwd=project.root, capture_output=True, text=True, env=env)
+                records = [json.loads(line) for line in log.read_text().splitlines()[before:]]
+                return out, {r['kind'] for r in records}, [r.get('step') for r in records if r['kind'] == 'step']
+
+            project.write('docs/good.md', CLEAN)
+            project.git('add', '-A')
+            out, kinds, steps = check()
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+            self.assertIn('docs/good.md: checked by check.py of the skill, 0 hard', out.stdout)
+            self.assertEqual(steps, ['prose-check'])
+            self.assertIn('pass', kinds)
+            project.git('commit', '-qm', 'a good page')
+            project.write('docs/bad.md', HARD)
+            project.git('add', '-A')
+            out, kinds, steps = check()
+            self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+            self.assertIn('docs/bad.md: checked by', out.stdout)
+            self.assertEqual(steps, [], 'a failed check records no step')
+            self.assertNotIn('pass', kinds)
+            self.assertNotIn('no-pass', kinds, 'just stops before jlog pass')
+            # A recipe that passes the check but has no step line gives no pass
+            project.git('rm', '-q', '--cached', 'docs/bad.md')
+            (project.root / 'docs/bad.md').unlink()
+            role = project.root / '.agents/just/roles/nossaifd.just'
+            role.write_text(role.read_text().replace(f'    {STEP_LINE}\n', ''))
+            project.git('add', '-A')
+            out, kinds, steps = check()
+            self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+            self.assertEqual((steps, 'pass' in kinds, 'no-pass' in kinds), ([], False, True))
 
 
 class InstallFilesTest(unittest.TestCase):
