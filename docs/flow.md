@@ -19,6 +19,11 @@ The file `.agents/skills/nossaifd/assets/agents-prose.md` holds the lines for th
 `CLAUDE.md` of a project. With them, the agent does the steps while it writes, and the hook rarely has to
 ask.
 
+The lines say that `just prose` replaces steps 6 to 8 of the skill only when `.agents/stack.json` sets
+`choices.tasker` to the JSON value `true`. The gate tests the same setting, in `gates_installed`.
+Otherwise the agent does the steps itself. It does them itself also when the project has no recipe
+`just prose`, or when that recipe only runs the checkers. `just prose-check` only runs the checkers, so it never replaces those steps.
+
 ## The hooks at the start and the end of a turn
 
 A turn starts when a person sends a message, and it ends when the agent stops to answer. Claude Code and
@@ -163,6 +168,25 @@ uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py
 `check` exits with 0 when no page has a hard problem, 1 when a page has one, and 2 for a missing page. A
 file outside the project, such as a draft in a temporary folder, gets `check.py`.
 
+`prose_gate.py check-changed` checks the pages that changed since the last commit. The recipe
+`just prose-check` of the role runs it, as the step `prose-check` of `just check`:
+
+```bash
+uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed -v
+```
+
+- **The changed pages** are the files that `git diff --diff-filter=AMT HEAD` names, with no rename, and
+  the new files that git does not ignore. `T` is a change of type, such as a link that became a file. The rule `is_page` keeps the pages among them. So a deleted page
+  is not checked, and a renamed page is checked under its new name.
+- **Before the first commit,** each page in the index and each new page counts as changed.
+- **No changed page** is a pass, with exit 0.
+- **With names of pages,** it checks those pages only, as `check` does. `-v` can come before or after a
+  page. A page whose name starts with `-` comes after `--`.
+- **Outside a Git repository,** it needs names of pages. With none, it exits with 2.
+- **It writes nothing:** no record of a pass, and no snapshot.
+
+`check-changed` exits with 1 on a hard problem, as `check` does.
+
 ### Who may write the map
 
 The map names a program, and the hook runs that program at the end of each turn. So treat the map as
@@ -199,8 +223,9 @@ gate stays beside the commit gates, and it has a different job:
   only `just prose` gives it.
 - **The store of page passes.** One store in `.git/nossaifd` holds the passes, with or without the gates.
   So a page that `just prose` passed in one worktree does not block a later turn in another worktree.
-- **The rule for pages.** The step `prose-check` and the `@pages` of the commit gate take the pages from
-  `prose_gate.py pages`. So they use one rule with the hook, and they accept the same pages. A change to
+- **The rule for pages.** The `@pages` of the commit gate take the pages from `prose_gate.py pages`. The
+  step `prose-check` runs `prose_gate.py check-changed`, which keeps the pages by the same rule `is_page`.
+  So they use one rule with the hook, and they accept the same pages. A change to
   `CHANGELOG.md` alone needs no `prose` record.
 
 `prose_gate.py pages` prints each path that is a page:
@@ -232,8 +257,12 @@ fails on a hard problem.
 The workflow catches a page that a person edited without an agent. It cannot run the declaude pass,
 because that pass needs a model. It needs the skill committed in `.agents/skills/nossaifd/`.
 
-With the commit gates, `just check` in CI runs the step `prose-check`, which does the same check. So the
-installer of jnterfaces removes the workflow when the tasker role is installed.
+With the commit gates, `just check` runs the step `prose-check`, and the installer of jnterfaces removes
+the workflow when the tasker role is installed. But the recipe `just prose-check` checks the pages that
+changed since the last commit. A fresh checkout in CI has no such page, so there the recipe checks no page.
+So without the workflow, no check in CI catches a page that a person edited without an agent. Until the
+step in CI checks the pages of the pull request, copy the workflow back into `.github/workflows/` after
+each install.
 
 ## Install the parts
 

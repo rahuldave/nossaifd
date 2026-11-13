@@ -169,7 +169,7 @@ class CopyTest(unittest.TestCase):
             seen.add(name)
             self.assertNotIn('declaude', bodies[name], name)
             todo += re.findall(r'^\s+just ([a-z-]+)', bodies[name], re.M)
-        self.assertGreaterEqual(seen, {'check', 'lint', 'test', 'prose'})
+        self.assertGreaterEqual(seen, {'check', 'lint', 'test', 'prose-check'})
 
     def test_the_readme_says_what_to_do_when_the_patch_no_longer_applies(self):
         readme = re.sub(r'\s+', ' ', (REPO / 'README.md').read_text())
