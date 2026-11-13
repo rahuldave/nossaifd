@@ -83,6 +83,9 @@ step `prose-check` of `just check`.
   page as added or changed, or as a new file that it does not ignore. A deleted page is not checked.
 - **The rule `is_page`** of `prose_gate.py` decides what a page is. So the recipe leaves out `AGENTS.md`,
   `CLAUDE.md`, `CHANGELOG.md` and the files in `.agents`, `.claude` and `.codex`.
+- **In CI,** where the checkout is clean, it checks the pages of the pull request or of the push. It
+  needs the whole history, so set `fetch-depth: 0` on the job. `--base REF` runs the same check outside
+  CI. See "The check in CI" in [the flow](docs/flow.md).
 - **When no page changed,** the recipe passes.
 - **With names of pages,** it checks those pages only. Put a page whose name starts with `-` after `--`.
 - **Each page gets its own checker,** by the map of checkers. `-v` also shows the soft notes.
