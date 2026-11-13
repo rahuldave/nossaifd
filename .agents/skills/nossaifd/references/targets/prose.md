@@ -27,7 +27,7 @@ The packet gives you these inputs:
 A page is a changed file that this command prints:
 
 ```bash
-git diff -z --name-only --no-renames --diff-filter=AM HEAD | \
+git diff -z --name-only --no-renames --diff-filter=AMT HEAD | \
   uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py pages -z
 ```
 
