@@ -27,13 +27,14 @@ decides. The gates are installed when .agents/stack.json turns on the tasker rol
 steps by hand give a page pass, but not the `prose` record that a commit needs.
 
 `prose_gate.py pages [-z] [PATH...]` prints each path that is a page. is_page is the one rule for pages: the
-step prose-check and the `@pages` of the commit gate use it through this command.
+`@pages` of the commit gate uses it through this command, and check-changed, the step prose-check, calls it.
 
 The map of checkers, the file .agents/nossaifd-checkers.json in the root of the project, can name another
 checker for some pages, for example the talk checker for a deck. `pages` decides what is a page, and the map
 decides how a page is checked. Every command that checks a page uses the map: hook, status, record,
-check-diff and `prose_gate.py check [-v] PAGE...`. A missing or failing checker, or a broken map, is a hard
-problem of the page. Each message names the checker of each page. See map_rules for the format.
+check-diff, `prose_gate.py check [-v] PAGE...` and `prose_gate.py check-changed [-v] [PAGE...]`. check-changed
+checks the pages that changed since HEAD, for the step prose-check of `just check`. A missing or failing checker,
+or a broken map, is a hard problem of the page. Each message names the checker of each page. See map_rules for the format.
 
 The hook fails open: an error never blocks. Claude Code and Codex set stop_hook_active when the agent tries
 to stop again after a block, and the hook then lets it stop, so it cannot loop. The environment variable
@@ -511,7 +512,7 @@ def check_diff(base):
     """For a workflow: run the checker of each page that HEAD adds or changes since base. Exit 1 on a hard
     problem."""
     root = git_root(Path.cwd())
-    out = git(root, 'diff', '-z', '--name-only', '--no-renames', '--diff-filter=AM', f'{base}...HEAD')
+    out = git(root, 'diff', '-z', '--name-only', '--no-renames', '--diff-filter=AMT', f'{base}...HEAD')
     if out.returncode:
         print(out.stderr, file=sys.stderr)
         return 2
@@ -544,16 +545,24 @@ def check_pages(args):
     if not args:
         print('prose_gate.py check: name at least one page', file=sys.stderr)
         return 2
-    root = git_root(Path.cwd())
+    return check_named(git_root(Path.cwd()), args, verbose)
+
+
+def check_named(root, names, verbose, changed=False):
+    """The loop of check and check-changed. With changed, each name is the path of a page from the root, as git
+    prints it; otherwise a name is relative to the folder of the call or to the root."""
     checkers, status = Checkers(root), 0
-    for name in args:
-        path = resolve(name, root) if root else Path(name).resolve()
-        rel, inside = name, False
-        if root:
-            try:
-                rel, inside = path.relative_to(root.resolve()).as_posix(), True
-            except ValueError:
-                pass
+    for name in names:
+        if changed:
+            path, rel, inside = root / name, name, True
+        else:
+            path = resolve(name, root) if root else Path(name).resolve()
+            rel, inside = name, False
+            if root:
+                try:
+                    rel, inside = path.relative_to(root.resolve()).as_posix(), True
+                except ValueError:
+                    pass
         if not path.is_file():
             print(f'{name}: not checked, there is no such file', file=sys.stderr)
             status = 2
@@ -576,6 +585,68 @@ def check_pages(args):
             print(''.join(f'  HARD {p}\n' for p in hard if p not in output), end='')
         if hard and status == 0:
             status = 1
+    return status
+
+
+def changed_pages(root):
+    """The pages that changed since HEAD and are on disk, relative to the root: each page that git diff reports as
+    added, changed or of a changed type, such as a link that became a file, with no rename, and each new file that
+    git does not ignore. Before the first commit, every
+    page of the index counts as added. None when git fails."""
+    base = head(root)
+    if base is None:
+        # no commit yet: compare with the empty tree, in the hash format of this repository
+        out = git(root, 'hash-object', '-t', 'tree', '--stdin', stdin='')
+        if out.returncode:
+            print(out.stderr.strip(), file=sys.stderr)
+            return None
+        base = out.stdout.strip()
+    diff = git(root, 'diff', '-z', '--name-only', '--no-renames', '--diff-filter=AMT', base, '--')
+    new = git(root, 'ls-files', '-z', '--others', '--exclude-standard')
+    if diff.returncode or new.returncode:
+        print((diff.stderr or new.stderr).strip(), file=sys.stderr)
+        return None
+    paths = set(filter(None, diff.stdout.split('\0'))) | set(filter(None, new.stdout.split('\0')))
+    # a file that git reports, but that is gone, a folder or a link to nowhere, is not a page to check
+    return sorted(p for p in paths if is_page(p) and (root / p).is_file())
+
+
+def check_changed(args):
+    """The step prose-check of `just check`. With names of pages, check those pages only, as check does. With none,
+    check each page that changed since HEAD, by the map of checkers. -v adds the soft notes. Exit 0 when no page
+    has a hard problem, also when no page changed, 1 when one has, and 2 outside a git repository, on a git
+    error, on a missing named page or on an unknown option. -v may come before or after a page, as for check.py.
+    A page whose name starts with - comes after --. It writes nothing: no record and no snapshot."""
+    options, names = [], []
+    for i, arg in enumerate(args):
+        if arg == '--':
+            names += args[i + 1:]
+            break
+        if arg == '-v':
+            options = ['-v']
+        elif arg.startswith('-'):
+            print(f'prose_gate.py check-changed: unknown option {arg}. Put a page whose name starts with - '
+                  'after --', file=sys.stderr)
+            return 2
+        else:
+            names.append(arg)
+    if names:
+        return check_pages([*options, '--', *names])
+    root = git_root(Path.cwd())
+    if root is None:
+        print('prose_gate.py check-changed: this folder is not in a git repository, so name the pages: '
+              'just prose-check README.md', file=sys.stderr)
+        return 2
+    rels = changed_pages(root)
+    if rels is None:
+        print('prose_gate.py check-changed: git cannot list the changed files', file=sys.stderr)
+        return 2
+    if not rels:
+        print('nossaifd: no page changed since HEAD, so there is no page to check.')
+        return 0
+    status = check_named(root, rels, bool(options), changed=True)
+    result = {0: 'no hard problem', 1: 'a hard problem'}.get(status, 'a page that is gone')
+    print(f'nossaifd: checked {len(rels)} changed page(s), {result}.')
     return status
 
 
@@ -646,9 +717,11 @@ def main(argv):
         return pages(argv[2:])
     if command == ['check']:
         return check_pages(argv[2:])
+    if command == ['check-changed']:
+        return check_changed(argv[2:])
     print(__doc__)
     print('Usage: prose_gate.py hook [ROOT] | start [ROOT] | record PAGE... | status | check-diff BASE'
-          ' | pages [-z] [PATH...] | check [-v] PAGE...', file=sys.stderr)
+          ' | pages [-z] [PATH...] | check [-v] PAGE... | check-changed [-v] [PAGE...]', file=sys.stderr)
     return 2
 
 

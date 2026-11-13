@@ -68,7 +68,7 @@ test *args:
     {{python}} -m unittest discover -s tests -q "$@"
 
 # Check the Markdown of this repository with its own checker
-prose:
+prose-check:
     {{python}} check.py README.md GUIDE.md EXAMPLES.md docs/*.md .agents/skills/nossaifd/SKILL.md .agents/skills/nossaifd/references/targets/prose.md
 
 # Print each path that the gate counts as a page, by the rule is_page of prose_gate.py: just pages README.md AGENTS.md
@@ -118,7 +118,7 @@ site:
 check:
     just lint
     just test
-    just prose
+    just prose-check
     uvx --from {{smalldocs}} smalldocs check .
 
 # Check that each link to a skill of another package has a fallback, with the checker of a jnterfaces clone: just links ../jnterfaces

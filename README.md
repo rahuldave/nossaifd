@@ -76,12 +76,24 @@ The installer of jnterfaces clones this repository, copies the skills and record
 `.agents/nossaifd-install.json`. It never overwrites a file that you edited after an install.
 `just uninstall prose` takes both skills out again, except a file that you edited. This repository has no installer of its own.
 
-The role also brings the recipe `just prose`, from `.agents/just/roles/nossaifd.just`. Without names of
-pages, the recipe checks every Markdown file that git tracks, outside `.agents`, `.claude` and `.codex`.
-It leaves out `AGENTS.md` and `CLAUDE.md`, which are instructions for agents. With names of pages, it
-checks those pages, also `AGENTS.md` and `CLAUDE.md`. `-v` also shows the soft notes. A project that
-jnterfaces did not set up adds the recipe with the line
-`import? '.agents/just/roles/nossaifd.just'` in its Justfile.
+The role also brings the recipe `just prose-check`, from `.agents/just/roles/nossaifd.just`. It is the
+step `prose-check` of `just check`.
+
+- **Without names of pages,** it checks each page that changed since the last commit. Git shows such a
+  page as added or changed, or as a new file that it does not ignore. A deleted page is not checked.
+- **The rule `is_page`** of `prose_gate.py` decides what a page is. So the recipe leaves out `AGENTS.md`,
+  `CLAUDE.md`, `CHANGELOG.md` and the files in `.agents`, `.claude` and `.codex`.
+- **When no page changed,** the recipe passes.
+- **With names of pages,** it checks those pages only. Put a page whose name starts with `-` after `--`.
+- **Each page gets its own checker,** by the map of checkers. `-v` also shows the soft notes.
+- **It writes nothing** into the project.
+
+A project that jnterfaces did not set up adds the recipe with the line
+`import? '.agents/just/roles/nossaifd.just'` in its Justfile. First remove any recipe `prose-check` of
+the Justfile, because `just` stops on a recipe that is defined twice.
+
+The name `just prose` is for a different target, of the commit gates. See "Beside the commit gates" in
+[the flow](docs/flow.md).
 
 After you change the guide, the examples or the checker, run `just sync` to copy them into the nossaifd
 skill. `just check` fails while the copies differ.

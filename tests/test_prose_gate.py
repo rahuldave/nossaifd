@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -451,6 +452,18 @@ class CheckDiffTest(unittest.TestCase):
         out = self.check()
         self.assertEqual(out.returncode, 0, out.stdout)
         self.assertIn('checked 0 page(s)', out.stdout)
+
+    def test_a_link_that_became_a_page_is_checked(self):
+        (self.project.root / 'link.md').symlink_to('README.md')
+        self.commit()
+        self.project.git('checkout', '-qb', 'later')
+        (self.project.root / 'link.md').unlink()
+        self.project.write('link.md', HARD)
+        self.commit()
+        out = subprocess.run([sys.executable, str(GATE), 'check-diff', 'topic'], cwd=self.project.root,
+                             capture_output=True, text=True)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn('link.md: checked by', out.stdout)
 
     def test_clean_pages_pass(self):
         self.project.write('docs/a page.md', CLEAN)
@@ -957,6 +970,239 @@ class CheckerMapTest(unittest.TestCase):
         self.assertIn('./-v.md: 445 words: checked', out.stdout)
 
 
+class CheckChangedTest(unittest.TestCase):
+    "prose_gate.py check-changed, which the recipe just prose-check of the role runs, for the step prose-check."
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.project = Project(self.temp.name)
+        self.project.write('docs/old.md', CLEAN)
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'pages')
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def check(self, *args, cwd=None):
+        return subprocess.run([sys.executable, str(GATE), 'check-changed', *args], cwd=cwd or self.project.root,
+                              capture_output=True, text=True)
+
+    def checked(self, out):
+        "The pages that a run checked, from the first line of each page."
+        return sorted(re.findall(r'^(\S.*?): checked by ', out.stdout, re.M))
+
+    def test_no_changed_page_passes(self):
+        self.project.write('notes.txt', 'not a page\n')
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(out.stdout, 'nossaifd: no page changed since HEAD, so there is no page to check.\n')
+
+    def test_a_changed_tracked_page_and_a_new_page_are_checked(self):
+        self.project.write('README.md', MORE)
+        self.project.write('docs/a new page.md', CLEAN)
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['README.md', 'docs/a new page.md'])
+        self.assertIn('checked 2 changed page(s), no hard problem', out.stdout)
+
+    def test_a_staged_page_is_checked(self):
+        self.project.write('staged.md', HARD)
+        self.project.git('add', 'staged.md')
+        out = self.check()
+        self.assertEqual(out.returncode, 1)
+        self.assertEqual(self.checked(out), ['staged.md'])
+
+    def test_a_hard_problem_gives_exit_1(self):
+        self.project.write('docs/old.md', HARD)
+        out = self.check()
+        self.assertEqual(out.returncode, 1)
+        self.assertIn('docs/old.md: checked by check.py of the skill, 1 hard', out.stdout)
+        self.assertIn('HARD', out.stdout)
+        self.assertIn('a hard problem', out.stdout)
+
+    def test_a_deleted_page_is_not_checked(self):
+        (self.project.root / 'docs/old.md').unlink()
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('no page changed', out.stdout)
+        self.project.git('rm', '-q', 'README.md')
+        self.assertEqual(self.check().returncode, 0)
+
+    def test_a_renamed_page_is_checked_under_its_new_name(self):
+        self.project.git('mv', 'docs/old.md', 'docs/new.md')
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['docs/new.md'])
+
+    def test_a_change_that_is_not_a_page_is_ignored(self):
+        for name in ('notes.txt', 'CHANGELOG.md', 'AGENTS.md', '.agents/skills/x/SKILL.md', 'node_modules/a.md'):
+            self.project.write(name, HARD)
+        self.project.write('.gitignore', 'ignored.md\n')
+        self.project.write('ignored.md', HARD)
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stdout)
+        self.assertIn('no page changed', out.stdout)
+
+    def test_a_named_page_is_checked_alone(self):
+        self.project.write('README.md', HARD)
+        self.project.write('other.md', CLEAN)
+        out = self.check('other.md')
+        self.assertEqual(out.returncode, 0, out.stdout)
+        self.assertEqual(self.checked(out), ['other.md'])
+        out = self.check('-v', '--', 'README.md')
+        self.assertEqual(out.returncode, 1)
+        self.assertEqual(self.checked(out), ['README.md'])
+        out = self.check('AGENTS.md')       # a named page counts, also one that is not a page of the rule
+        self.assertEqual(out.returncode, 2)
+        self.assertIn('no such file', out.stderr)
+
+    def test_minus_v_adds_the_soft_notes(self):
+        soft = CLEAN + '\nThe build runs; the tests wait.\n'
+        self.project.write('README.md', soft)
+        quiet, loud = self.check(), self.check('-v')
+        self.assertEqual((quiet.returncode, loud.returncode), (0, 0), loud.stdout)
+        self.assertNotIn('  soft ', quiet.stdout)
+        self.assertIn('  soft ', loud.stdout)
+        self.assertEqual(self.check('-x').returncode, 2)
+
+    def test_the_map_of_checkers_applies_to_a_changed_page(self):
+        self.project.write(TALK, FAKE)
+        self.project.write(str(Path(TALK).parent / 'helper.py'), 'WORDS = 445\n')
+        self.project.write('.agents/nossaifd-checkers.json', json.dumps(MAP))
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'the talk checker')
+        self.project.write('talk/slides.qmd', DECK + 'LONG\n')
+        self.project.write('talk/notes.md', CLEAN)
+        out = self.check()
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn(f'talk/slides.qmd: checked by {TALK}, 1 hard problem(s)', out.stdout)
+        self.assertIn('HARD slide 1: the script is long', out.stdout)
+        self.assertIn('talk/notes.md: checked by check.py of the skill', out.stdout)
+
+    def test_a_call_from_a_folder_checks_the_pages_of_the_whole_repository(self):
+        self.project.write('README.md', HARD)
+        self.project.write('docs/README.md', CLEAN)       # a page of the same name in the folder of the call
+        out = self.check(cwd=self.project.root / 'docs')
+        self.assertEqual(out.returncode, 1)
+        self.assertEqual(self.checked(out), ['README.md', 'docs/README.md'])
+
+    def test_it_writes_nothing_in_the_repository(self):
+        self.project.write('README.md', HARD)
+        self.project.write('new.md', CLEAN)
+        before = listing(self.project.root)
+        self.assertEqual(self.check().returncode, 1)
+        self.assertEqual(listing(self.project.root), before)
+        self.assertFalse((self.project.root / '.git/nossaifd').exists())
+
+    def test_a_repository_with_no_commit_checks_each_page(self):
+        with tempfile.TemporaryDirectory() as temp:
+            subprocess.run(['git', 'init', '-q'], cwd=temp, check=True)
+            out = self.check(cwd=temp)
+            self.assertEqual(out.returncode, 0, out.stderr)
+            self.assertIn('no page changed', out.stdout)
+            (Path(temp) / 'staged.md').write_text(HARD)
+            (Path(temp) / 'new.md').write_text(CLEAN)
+            subprocess.run(['git', 'add', 'staged.md'], cwd=temp, check=True)
+            out = self.check(cwd=temp)
+            self.assertEqual(out.returncode, 1, out.stderr)
+            self.assertEqual(self.checked(out), ['new.md', 'staged.md'])
+
+    def test_a_folder_outside_git_needs_names_of_pages(self):
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp) / 'draft.md').write_text(CLEAN)
+            out = self.check(cwd=temp)
+            self.assertEqual(out.returncode, 2)
+            self.assertIn('not in a git repository, so name the pages', out.stderr)
+            out = self.check('draft.md', cwd=temp)
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+            self.assertEqual(self.checked(out), ['draft.md'])
+
+    def test_a_link_that_became_a_page_is_checked(self):
+        "git reports a change of type as T, which a filter of A and M alone would miss"
+        (self.project.root / 'link.md').symlink_to('docs/old.md')
+        self.project.git('add', '-A')
+        self.project.git('commit', '-qm', 'a link')
+        (self.project.root / 'link.md').unlink()
+        self.project.write('link.md', HARD)
+        out = self.check()
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['link.md'])
+
+    def test_minus_v_may_follow_a_page(self):
+        self.project.write('other.md', CLEAN + '\nThe build runs; the tests wait.\n')
+        out = self.check('other.md', '-v')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['other.md'])
+        self.assertIn('  soft ', out.stdout)
+
+    def test_a_page_whose_name_starts_with_a_dash_comes_after_two_dashes(self):
+        self.project.write('-x.md', CLEAN)
+        out = self.check('-x.md')
+        self.assertEqual(out.returncode, 2)
+        self.assertIn('after --', out.stderr)
+        out = self.check('-v', '--', '-x.md')
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertEqual(self.checked(out), ['-x.md'])
+
+    def test_a_git_that_fails_gives_exit_2(self):
+        self.project.write('new.md', CLEAN)
+        (self.project.root / '.git/index').write_text('garbage')
+        out = self.check()
+        self.assertEqual(out.returncode, 2, out.stdout)
+        self.assertIn('git cannot list the changed files', out.stderr)
+
+    def test_a_changed_page_with_an_odd_name_is_checked(self):
+        for name in ('-x.md', 'docs/\u00e9 "q".md', 'two\nlines.md'):
+            self.project.write(name, CLEAN)
+        out = self.check()
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('checked 3 changed page(s), no hard problem', out.stdout)
+        self.assertIn('docs/\u00e9 "q".md: checked by', out.stdout)
+
+
+RECIPES = REPO / '.agents/just/roles/nossaifd.just'
+
+
+class RoleRecipeTest(unittest.TestCase):
+    "The recipe of the prose role, which just install of jnterfaces imports into a project."
+
+    def test_the_recipe_is_prose_check_with_one_line_and_no_shebang(self):
+        text = RECIPES.read_text()
+        self.assertNotIn('#!', text)
+        self.assertEqual(re.findall(r'^([a-z][a-z-]*)\b[^\n]*:$', text, re.M), ['prose-check'])
+        self.assertIn('[positional-arguments]\nprose-check *args:\n    uv run --no-project --quiet python '
+                      '.agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"\n', text)
+        body = re.search(r'^prose-check \*args:\n((?:    .*\n)*)', text, re.M).group(1)
+        self.assertEqual(len(body.splitlines()), 1)
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv'), 'needs just and uv')
+    def test_the_recipe_passes_a_name_with_spaces_whole(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Project(temp)
+            (project.root / '.agents/skills').mkdir(parents=True)
+            (project.root / '.agents/skills/nossaifd').symlink_to(SKILL)
+            (project.root / '.agents/just/roles').mkdir(parents=True)
+            shutil.copy(RECIPES, project.root / '.agents/just/roles/nossaifd.just')
+            project.write('Justfile', "import '.agents/just/roles/nossaifd.just'\n")
+            project.write('my page.md', CLEAN)
+            project.write('bad page.md', HARD)
+            run = lambda *args: subprocess.run(['just', 'prose-check', *args], cwd=project.root,
+                                               capture_output=True, text=True)
+            out = run('my page.md')
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+            self.assertIn('my page.md: checked by check.py of the skill, 0 hard', out.stdout)
+            out = run('-v', 'bad page.md')
+            self.assertNotEqual(out.returncode, 0)
+            self.assertIn('bad page.md: checked by', out.stdout)
+            out = run()
+            self.assertNotEqual(out.returncode, 0)
+            self.assertIn('checked 2 changed page(s), a hard problem', out.stdout)
+            project.write('-x.md', CLEAN)
+            out = run('--', '-x.md')
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+            self.assertIn('-x.md: checked by check.py of the skill, 0 hard', out.stdout)
+
+
 class InstallFilesTest(unittest.TestCase):
     def settings(self, name):
         return json.loads((SKILL / 'assets' / name).read_text())['hooks']
@@ -1015,7 +1261,33 @@ class InstallFilesTest(unittest.TestCase):
     def test_the_skill_and_the_instruction_name_just_prose_for_a_project_with_the_gates(self):
         for name in ('SKILL.md', 'assets/agents-prose.md'):
             text = re.sub(r'\s+', ' ', (SKILL / name).read_text())
-            self.assertIn('run `just prose` in place of steps 6 to 8', text, name)
+            self.assertIn('Run `just prose` in place of steps 6 to 8 only when `.agents/stack.json` sets '
+                          '`choices.tasker` to the JSON value `true`, not the string `"true"`.', text, name)
+            self.assertIn('Otherwise, do steps 6 to 8 yourself. Do them yourself also when the project has no '
+                          'recipe `just prose`, or when it only runs the checkers.', text, name)
+            self.assertNotIn('In a project with the commit gates', text, name)
+
+    def test_the_instruction_says_that_prose_check_does_not_replace_the_steps(self):
+        for name in ('SKILL.md', 'assets/agents-prose.md'):
+            text = re.sub(r'\s+', ' ', (SKILL / name).read_text())
+            self.assertIn('`just prose-check` only runs the checkers. It does not do the declaude pass or the '
+                          'record, so it never replaces steps 6 to 8.', text, name)
+
+    def test_the_condition_of_the_instruction_is_the_test_of_the_gate(self):
+        "The setting that the instruction names is the one that gates_installed reads"
+        gate = load_gate()
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp) / '.agents').mkdir()
+            stack = Path(temp) / '.agents/stack.json'
+            cases = [({'tasker': True}, True), ({'tasker': False}, False), ({'prose': True}, False),
+                     ({'tasker': 'true'}, False), ({'tasker': 1}, False), (['tasker'], False)]
+            for choices, expected in cases:
+                stack.write_text(json.dumps({'version': 2, 'choices': choices}))
+                self.assertIs(gate.gates_installed(Path(temp)), expected, choices)
+            stack.write_text('{"choices": {"tasker": tru')
+            self.assertFalse(gate.gates_installed(Path(temp)))
+            stack.unlink()
+            self.assertFalse(gate.gates_installed(Path(temp)))
 
     def test_the_page_of_the_flow_gives_a_map_that_the_gate_reads_and_its_contract(self):
         text = (REPO / 'docs/flow.md').read_text()
