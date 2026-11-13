@@ -482,6 +482,45 @@ class CheckDiffTest(unittest.TestCase):
         self.assertIn('checked 1 page(s)', out.stdout)
 
 
+def page_filter(gate=GATE):
+    """The --diff-filter of the code: the one value that the page listings of prose_gate.py, diff_pages and
+    changed_pages, pass to git diff. It is read from the source, so a change to the code changes it here.
+    It raises ValueError when a listing is missing or the two listings differ."""
+    import ast
+    tree = ast.parse(Path(gate).read_text(encoding='utf-8'))
+    found = {}
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name in ('diff_pages', 'changed_pages'):
+            found[node.name] = [n.value for n in ast.walk(node) if isinstance(n, ast.Constant)
+                                and isinstance(n.value, str) and n.value.startswith('--diff-filter=')]
+    if set(found) != {'diff_pages', 'changed_pages'}:
+        raise ValueError(f'a listing of pages is missing: {sorted(found)}')
+    values = {v for vs in found.values() for v in vs}
+    if not all(len(vs) == 1 for vs in found.values()) or len(values) != 1:
+        raise ValueError(f'the listings differ: {found}')
+    return values.pop()
+
+
+# A --diff-filter with = before its value, which may be quoted. Or a --diff-filter with a space before its value,
+# or as two quoted words of Python, ['--diff-filter', 'AM']. Those two forms count only a value of capitals, so
+# that a word of prose after the option, as in "pass --diff-filter to git", is not read as a value
+FILTER = re.compile(r'''--diff-filter(?:=["']?([A-Za-z*]*)|(?:\s+["']?|['"],\s*['"])([A-Z*]+)(?![a-z]))''')
+
+
+def stale_filters(text, code):
+    """Each line of text whose --diff-filter is not the filter of the code, as 'number: filter'. The filter D,
+    which lists the deleted files, may differ. None when the text names no --diff-filter."""
+    want = code.removeprefix('--diff-filter=')
+    named, stale = False, []
+    for number, line in enumerate(text.splitlines(), 1):
+        for after_equals, after_space in FILTER.findall(line):
+            value = after_equals or after_space
+            named = True
+            if value not in (want, 'D'):
+                stale.append(f'{number}: --diff-filter={value}')
+    return stale if named else None
+
+
 def pages(*args, stdin='', cwd=None):
     "Run prose_gate.py pages. Return the exit code, the output and the errors."
     out = subprocess.run([sys.executable, str(GATE), 'pages', *args], input=stdin, capture_output=True, text=True,
@@ -562,7 +601,7 @@ class PagesTest(unittest.TestCase):
             self.assertNotIn('HARD', reason)
             self.assertEqual(listed, set(pages('-z', *names)[1].split('\0')) - {''})
             # the command that prose-check and the base task use gives the same pages as the hook
-            out = subprocess.run('git add -A && git diff -z --name-only --no-renames --diff-filter=AM HEAD | '
+            out = subprocess.run(f'git add -A && git diff -z --name-only --no-renames {page_filter()} HEAD | '
                                  f'"{sys.executable}" "{GATE}" pages -z', shell=True, cwd=project.root,
                                  capture_output=True, text=True)
             self.assertEqual(set(out.stdout.split('\0')) - {''}, listed)
@@ -574,6 +613,71 @@ class PagesTest(unittest.TestCase):
                 'print(gate.is_page("docs/a.qmd"), gate.is_page("CHANGELOG.md"), gate.is_page("./.agents/a.md"))')
         out = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
         self.assertEqual(out.stdout, 'True False False\n', out.stderr)
+
+
+class DiffFilterTest(unittest.TestCase):
+    "Each page that shows a git diff of the pages shows the filter of the code."
+
+    # The files that may differ: the code itself, and this file, which holds the pattern
+    SKIP = {'.agents/skills/nossaifd/scripts/prose_gate.py', 'tests/test_prose_gate.py'}
+
+    def test_every_diff_filter_in_the_repository_is_the_filter_of_the_code(self):
+        code = page_filter()
+        self.assertRegex(code, r'^--diff-filter=[A-Z]+$')
+        out = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd=REPO,
+                             capture_output=True, text=True, check=True)
+        seen, wrong = set(), []
+        for name in sorted(set(filter(None, out.stdout.split('\0')))):
+            path = REPO / name
+            # books/ is left out on purpose. It has no copy here now, but a checkout may hold one
+            if name.startswith('books/') or name in self.SKIP or not path.is_file() or path.is_symlink():
+                continue
+            try:
+                text = path.read_text(encoding='utf-8')
+            except UnicodeDecodeError:
+                continue
+            found = stale_filters(text, code)
+            if found is not None:
+                seen.add(name)
+                wrong += [f'{name}:{line}' for line in found]
+        self.assertEqual(wrong, [], f'the code uses {code}')
+        # the two pages that show the command must stay in the scan, or the test checks nothing
+        self.assertLessEqual({'docs/flow.md', '.agents/skills/nossaifd/references/targets/prose.md'}, seen)
+
+    def test_the_scan_finds_each_spelling_of_a_stale_filter(self):
+        code = '--diff-filter=AMT'
+        for text in ['git diff --diff-filter=AM HEAD', 'git diff --diff-filter AM HEAD',
+                     "['--diff-filter', 'AM']", 'as `--diff-filter=AM` does', 'git diff --diff-filter=ACMT']:
+            with self.subTest(text=text):
+                self.assertEqual(len(stale_filters(text, code)), 1)
+
+    def test_the_scan_accepts_the_filter_of_the_code_and_the_filter_of_deletions(self):
+        code = '--diff-filter=AMT'
+        for text in ['git diff --diff-filter=AMT HEAD', 'as `--diff-filter=AMT` does.',
+                     "['--diff-filter', 'AMT']", 'Use `--diff-filter=D` to list deletions.',
+                     'git diff --diff-filter="AMT" HEAD', "git diff --diff-filter='AMT' HEAD"]:
+            with self.subTest(text=text):
+                self.assertEqual(stale_filters(text, code), [])
+        self.assertIsNone(stale_filters('git diff HEAD', code))
+        # a word of prose after the option, or a line that goes on after a backslash, is no value
+        self.assertIsNone(stale_filters('pass --diff-filter to git', code))
+        self.assertIsNone(stale_filters('git diff --diff-filter \\', code))
+
+    def test_the_code_filter_is_read_from_the_code_and_fails_loudly(self):
+        code = page_filter()
+        self.assertRegex(code, r'^--diff-filter=[A-Z]+$')
+        source = GATE.read_text(encoding='utf-8')
+        listing = f"'{code}', *revs"
+        self.assertEqual(source.count(listing), 1)
+        with tempfile.TemporaryDirectory() as temp:
+            other = Path(temp) / 'prose_gate.py'
+            # Z is no filter of git, so it differs from the filter of the code, whatever that is
+            other.write_text(source.replace(listing, "'--diff-filter=Z', *revs"), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'the listings differ'):
+                page_filter(other)
+            other.write_text(source.replace('def diff_pages(', 'def listed_pages('), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'a listing of pages is missing'):
+                page_filter(other)
 
 
 class CommitGatesTest(unittest.TestCase):

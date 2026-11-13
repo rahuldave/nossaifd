@@ -285,7 +285,7 @@ gate stays beside the commit gates, and it has a different job:
 `prose_gate.py pages` prints each path that is a page:
 
 ```bash
-git diff -z --name-only --no-renames --diff-filter=AM HEAD | uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py pages -z
+git diff -z --name-only --no-renames --diff-filter=AMT HEAD | uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py pages -z
 uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py pages README.md AGENTS.md
 ```
 
@@ -297,7 +297,7 @@ uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py
   not followed.
 - **The output** is each path that is a page, as written and in the order given. The command reads only
   the names. It does not check that a file exists, so take out the deleted files first, as
-  `--diff-filter=AM` does.
+  `--diff-filter=AMT` does.
 - **The exit code** is 0, also when no path is a page. It is 2 for an unknown option.
 - **A path that starts with `-`** must come after `--`.
 
