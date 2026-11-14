@@ -2043,7 +2043,7 @@ class InstallFilesTest(unittest.TestCase):
         text = re.sub(r'\s+', ' ', (SKILL / 'references/targets/prose.md').read_text())
         for part in ('plain-writing pass', 'the declaude skill by Oskar Austegard', 'prose_gate.py pages -z',
                      'prose_gate.py record PAGE', 'scripts/check.py', 'docstrings', 'smalldocs api module',
-                     'AGENT_RESULT v1', 'target: prose', 'nonce', 'role: changed', 'Keep each bad example',
+                     'AGENT_RESULT v1', 'target: prose', 'nonce', 'role: required', 'outputs.checked', 'Keep each bad example',
                      'Do not stage a file, and do not commit'):
             self.assertIn(part, text)
 
@@ -2107,6 +2107,98 @@ class InstallFilesTest(unittest.TestCase):
         text = re.sub(r'\s+', ' ', (SKILL / 'SKILL.md').read_text())
         step8 = text[text.index('8. Run the linter'):text.index('9. Read the page yourself')]
         self.assertIn('prose_gate.py record page.md', step8)
+
+
+PROSE_TASK = SKILL / 'references/targets/prose.md'
+# CI sets this variable, so that the tests that need jagt fail there instead of skipping when jagt is missing
+NEED_JAGT = os.environ.get('NOSSAIFD_NEED_JAGT')
+# The value of each role key, also with a quoted key or value, as in "role": "changed" or {role: changed}
+ROLE = re.compile(r'\brole\b["\']?\s*:\s*[`"\']?([^\s`"\',.}]*)')
+
+
+def result_examples(text):
+    "Each fenced block of the base task that holds an AGENT_RESULT packet, without its fences."
+    blocks = re.findall(r'^```[^\n]*\n(.*?)^```', text, re.M | re.S)
+    return [block for block in blocks if '<<<AGENT_RESULT v1>>>' in block]
+
+
+class ResultPacketTest(unittest.TestCase):
+    "The base task of just prose asks for a result that the spec of AGENT_RESULT v1 allows."
+
+    def test_each_role_is_required_or_optional(self):
+        "The spec of AGENT_RESULT v1 allows only required and optional as the role of a file"
+        text = PROSE_TASK.read_text()
+        roles = ROLE.findall(text)
+        self.assertTrue(roles)
+        self.assertLessEqual(set(roles), {'required', 'optional'}, roles)
+
+    def test_ci_builds_jagt_so_that_the_jagt_tests_run_there(self):
+        "The workflow builds jagt v0.6.0 and sets NOSSAIFD_NEED_JAGT, which turns the skip into a failure"
+        text = (REPO / '.github/workflows/verify.yml').read_text()
+        self.assertIn('cargo install --locked --git https://github.com/rahuldave/jagt --rev '
+                      '53e72b4ef6361bf0c11110e3e55cba0241cad465 jagt', text)
+        self.assertIn("NOSSAIFD_NEED_JAGT: '1'", text)
+
+    def test_the_role_pattern_finds_each_form_of_a_role(self):
+        for form in ('role: changed', '`role: changed`', 'role:changed', 'role : changed', '{path: a, role: changed}',
+                     '"role": "changed"', "'role': 'changed'"):
+            self.assertEqual(ROLE.findall(form), ['changed'], form)
+
+    def test_a_page_that_is_not_prose_goes_in_the_notes_and_not_in_outputs_checked(self):
+        text = re.sub(r'\s+', ' ', PROSE_TASK.read_text())
+        self.assertIn('**The pages that are not prose**, with the reason for each, in `notes`. Leave them out of '
+                      '`outputs.checked`, and give them no entry in `verification`.', text)
+        self.assertIn('**The pages that you checked, recorded and left alone**, in `outputs.checked`', text)
+
+    def test_the_verification_covers_the_api_page_of_each_changed_module(self):
+        text = re.sub(r'\s+', ' ', PROSE_TASK.read_text())
+        self.assertIn('one entry for the check of the API page of each changed module', text)
+
+    def test_the_example_marks_its_notes_as_a_placeholder_and_the_reply_gives_one_packet(self):
+        text = PROSE_TASK.read_text()
+        examples = result_examples(text)
+        self.assertEqual(len(examples), 1)
+        notes = examples[0].split('notes: |\n', 1)[1].split('\n', 1)[0].strip()
+        self.assertTrue(notes.startswith('<') and notes.endswith('>'), notes)
+        self.assertIn('Give only your own packet, and do not quote the example in your reply.',
+                      re.sub(r'\s+', ' ', text))
+
+    def test_the_task_names_outputs_checked_for_the_pages_left_alone(self):
+        text = re.sub(r'\s+', ' ', PROSE_TASK.read_text())
+        self.assertIn('in `outputs.checked`, as a list of paths', text)
+        self.assertIn('in `outputs.files`, each with `role: required`', text)
+
+    def test_the_task_has_one_example_result(self):
+        examples = result_examples(PROSE_TASK.read_text())
+        self.assertEqual(len(examples), 1)
+        self.assertIn('  checked:\n    - ', examples[0])
+        self.assertIn('      role: required\n', examples[0])
+
+    @unittest.skipUnless(NEED_JAGT or shutil.which('jagt'), 'needs jagt 0.6.0 on PATH, the checker of AGENT_RESULT '
+                         'packets; build it from github.com/rahuldave/jagt')
+    def test_jagt_accepts_the_example_result(self):
+        "jagt checks the roles of outputs.files only with --check-files, so the test asks for it"
+        self.assertTrue(shutil.which('jagt'), 'NOSSAIFD_NEED_JAGT is set, but jagt is not on PATH')
+        examples = result_examples(PROSE_TASK.read_text())
+        self.assertEqual(len(examples), 1)
+        example = examples[0]
+        run = subprocess.run(['jagt', 'result', 'lint', '--expect-count', '1', '--expect-target', 'prose',
+                              '--check-files', '--base-dir', str(REPO), '-'],
+                             input=example, capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    @unittest.skipUnless(NEED_JAGT or shutil.which('jagt'), 'needs jagt 0.6.0 on PATH, the checker of AGENT_RESULT '
+                         'packets; build it from github.com/rahuldave/jagt')
+    def test_jagt_refuses_the_old_role_changed(self):
+        "The lint of the example would miss a bad role if jagt did not check roles at all"
+        self.assertTrue(shutil.which('jagt'), 'NOSSAIFD_NEED_JAGT is set, but jagt is not on PATH')
+        examples = result_examples(PROSE_TASK.read_text())
+        self.assertEqual(len(examples), 1)
+        example = examples[0].replace('role: required', 'role: changed')
+        run = subprocess.run(['jagt', 'result', 'lint', '--check-files', '--base-dir', str(REPO), '-'],
+                             input=example, capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0, run.stdout)
+        self.assertIn('role must be required or optional', run.stdout + run.stderr)
 
 
 if __name__ == '__main__':
