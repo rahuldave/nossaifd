@@ -13,9 +13,11 @@ jobs:
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    # A test of the role file needs jlog. With this variable, that test fails instead of skipping when jlog is missing
+    # A test of the role file needs jlog, and the tests of the example result of just prose need jagt. With these
+    # variables, those tests fail instead of skipping when the program is missing
     env:
       NOSSAIFD_NEED_JLOG: '1'
+      NOSSAIFD_NEED_JAGT: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -23,6 +25,9 @@ jobs:
       - name: Build jlog, which the step line of the role file needs
         # The commit 6fccbf9 is the tag v0.1.0 of jlog.
         run: cargo install --locked --git https://github.com/rahuldave/jlog --rev 6fccbf92d47a7b66f0e5b4dce7046c25c29a364a jlog
+      - name: Build jagt, which lints the example result of just prose
+        # The commit 53e72b4 is the tag v0.6.0 of jagt.
+        run: cargo install --locked --git https://github.com/rahuldave/jagt --rev 53e72b4ef6361bf0c11110e3e55cba0241cad465 jagt
       - name: Check, test and check the prose
         run: just check
       - name: Check the links to skills of other packages with the jnterfaces checker

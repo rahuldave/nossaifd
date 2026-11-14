@@ -108,12 +108,48 @@ If the skill `declaude` is not installed, follow rules 50 to 55 of the guide in 
 End with an `AGENT_RESULT v1` packet, with `target: prose` and the nonce of the task packet. The result
 packet holds these parts:
 
-- **The changed pages**, in `outputs.files`, each with `role: changed`.
-- **The pages that you checked and left alone**, each with `role: checked`.
+- **The changed files**, in `outputs.files`, each with `role: required`. The changed files are the pages
+  that you changed and the code files whose docstrings you changed. The task asks for `files` as its required
+  output.
+- **The pages that you checked, recorded and left alone**, in `outputs.checked`, as a list of paths.
+  Leave them out of `outputs.files`, because the spec of `AGENT_RESULT v1` accepts only `required` and
+  `optional` as a role.
 - **The lint output after the change.** `verification` has one entry for each page, with the command
-  of the checker and its status. Put the output of the checker and of the linter of the declaude skill by
-  Oskar Austegard in `notes`.
-- **The pages that you did not record**, with the reason for each, in `notes`.
+  of the checker and its status. When the project builds API pages, it also has one entry for the check
+  of the API page of each changed module. Put the output of the checker and of the linter of the declaude
+  skill by Oskar Austegard in `notes`.
+- **The pages that are not prose**, with the reason for each, in `notes`. Leave them out of
+  `outputs.checked`, and give them no entry in `verification`.
+- **The other pages that you did not record**, with the reason for each, in `notes`.
 
 The status is `success` only when each page has no hard problem and has a record, or the result names it as not
 prose. Otherwise the status is `partial`.
+
+A result for one changed page and one page left alone has this form:
+
+```text
+<<<AGENT_RESULT v1>>>
+target: prose
+nonce: d5a8c0e4f1b2937a6c4e8d0b2f7a9c31
+status: success
+outputs:
+  files:
+    - path: docs/flow.md
+      role: required
+  checked:
+    - README.md
+verification:
+  - name: check docs/flow.md
+    command: uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check -v docs/flow.md
+    status: passed
+  - name: check README.md
+    command: uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check -v README.md
+    status: passed
+notes: |
+  <the output of the checker and of the linter of the declaude skill for each page>
+follow_up: []
+<<<END_AGENT_RESULT>>>
+```
+
+Copy the nonce of your task packet in place of the nonce of the example. Put the real output in
+`notes`. Give only your own packet, and do not quote the example in your reply.
