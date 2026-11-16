@@ -1,5 +1,8 @@
 """Check the gate of the nossaifd flow: the hooks at the start and the end of a turn, the record of passes, the
 check of a pull request, and the files that a project installs."""
+import contextlib
+import inspect
+import io
 import json
 import os
 from pathlib import Path
@@ -10,6 +13,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[1]
 SKILL = REPO / '.agents/skills/nossaifd'
@@ -762,11 +766,12 @@ class CommitGatesTest(unittest.TestCase):
             self.project.git('worktree', 'remove', '--force', str(other))
 
 
-def load_gate():
-    "The gate as a module, for the functions that a test calls in this process. It writes no __pycache__."
+def load_gate(path=GATE, name='prose_gate_test'):
+    """The gate as a module, for the functions that a test calls in this process. It writes no __pycache__. A path
+    loads another copy of the gate, such as a copy that a project installed."""
     import importlib.util
     sys.dont_write_bytecode = True
-    spec = importlib.util.spec_from_file_location('prose_gate_test', GATE)
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -1726,6 +1731,236 @@ class CheckChangedInCITest(unittest.TestCase):
         self.assertIn('checked 3 page(s), a hard problem', out.stdout)     # README.md, docs/new.md, docs/old.md
 
 
+def install_skill(project):
+    "Copy the skill into a project, as npx skills add does, without __pycache__. The path of the installed gate."
+    shutil.copytree(SKILL, Path(project) / '.agents/skills/nossaifd', ignore=shutil.ignore_patterns('__pycache__'))
+    return Path(project) / '.agents/skills/nossaifd/scripts/prose_gate.py'
+
+
+# A script that loads a gate by its path, as an outside project does. It catches an exit, and then it prints
+# whether the function is there and whether the load changed the folder, the environment or the path of Python.
+# With the argument preset, it sets dont_write_bytecode before the load, as docs/flow.md asks of a caller
+LOAD = '''import importlib.util, json, os, sys
+sys.dont_write_bytecode = sys.argv[2:] == ['preset']
+folder, environ, path = os.getcwd(), dict(os.environ), list(sys.path)
+spec = importlib.util.spec_from_file_location('outside_gate', sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+try:
+    spec.loader.exec_module(module)
+except SystemExit as stop:
+    print('exited', stop.code)
+    sys.exit(0)
+print(json.dumps({'base_commit': callable(getattr(module, 'base_commit', None)), 'folder': os.getcwd() == folder,
+                  'environ': dict(os.environ) == environ, 'path': sys.path == path,
+                  'dont_write_bytecode': sys.dont_write_bytecode, 'modules': 'outside_gate' in sys.modules}))
+'''
+
+
+class BaseCommitContractTest(unittest.TestCase):
+    """jnprofile-python loads the installed prose_gate.py by its path and calls base_commit(root, option) to pick
+    the base in CI. These tests pin that contract: the name, the arguments, and the shape of the result, which is
+    (commit, name) or (None, message). They load a copy of the skill installed in a project, and they run from a
+    folder outside every repository, so no result depends on the folder where the caller runs."""
+
+    def setUp(self):
+        # each cleanup runs also when setUp fails, in the reverse order: the folder, the environment, the files
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.top = Path(temp.name).resolve()
+        # each test starts without CI and the variables of GitHub, and the patch puts the environment back after it.
+        # git looks for no repository above the temporary folder, so a TMPDIR inside a repository changes nothing
+        environ = mock.patch.dict(os.environ, {'GIT_CEILING_DIRECTORIES': str(self.top)})
+        environ.start()
+        self.addCleanup(environ.stop)
+        for variable in [name for name in os.environ if ci_variable(name)]:
+            del os.environ[variable]
+        self.addCleanup(os.chdir, os.getcwd())
+        self.origin = self.top / 'origin.git'
+        subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(self.origin)], check=True)
+        (self.top / 'work').mkdir()
+        self.project = Project(self.top / 'work')
+        self.project.write('docs/old.md', CLEAN)
+        self.commit(self.project)
+        self.project.git('remote', 'add', 'origin', self.origin.as_uri())
+        self.project.git('push', '-q', 'origin', 'main')
+        self.project.git('fetch', '-q', 'origin')
+        self.project.git('checkout', '-qb', 'topic')
+        self.project.write('docs/new.md', MORE)
+        self.commit(self.project)
+        self.gate = install_skill(self.project.root)
+        self.environ = dict(os.environ)       # the environment before the load in this process, for a new Python
+        self.module = load_gate(self.gate, 'installed_prose_gate')
+        self.outside = self.top / 'outside'
+        self.outside.mkdir()
+        os.chdir(self.outside)
+
+    def commit(self, project):
+        project.git('add', '-A')
+        project.git('commit', '-qm', 'change')
+
+    def sha(self, rev, root=None):
+        return subprocess.run(['git', '-C', str(root or self.project.root), 'rev-parse', rev], check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def base(self, option=None, root=None, **variables):
+        """base_commit of the installed gate, with the variables given. It may print one line, which starts with
+        nossaifd:, when the base falls back to HEAD^ or the empty tree. self.printed keeps that output."""
+        os.environ.update(variables)
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            result = self.module.base_commit(self.project.root if root is None else root, option)
+        self.assertEqual(err.getvalue(), '')
+        self.printed = out.getvalue()
+        self.assertRegex(self.printed, r'^(nossaifd: [^\n]*\n)?$')
+        return result
+
+    def assert_base(self, result, commit):
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0], commit)
+        self.assertRegex(result[0], r'^([0-9a-f]{40}|[0-9a-f]{64})$')
+        self.assertIsInstance(result[1], str)
+        self.assertTrue(result[1].strip())
+
+    def assert_error(self, result):
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+        self.assertIsNone(result[0])
+        self.assertIsInstance(result[1], str)
+        self.assertTrue(result[1].strip())
+
+    def test_the_function_has_its_name_and_its_two_arguments_in_order(self):
+        self.assertTrue(callable(getattr(self.module, 'base_commit', None)))
+        kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+        parameters = inspect.signature(self.module.base_commit).parameters.values()
+        self.assertEqual([(p.name, p.kind) for p in parameters], [('root', kind), ('option', kind)])
+
+    def test_ci_set_takes_no_argument_and_says_whether_ci_is_set(self):
+        "jnprofile-python also calls ci_set(), to see whether a run without --base needs a base"
+        self.assertEqual(list(inspect.signature(self.module.ci_set).parameters), [])
+        for value, expected in ((None, False), ('true', True), ('1', True), ('false', False), (' 0 ', False),
+                                ('', False)):
+            with self.subTest(CI=value):
+                os.environ.pop('CI', None)
+                if value is not None:
+                    os.environ['CI'] = value
+                self.assertIs(self.module.ci_set(), expected)
+
+    def test_the_option_gives_the_merge_base_of_the_option_and_head(self):
+        main = self.sha('main')
+        self.assert_base(self.base('main'), main)
+        self.assertEqual(self.printed, '')
+        self.assert_base(self.base('origin/main'), main)
+        self.assert_base(self.module.base_commit(root=self.project.root, option='main'), main)
+
+    def test_the_root_can_be_a_path_or_a_string(self):
+        self.assertEqual(self.base('main', root=str(self.project.root)), self.base('main', root=self.project.root))
+        self.assert_base(self.base('main', root=str(self.project.root)), self.sha('main'))
+
+    def test_a_pull_request_gives_the_merge_base_of_its_base_branch_and_head(self):
+        self.assert_base(self.base(CI='true', GITHUB_EVENT_NAME='pull_request', GITHUB_BASE_REF='main'),
+                         self.sha('origin/main'))
+        self.assertEqual(self.printed, '')
+
+    def event(self, **keys):
+        "A fake event file of GitHub, with the default branch main and the keys given. Its path."
+        path = self.top / 'event.json'
+        path.write_text(json.dumps({'repository': {'default_branch': 'main'}, **keys}))
+        return str(path)
+
+    def test_a_push_to_the_default_branch_gives_the_whole_commit_before_the_push(self):
+        before = self.sha('main')
+        self.assert_base(self.base(CI='true', GITHUB_EVENT_NAME='push', GITHUB_REF='refs/heads/main',
+                                   GITHUB_EVENT_PATH=self.event(before=before)), before)
+        self.assertEqual(self.printed, '')
+
+    def test_a_push_without_before_on_the_default_branch_gives_the_whole_parent_commit(self):
+        self.assert_base(self.base(CI='true', GITHUB_EVENT_NAME='push', GITHUB_REF='refs/heads/main',
+                                   GITHUB_EVENT_PATH=self.event()), self.sha('HEAD^'))
+        self.assertTrue(self.printed.startswith('nossaifd: the base is HEAD^'))
+
+    def test_another_push_gives_the_merge_base_of_the_default_branch_and_head(self):
+        "A merge queue or another CI system: no event file, so the default branch comes from origin/HEAD"
+        self.project.git('remote', 'set-head', 'origin', 'main')
+        self.assert_base(self.base(CI='true'), self.sha('main'))
+        self.assert_base(self.base(CI='true', GITHUB_EVENT_NAME='push', GITHUB_REF='refs/heads/topic'),
+                         self.sha('main'))
+
+    def test_another_push_of_the_default_branch_gives_the_whole_parent_commit_and_prints_nothing(self):
+        "The merge base of origin/main and HEAD is HEAD itself, so HEAD has no commit of its own"
+        self.project.git('remote', 'set-head', 'origin', 'main')
+        self.project.git('checkout', '-q', 'main')
+        self.assert_base(self.base(CI='true'), self.sha('HEAD^'))
+        self.assertEqual(self.printed, '')
+
+    def test_the_option_wins_over_a_pull_request(self):
+        self.assert_base(self.base('HEAD^', CI='true', GITHUB_EVENT_NAME='pull_request', GITHUB_BASE_REF='nosuch'),
+                         self.sha('HEAD^'))
+
+    def test_a_push_of_the_first_commit_gives_the_empty_tree(self):
+        (self.top / 'first').mkdir()
+        first = Project(self.top / 'first')
+        empty = first.git('hash-object', '-t', 'tree', '/dev/null').strip()
+        for keys in ({}, {'before': '0' * 40}):
+            with self.subTest(keys=keys):
+                self.assert_base(self.base(root=first.root, CI='true', GITHUB_EVENT_NAME='push',
+                                           GITHUB_REF='refs/heads/main', GITHUB_EVENT_PATH=self.event(**keys)), empty)
+                self.assertTrue(self.printed.startswith('nossaifd: the base is the empty tree'))
+
+    def test_a_shallow_clone_gives_none_and_a_message(self):
+        shallow = self.top / 'shallow'
+        subprocess.run(['git', 'clone', '-q', '--depth', '1', self.origin.as_uri(), str(shallow)], check=True)
+        self.assertEqual(self.sha('HEAD', root=shallow), self.sha('main'))
+        self.assert_error(self.base('HEAD', root=shallow))
+        self.assert_error(self.base(root=shallow, CI='true', GITHUB_EVENT_NAME='pull_request',
+                                    GITHUB_BASE_REF='main'))
+
+    def test_the_event_pull_request_target_gives_none_and_a_message(self):
+        self.assert_error(self.base(CI='true', GITHUB_EVENT_NAME='pull_request_target', GITHUB_BASE_REF='main'))
+
+    def test_a_base_that_does_not_resolve_gives_none_and_a_message(self):
+        self.assert_error(self.base('nosuch'))
+        self.assert_error(self.base('-x'))
+        self.assert_error(self.base(CI='true', GITHUB_EVENT_NAME='pull_request', GITHUB_BASE_REF='nosuch'))
+
+    def test_a_folder_with_no_commit_gives_none_and_a_message(self):
+        empty = self.top / 'empty'
+        subprocess.run(['git', 'init', '-q', str(empty)], check=True)
+        for root in (empty, self.outside):
+            with self.subTest(root=root):
+                self.assert_error(self.base('main', root=root))
+                self.assert_error(self.base(root=root, CI='true', GITHUB_BASE_REF='main'))
+
+    def test_loading_the_module_prints_nothing_writes_nothing_and_does_not_exit(self):
+        """The load runs in a new Python, with no variable of Python, from a folder outside every repository. Its
+        home, temporary and cache folders are in the temporary folder of the test, so a file written there shows"""
+        before = listing(self.top)
+        out = self.load('preset')
+        self.assertEqual((out.returncode, out.stderr), (0, ''))
+        self.assertEqual(json.loads(out.stdout), {'base_commit': True, 'folder': True, 'environ': True, 'path': True,
+                                                  'dont_write_bytecode': True, 'modules': False})
+        self.assertEqual(listing(self.top), before)
+
+    def load(self, *args):
+        "LOAD in a new Python, with its home, temporary and cache folders in the temporary folder of the test"
+        env = dict(self.environ)
+        for name in ('HOME', 'TMPDIR', 'XDG_CACHE_HOME'):
+            env[name] = str(self.top / name.lower())
+            Path(env[name]).mkdir(exist_ok=True)
+        return subprocess.run([sys.executable, '-I', '-c', LOAD, str(self.gate), *args], cwd=self.outside,
+                              capture_output=True, text=True, env=env)
+
+    def test_a_load_without_dont_write_bytecode_writes_the_cache_so_the_caller_must_set_it(self):
+        """Python caches the code of the file before the gate runs, so the line of the gate that sets
+        dont_write_bytecode comes too late for the gate itself. It still sets the flag for the files that it loads"""
+        cache = self.gate.parent / '__pycache__'
+        self.assertFalse(cache.exists())
+        out = self.load()
+        self.assertEqual((out.returncode, out.stderr), (0, ''))
+        self.assertTrue(json.loads(out.stdout)['dont_write_bytecode'])
+        self.assertEqual([p.name.split('.')[0] for p in cache.iterdir()], ['prose_gate'])
+
+
 class MissingCheckerTest(unittest.TestCase):
     "A skill installed without its check.py prints the install line, not a traceback."
 
@@ -1772,16 +2007,25 @@ class MissingCheckerTest(unittest.TestCase):
 RECIPES = REPO / '.agents/just/roles/nossaifd.just'
 # The line that records the step prose-check for jlog pass, the last line of the recipe of the role
 STEP_LINE = 'jlog step prose-check'
-# The line before it: with no argument or with -v only, it runs api-prose-check when the project has that recipe.
-# The docs role of jnterfaces runs api-check with the same form
+# The line before it runs api-prose-check when the project has that recipe. It passes --base REF and --base=REF on,
+# drops -v, and skips the recipe with names of pages or --. The docs role of jnterfaces runs api-check the same way
 API_LINE = ('recipes="$(just --justfile {{quote(justfile())}} --summary)" && '
             "if printf '%s\\n' $recipes | grep -qx api-prose-check; "
-            'then for a in "$@"; do [ "$a" = -v ] || { echo "prose-check: no API pages with names of pages or --base"; '
-            'exit 0; }; done; just --justfile {{quote(justfile())}} api-prose-check; fi')
-# A recipe api-prose-check that passes, and one that fails with exit 3. Each writes a mark next to the project, to
-# show that it ran. A mark in the project would be an untracked file, and jlog pass refuses a worktree with one
-API_PASS = '\napi-prose-check:\n    @echo api-prose-check ran\n    touch ../api-ran\n'
-API_FAIL = '\napi-prose-check:\n    @echo api-prose-check ran\n    touch ../api-ran\n    exit 3\n'
+            'then b=; for a in "$@"; do shift; if [ -n "$b" ]; then b=; set -- "$@" "$a"; '
+            'else case "$a" in -v) ;; --base) b=1; set -- "$@" "$a" ;; --base=*) set -- "$@" "$a" ;; '
+            '*) echo "prose-check: no API pages with names of pages or --"; exit 0 ;; esac; fi; done; '
+            'just --justfile {{quote(justfile())}} api-prose-check "$@"; fi')
+API_NOTE = 'prose-check: no API pages with names of pages or --'
+# A recipe api-prose-check that passes, and one that fails with exit 3, as jnprofile-python gives them from #17 on.
+# Each writes its arguments, one in brackets per argument, next to the project, to show that it ran and what it got.
+# A mark in the project would be an untracked file, and jlog pass refuses a worktree with one
+API_PASS = ('\n[positional-arguments]\napi-prose-check *args:\n    @echo api-prose-check ran\n'
+            '    printf \'%s:\' "$#" > ../api-ran\n    printf \'[%s]\' "$@" >> ../api-ran\n')
+API_FAIL = API_PASS + '    exit 3\n'
+# The recipe of jnprofile-python before #17, which takes no argument
+API_OLD = '\napi-prose-check:\n    @echo api-prose-check ran\n    touch ../api-ran\n'
+# A base with a space and characters of the shell, which git resolves to the commit "the recipes" of role_project
+ODD_BASE = 'HEAD^{/the recipes}'
 # The clone of jnterfaces whose scripts/lint_steps.py lints the role file: JNTERFACES_DIR, or one next to this clone
 JNTERFACES = next((Path(path) for path in [os.environ.get('JNTERFACES_DIR'), REPO.parent / 'jnterfaces',
                                            Path.home() / 'Projects/jnterfaces']
@@ -2045,37 +2289,68 @@ class RoleRecipeTest(unittest.TestCase):
                 # just echoes each line on stderr, so the note shows only on stdout
                 self.assertNotIn('no API pages', out.stdout)
 
+    def got(self, project):
+        "The arguments that the stub api-prose-check got, as it wrote them: their count, then each in brackets."
+        return (project.root.parent / 'api-ran').read_text()
+
     @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
-    def test_a_passing_recipe_runs_with_no_argument_and_with_v(self):
+    def test_a_passing_recipe_gets_the_base_whole_and_no_v(self):
+        "-v and the base reach the recipe as the user gave them, less -v. A base with a space stays one argument"
         project = self.readme_project(API_PASS)
-        for args in ((), ('-v',), ('-v', '-v')):
+        cases = {(): '0:[]', ('-v',): '0:[]', ('-v', '-v'): '0:[]',
+                 ('--base', 'HEAD'): '2:[--base][HEAD]', ('--base=HEAD',): '1:[--base=HEAD]',
+                 ('-v', '--base', 'HEAD'): '2:[--base][HEAD]', ('--base', 'HEAD', '-v'): '2:[--base][HEAD]',
+                 ('--base', ODD_BASE): f'2:[--base][{ODD_BASE}]', (f'--base={ODD_BASE}',): f'1:[--base={ODD_BASE}]',
+                 ('--base', 'HEAD', '--base=HEAD^'): '3:[--base][HEAD][--base=HEAD^]'}
+        for args, got in cases.items():
             with self.subTest(args=args):
                 (project.root.parent / 'api-ran').unlink(missing_ok=True)
                 out = self.run_just(project, *args)
                 self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
                 self.assertIn('api-prose-check ran', out.stdout)
-                self.assertTrue((project.root.parent / 'api-ran').exists())
+                self.assertNotIn(API_NOTE, out.stdout)
+                self.assertEqual(self.got(project), got)
 
     @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
-    def test_with_names_of_pages_or_a_base_it_does_not_run(self):
-        "The user named the pages, or a base that api-prose-check cannot take"
+    def test_with_names_of_pages_or_two_dashes_it_does_not_run(self):
+        "The user named the pages, which api-prose-check cannot take"
         project = self.readme_project(API_FAIL)
         project.write('my page.md', CLEAN)
-        for args in (('my page.md',), ('-v', 'my page.md'), ('--', 'my page.md'), ('--base', 'HEAD'),
-                     ('--base=HEAD',)):
+        project.write('-x.md', CLEAN)
+        for args in (('my page.md',), ('-v', 'my page.md'), ('--', 'my page.md'), ('--', '-x.md'),
+                     ('-v', '--', 'my page.md'), ('--',), ('-v', '--')):
             with self.subTest(args=args):
                 out = self.run_just(project, *args)
                 self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
                 self.assertNotIn('api-prose-check ran', out.stdout)
-                self.assertIn('prose-check: no API pages with names of pages or --base', out.stdout)
+                self.assertIn(API_NOTE, out.stdout)
                 self.assertFalse((project.root.parent / 'api-ran').exists())
 
     @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
     def test_a_failing_recipe_fails_prose_check_with_its_exit(self):
         project = self.readme_project(API_FAIL)
-        out = self.run_just(project)
-        self.assertEqual(out.returncode, 3, out.stdout + out.stderr)
-        self.assertIn('api-prose-check ran', out.stdout)
+        for args in ((), ('--base', 'HEAD'), ('--base=HEAD',)):
+            with self.subTest(args=args):
+                out = self.run_just(project, *args)
+                self.assertEqual(out.returncode, 3, out.stdout + out.stderr)
+                self.assertIn('api-prose-check ran', out.stdout)
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_a_recipe_from_before_jnprofile_python_17_runs_with_v_and_fails_with_a_base(self):
+        "The old recipe takes no argument, so just reads --base as the name of a recipe, and fails loudly"
+        project = self.readme_project(API_OLD)
+        for args in ((), ('-v',)):
+            with self.subTest(args=args):
+                out = self.run_just(project, *args)
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertIn('api-prose-check ran', out.stdout)
+        for args in (('--base', 'HEAD'), ('--base=HEAD',)):
+            with self.subTest(args=args):
+                (project.root.parent / 'api-ran').unlink(missing_ok=True)
+                out = self.run_just(project, *args)
+                self.assertNotEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertIn('does not contain recipe `--base', out.stderr)
+                self.assertFalse((project.root.parent / 'api-ran').exists())
 
     @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
     def test_a_bad_page_fails_before_the_recipe_runs(self):
@@ -2124,11 +2399,12 @@ class RoleRecipeTest(unittest.TestCase):
         env = {name: value for name, value in os.environ.items()
                if name != 'JLOG_RUN' and name not in JUST_VARIABLES}
         temp = self.folder()
+        projects = {}
         for stub, code in ((API_PASS, 0), (API_FAIL, 3)):
             with self.subTest(passes=not code):
                 files = dict(JNTERFACES_FILES)
                 files['.agents/just/index.just'] += stub
-                project = role_project(temp / f'p{code}', files)
+                project = projects[code] = role_project(temp / f'p{code}', files)
                 (project.root.parent / 'api-ran').unlink(missing_ok=True)
                 log = project.root / '.agents/log/just.jsonl'
                 out = subprocess.run(['just', 'check'], cwd=project.root, capture_output=True, text=True, env=env)
@@ -2136,18 +2412,31 @@ class RoleRecipeTest(unittest.TestCase):
                 steps = [r.get('step') for r in records if r['kind'] == 'step']
                 self.assertEqual(out.returncode, code, out.stdout + out.stderr)
                 self.assertIn('api-prose-check ran', out.stdout)
-                self.assertTrue((project.root.parent / 'api-ran').exists())
+                self.assertEqual(self.got(project), '0:[]')
                 self.assertEqual(steps, ['prose-check'] if not code else [])
                 self.assertEqual('pass' in {r['kind'] for r in records}, not code)
-        # Through the shell jlog, the arguments still reach the line, so names of pages or a base skip the recipe
-        project.write('my page.md', CLEAN)
-        for args in (('my page.md',), ('--base', 'HEAD')):
+        # Through the shell jlog, the arguments still reach the line whole: a base goes on to the recipe, and names
+        # of pages skip it
+        project = projects[0]
+        for args, got in ((('--base', ODD_BASE, '-v'), f'2:[--base][{ODD_BASE}]'),
+                          ((f'--base={ODD_BASE}',), f'1:[--base={ODD_BASE}]')):
             with self.subTest(args=args):
                 (project.root.parent / 'api-ran').unlink(missing_ok=True)
                 out = subprocess.run(['just', 'prose-check', *args], cwd=project.root, capture_output=True,
                                      text=True, env=env)
                 self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
-                self.assertIn('prose-check: no API pages with names of pages or --base', out.stdout)
+                self.assertEqual(self.got(project), got)
+        out = subprocess.run(['just', 'prose-check', '--base', 'HEAD'], cwd=projects[3].root, capture_output=True,
+                             text=True, env=env)
+        self.assertEqual(out.returncode, 3, out.stdout + out.stderr)
+        project.write('my page.md', CLEAN)
+        for args in (('my page.md',), ('--', 'my page.md')):
+            with self.subTest(args=args):
+                (project.root.parent / 'api-ran').unlink(missing_ok=True)
+                out = subprocess.run(['just', 'prose-check', *args], cwd=project.root, capture_output=True,
+                                     text=True, env=env)
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertIn(API_NOTE, out.stdout)
                 self.assertFalse((project.root.parent / 'api-ran').exists())
 
     @unittest.skipUnless(os.environ.get('NOSSAIFD_NEED_JNTERFACES') or JNTERFACES,

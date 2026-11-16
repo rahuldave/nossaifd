@@ -91,9 +91,10 @@ step `prose-check` of `just check`.
 - **Each page gets its own checker,** by the map of checkers. `-v` also shows the soft notes.
 - **The API pages.** When the project has a recipe `api-prose-check`, the recipe runs it after the pages
   pass. The `api` tool of the Python profile, jnprofile-python, gives that recipe. It checks the API page
-  of each module that changed since the last commit. It takes no base. So a clean checkout in CI has no
-  API page to check. With names of pages or with `--base`, it does not run, and the recipe says
-  so. When it fails, the step fails.
+  of each module that changed since the last commit. In CI, or with `--base`, it checks the modules that
+  changed since the same base as the pages. That needs jnprofile-python #17 or later. The recipe passes
+  `--base` on. With names of pages or with `--`, it does not run, and the recipe says so. When it fails, the step
+  fails.
 - **It writes nothing** into the project.
 
 The last line of the recipe is `jlog step prose-check`. The index of jnterfaces runs each line through
@@ -110,7 +111,7 @@ into its Justfile in place of any recipe `prose-check` that the Justfile has:
 [positional-arguments]
 prose-check *args:
     uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"
-    recipes="$(just --justfile {{quote(justfile())}} --summary)" && if printf '%s\n' $recipes | grep -qx api-prose-check; then for a in "$@"; do [ "$a" = -v ] || { echo "prose-check: no API pages with names of pages or --base"; exit 0; }; done; just --justfile {{quote(justfile())}} api-prose-check; fi
+    recipes="$(just --justfile {{quote(justfile())}} --summary)" && if printf '%s\n' $recipes | grep -qx api-prose-check; then b=; for a in "$@"; do shift; if [ -n "$b" ]; then b=; set -- "$@" "$a"; else case "$a" in -v) ;; --base) b=1; set -- "$@" "$a" ;; --base=*) set -- "$@" "$a" ;; *) echo "prose-check: no API pages with names of pages or --"; exit 0 ;; esac; fi; done; just --justfile {{quote(justfile())}} api-prose-check "$@"; fi
 ```
 
 The second line does nothing in a project without a recipe `api-prose-check`, so you can keep it.
