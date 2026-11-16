@@ -636,6 +636,7 @@ def empty_tree(root):
     return out.stdout.strip()
 
 
+# jnprofile-python imports this function. Keep its name, arguments and result, or tell the jnterfaces agent first.
 def ci_set():
     """Whether the environment variable CI is set. GitHub sets it to true. Empty, false and 0, in any case and with
     spaces around, count as not set, so CI=false turns the CI mode off."""
@@ -704,10 +705,13 @@ def merge_base(root, ref, name, hint=''):
     return merge.stdout.split()[0], f'the merge base of {name} and HEAD'
 
 
+# jnprofile-python imports this function. Keep its name, arguments and result, or tell the jnterfaces agent first.
 def base_commit(root, option):
     """The commit to compare HEAD with, for check-changed with a base, and the name of the base for the message.
     The pair (commit, name), or (None, the message of the error). The base is a merge base, so the check never
     takes in the pages of commits that only the other side has.
+
+    Other tools import it from the installed file: root is a Path or a str, and option is --base or None.
 
     - The option --base REF gives the merge base of REF and HEAD. It wins over CI.
     - On a pull request, with a nonempty GITHUB_BASE_REF, it is the merge base of origin/GITHUB_BASE_REF and HEAD.

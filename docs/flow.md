@@ -199,11 +199,16 @@ outside the project, and it checks the page with `check.py`. The docs role of jn
 `api-check` in the same way.
 
 - **With no such recipe,** the line does nothing.
-- **With names of pages or with `--base`,** the line does not run the recipe, because the recipe takes
-  no page and no base. It prints a line that says so. With `-v` only, it runs.
-- **In CI,** the recipe checks no API page. It looks only at the modules that changed since the last
-  commit, and a CI checkout is clean. So a pull request with a bad docstring passes the step in CI, until
-  the recipe takes a base as `check-changed` does.
+- **With `--base REF` or `--base=REF`,** the line passes the option on to the recipe, each argument
+  whole. It drops `-v`, which the recipe does not need.
+- **With names of pages or with `--`,** the line does not run the recipe, because the recipe takes no
+  page. It prints a line that says so.
+- **In CI, or with `--base`,** the recipe checks the modules that changed since a base. It takes the base
+  from `base_commit` of `prose_gate.py`, so it compares with the same commit as `check-changed`. An error
+  of the base fails the step. This holds from jnprofile-python #17 on.
+- **A recipe from before jnprofile-python #17** takes no argument. With `--base`, it fails, because
+  `just` finds no recipe named `--base`. Update the profile then. In CI, it checks no API page, because a
+  CI checkout is clean. So a pull request with a bad docstring passes the step in CI.
 - **A failure** of `api-prose-check` or of `just --summary` fails the step, so the line `jlog step
   prose-check` does not run.
 
@@ -256,6 +261,12 @@ uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py
 - **A base that is missing,** or a base with no merge base with HEAD, exits with 2. The check never
   passes with no page checked because of an error.
 - **It writes nothing** in CI too.
+
+Other tools can load the installed `prose_gate.py` by its path and call `base_commit(root, option)`.
+It gives the pair of the base commit and its name, or `None` and the error. Its name, its arguments
+and its result stay the same. The same holds for `ci_set()`, which tells whether `CI` counts as set.
+`base_commit` prints at most one line, a line that starts with `nossaifd:`.
+Set `sys.dont_write_bytecode` before the load, so that Python writes no `__pycache__` in the skill.
 
 ### Who may write the map
 
