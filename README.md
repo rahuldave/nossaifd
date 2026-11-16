@@ -89,6 +89,11 @@ step `prose-check` of `just check`.
 - **When no page changed,** the recipe passes.
 - **With names of pages,** it checks those pages only. Put a page whose name starts with `-` after `--`.
 - **Each page gets its own checker,** by the map of checkers. `-v` also shows the soft notes.
+- **The API pages.** When the project has a recipe `api-prose-check`, the recipe runs it after the pages
+  pass. The `api` tool of the Python profile, jnprofile-python, gives that recipe. It checks the API page
+  of each module that changed since the last commit. It takes no base. So a clean checkout in CI has no
+  API page to check. With names of pages or with `--base`, it does not run, and the recipe says
+  so. When it fails, the step fails.
 - **It writes nothing** into the project.
 
 The last line of the recipe is `jlog step prose-check`. The index of jnterfaces runs each line through
@@ -101,11 +106,14 @@ not jlog, even with jlog installed. So such a project does not import the file. 
 into its Justfile in place of any recipe `prose-check` that the Justfile has:
 
 ```just
-# Check the pages that changed since HEAD against the writing guide, each with its checker
+# Check the pages that changed since HEAD against the writing guide, each with its checker, then the API pages
 [positional-arguments]
 prose-check *args:
     uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"
+    recipes="$(just --justfile {{quote(justfile())}} --summary)" && if printf '%s\n' $recipes | grep -qx api-prose-check; then for a in "$@"; do [ "$a" = -v ] || { echo "prose-check: no API pages with names of pages or --base"; exit 0; }; done; just --justfile {{quote(justfile())}} api-prose-check; fi
 ```
+
+The second line does nothing in a project without a recipe `api-prose-check`, so you can keep it.
 
 If your Justfile has the line `import? '.agents/just/roles/nossaifd.just'`, from an earlier version of
 this README, replace that line with the recipe above.

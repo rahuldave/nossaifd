@@ -5,8 +5,15 @@
 # jlog pass, and runs only when the check passed. That line fails without the shell jlog, so a project without the
 # index of jnterfaces copies the recipe of the README of nossaifd instead of this file.
 
-# Check the pages that changed since HEAD against the writing guide, each with its checker. In CI, or with --base REF, also the pages since a base. With names of pages, check those pages only. -v also shows the soft notes
+# The second line runs the recipe api-prose-check of the project, when the project has one. The api tool of the
+# python profile, jnprofile-python, gives that recipe: it checks the API page of each module changed since HEAD. It
+# takes no base, so a clean checkout in CI checks no API page. The line runs it only with no argument or with -v,
+# because it takes no page and no base. A failure of api-prose-check, or of just --summary, fails the recipe before
+# the step line.
+
+# Check the pages that changed since HEAD against the writing guide, each with its checker. In CI, or with --base REF, also the pages since a base. Then the API pages of the modules changed since HEAD, when the project has api-prose-check. With names of pages, check those pages only. -v also shows the soft notes
 [positional-arguments]
 prose-check *args:
     uv run --no-project --quiet python .agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"
+    recipes="$(just --justfile {{quote(justfile())}} --summary)" && if printf '%s\n' $recipes | grep -qx api-prose-check; then for a in "$@"; do [ "$a" = -v ] || { echo "prose-check: no API pages with names of pages or --base"; exit 0; }; done; just --justfile {{quote(justfile())}} api-prose-check; fi
     jlog step prose-check

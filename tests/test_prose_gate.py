@@ -1772,6 +1772,20 @@ class MissingCheckerTest(unittest.TestCase):
 RECIPES = REPO / '.agents/just/roles/nossaifd.just'
 # The line that records the step prose-check for jlog pass, the last line of the recipe of the role
 STEP_LINE = 'jlog step prose-check'
+# The line before it: with no argument or with -v only, it runs api-prose-check when the project has that recipe.
+# The docs role of jnterfaces runs api-check with the same form
+API_LINE = ('recipes="$(just --justfile {{quote(justfile())}} --summary)" && '
+            "if printf '%s\\n' $recipes | grep -qx api-prose-check; "
+            'then for a in "$@"; do [ "$a" = -v ] || { echo "prose-check: no API pages with names of pages or --base"; '
+            'exit 0; }; done; just --justfile {{quote(justfile())}} api-prose-check; fi')
+# A recipe api-prose-check that passes, and one that fails with exit 3. Each writes a mark next to the project, to
+# show that it ran. A mark in the project would be an untracked file, and jlog pass refuses a worktree with one
+API_PASS = '\napi-prose-check:\n    @echo api-prose-check ran\n    touch ../api-ran\n'
+API_FAIL = '\napi-prose-check:\n    @echo api-prose-check ran\n    touch ../api-ran\n    exit 3\n'
+# The clone of jnterfaces whose scripts/lint_steps.py lints the role file: JNTERFACES_DIR, or one next to this clone
+JNTERFACES = next((Path(path) for path in [os.environ.get('JNTERFACES_DIR'), REPO.parent / 'jnterfaces',
+                                           Path.home() / 'Projects/jnterfaces']
+                   if path and (Path(path) / 'scripts/lint_steps.py').is_file()), None)
 # The steps of just check in jnterfaces that a profile gives. The role must not define one of them, or check
 STEPS_OF_PROFILES = ('fmt-check', 'lint', 'typecheck', 'test', 'coverage-check', 'integration', 'docstring-check',
                      'docs-check', 'diff-check', 'check')
@@ -1835,9 +1849,9 @@ class RoleRecipeTest(unittest.TestCase):
         self.assertEqual(re.findall(r'^([a-z][a-z-]*)\b[^\n]*:$', text, re.M), ['prose-check'])
         self.assertIn('[positional-arguments]\nprose-check *args:\n    uv run --no-project --quiet python '
                       '.agents/skills/nossaifd/scripts/prose_gate.py check-changed "$@"\n'
-                      f'    {STEP_LINE}\n', text)
+                      f'    {API_LINE}\n    {STEP_LINE}\n', text)
         self.assertEqual(body_of(text), ['uv run --no-project --quiet python .agents/skills/nossaifd/scripts/'
-                                         'prose_gate.py check-changed "$@"', STEP_LINE])
+                                         'prose_gate.py check-changed "$@"', API_LINE, STEP_LINE])
         self.assertTrue(text.endswith(f'\n    {STEP_LINE}\n'), 'the step line is the last line of the file')
 
     def test_the_file_sets_no_shell_and_has_no_step_of_a_profile(self):
@@ -1942,6 +1956,9 @@ class RoleRecipeTest(unittest.TestCase):
         self.assertIn('cargo install --locked --git https://github.com/rahuldave/jlog --rev '
                       '6fccbf92d47a7b66f0e5b4dce7046c25c29a364a jlog', text)
         self.assertIn("NOSSAIFD_NEED_JLOG: '1'", text)
+        # The lint of steps of jnterfaces runs on the role file in CI too, from a clone before just check
+        self.assertIn("NOSSAIFD_NEED_JNTERFACES: '1'", text)
+        self.assertLess(text.index('JNTERFACES_DIR='), text.index('run: just check'))
 
     def test_the_readme_tells_a_project_with_the_old_import_to_replace_it(self):
         text = re.sub(r'\s+', ' ', (REPO / 'README.md').read_text())
@@ -1990,6 +2007,169 @@ class RoleRecipeTest(unittest.TestCase):
             out, kinds, steps = check()
             self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
             self.assertEqual((steps, 'pass' in kinds, 'no-pass' in kinds), ([], False, True))
+
+    # The tests of api-prose-check: prose-check runs that recipe of the project, when it has one, and fails when it
+    # fails
+
+    def folder(self):
+        "A temporary folder that the test removes at its end."
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        return Path(temp.name)
+
+    def readme_project(self, extra=''):
+        "A project with the recipe of the README, which needs no jlog, and the text extra in its Justfile."
+        return role_project(self.folder() / 'p', {'Justfile': readme_recipe() + extra})
+
+    def run_just(self, project, *args, path=None):
+        env = {**os.environ, 'PATH': path} if path else None
+        return subprocess.run([shutil.which('just'), 'prose-check', *args], cwd=project.root, capture_output=True,
+                              text=True, env=env)
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_without_the_recipe_prose_check_runs_as_before(self):
+        project = self.readme_project()
+        out = self.run_just(project)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertIn('no page changed since HEAD', out.stdout)
+        self.assertNotIn('api-prose-check ran', out.stdout + out.stderr)
+        project.write('bad page.md', HARD)
+        out = self.run_just(project)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        # With names of pages, a project without the recipe gets no note about API pages
+        project.write('bad page.md', CLEAN)
+        for args in (('bad page.md',), ('--base', 'HEAD')):
+            with self.subTest(args=args):
+                out = self.run_just(project, *args)
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                # just echoes each line on stderr, so the note shows only on stdout
+                self.assertNotIn('no API pages', out.stdout)
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_a_passing_recipe_runs_with_no_argument_and_with_v(self):
+        project = self.readme_project(API_PASS)
+        for args in ((), ('-v',), ('-v', '-v')):
+            with self.subTest(args=args):
+                (project.root.parent / 'api-ran').unlink(missing_ok=True)
+                out = self.run_just(project, *args)
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertIn('api-prose-check ran', out.stdout)
+                self.assertTrue((project.root.parent / 'api-ran').exists())
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_with_names_of_pages_or_a_base_it_does_not_run(self):
+        "The user named the pages, or a base that api-prose-check cannot take"
+        project = self.readme_project(API_FAIL)
+        project.write('my page.md', CLEAN)
+        for args in (('my page.md',), ('-v', 'my page.md'), ('--', 'my page.md'), ('--base', 'HEAD'),
+                     ('--base=HEAD',)):
+            with self.subTest(args=args):
+                out = self.run_just(project, *args)
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertNotIn('api-prose-check ran', out.stdout)
+                self.assertIn('prose-check: no API pages with names of pages or --base', out.stdout)
+                self.assertFalse((project.root.parent / 'api-ran').exists())
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_a_failing_recipe_fails_prose_check_with_its_exit(self):
+        project = self.readme_project(API_FAIL)
+        out = self.run_just(project)
+        self.assertEqual(out.returncode, 3, out.stdout + out.stderr)
+        self.assertIn('api-prose-check ran', out.stdout)
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_a_bad_page_fails_before_the_recipe_runs(self):
+        project = self.readme_project(API_PASS)
+        project.write('bad page.md', HARD)
+        out = self.run_just(project)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertFalse((project.root.parent / 'api-ran').exists())
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_a_failing_summary_fails_prose_check_and_says_so(self):
+        "A just whose --summary fails must not make the line skip api-prose-check in silence"
+        project = self.readme_project(API_PASS)
+        folder = self.folder() / 'bin'
+        folder.mkdir()
+        (folder / 'just').write_text('#!/bin/sh\nfor a; do [ "$a" = --summary ] && { echo "the summary broke" >&2; '
+                                     f'exit 7; }}; done\nexec {shutil.which("just")} "$@"\n')
+        (folder / 'just').chmod(0o755)
+        out = self.run_just(project, path=f'{folder}:{os.environ["PATH"]}')
+        self.assertEqual(out.returncode, 7, out.stdout + out.stderr)
+        self.assertIn('the summary broke', out.stderr)
+        self.assertFalse((project.root.parent / 'api-ran').exists())
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_the_recipe_of_a_module_does_not_count(self):
+        "just --summary names a recipe of a module as python::api-prose-check, so only a recipe at the top counts"
+        project = self.readme_project("\nmod python 'python.just'\n")
+        project.write('python.just', API_FAIL)
+        out = self.run_just(project)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertFalse((project.root.parent / 'api-ran').exists())
+
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_a_recipe_of_an_imported_file_counts(self):
+        "The index of jnterfaces comes in through import, and its combined recipe api-prose-check is at the top"
+        project = self.readme_project("\nimport 'index.just'\n")
+        project.write('index.just', API_FAIL)
+        out = self.run_just(project)
+        self.assertEqual(out.returncode, 3, out.stdout + out.stderr)
+
+    @unittest.skipUnless(os.environ.get('NOSSAIFD_NEED_JLOG') or shutil.which('jlog'),
+                         'needs jlog 0.1.0 on PATH; build it from github.com/rahuldave/jlog')
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_under_the_index_of_jnterfaces_the_step_is_recorded_only_when_the_recipe_passes(self):
+        self.assertTrue(shutil.which('jlog'), 'NOSSAIFD_NEED_JLOG is set, but jlog is not on PATH')
+        env = {name: value for name, value in os.environ.items()
+               if name != 'JLOG_RUN' and name not in JUST_VARIABLES}
+        temp = self.folder()
+        for stub, code in ((API_PASS, 0), (API_FAIL, 3)):
+            with self.subTest(passes=not code):
+                files = dict(JNTERFACES_FILES)
+                files['.agents/just/index.just'] += stub
+                project = role_project(temp / f'p{code}', files)
+                (project.root.parent / 'api-ran').unlink(missing_ok=True)
+                log = project.root / '.agents/log/just.jsonl'
+                out = subprocess.run(['just', 'check'], cwd=project.root, capture_output=True, text=True, env=env)
+                records = [json.loads(line) for line in log.read_text().splitlines()]
+                steps = [r.get('step') for r in records if r['kind'] == 'step']
+                self.assertEqual(out.returncode, code, out.stdout + out.stderr)
+                self.assertIn('api-prose-check ran', out.stdout)
+                self.assertTrue((project.root.parent / 'api-ran').exists())
+                self.assertEqual(steps, ['prose-check'] if not code else [])
+                self.assertEqual('pass' in {r['kind'] for r in records}, not code)
+        # Through the shell jlog, the arguments still reach the line, so names of pages or a base skip the recipe
+        project.write('my page.md', CLEAN)
+        for args in (('my page.md',), ('--base', 'HEAD')):
+            with self.subTest(args=args):
+                (project.root.parent / 'api-ran').unlink(missing_ok=True)
+                out = subprocess.run(['just', 'prose-check', *args], cwd=project.root, capture_output=True,
+                                     text=True, env=env)
+                self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+                self.assertIn('prose-check: no API pages with names of pages or --base', out.stdout)
+                self.assertFalse((project.root.parent / 'api-ran').exists())
+
+    @unittest.skipUnless(os.environ.get('NOSSAIFD_NEED_JNTERFACES') or JNTERFACES,
+                         'needs a clone of jnterfaces with scripts/lint_steps.py: set JNTERFACES_DIR')
+    @unittest.skipUnless(shutil.which('just') and shutil.which('uv') and shutil.which('git'), 'needs just, uv and git')
+    def test_the_lint_of_steps_of_jnterfaces_passes_the_role_file(self):
+        self.assertTrue(JNTERFACES, 'NOSSAIFD_NEED_JNTERFACES is set, but JNTERFACES_DIR has no scripts/lint_steps.py')
+        lint = JNTERFACES / 'scripts/lint_steps.py'
+        out = subprocess.run([sys.executable, str(lint), str(RECIPES)], capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        # In a project with the index, the lint also asks that the step ends with jlog step prose-check
+        project = role_project(self.folder() / 'p', JNTERFACES_FILES)
+        out = subprocess.run([sys.executable, str(lint), str(project.root / 'Justfile')], capture_output=True,
+                             text=True)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        # The lint does find a step that does not end with its line, so the pass above means something
+        role = project.root / '.agents/just/roles/nossaifd.just'
+        role.write_text(role.read_text().replace(f'    {STEP_LINE}\n', ''))
+        out = subprocess.run([sys.executable, str(lint), str(project.root / 'Justfile')], capture_output=True,
+                             text=True)
+        self.assertEqual(out.returncode, 1, out.stdout + out.stderr)
+        self.assertIn('prose-check: its last line is not jlog step prose-check', out.stdout)
 
 
 class InstallFilesTest(unittest.TestCase):

@@ -191,6 +191,22 @@ of the [README](https://github.com/rahuldave/nossaifd#readme) instead, which has
 
 `check-changed` exits with 1 on a hard problem, as `check` does.
 
+After the pages, the recipe checks the API pages, the pages that smalldocs makes from the docstrings of
+the code. Its second line asks `just --summary` for a recipe `api-prose-check` at the top of the project.
+The `api` tool of the Python profile, jnprofile-python, gives that recipe, and the index of jnterfaces
+brings it to the top. The recipe writes the API page of each changed module into a temporary folder,
+outside the project, and it checks the page with `check.py`. The docs role of jnterfaces asks for
+`api-check` in the same way.
+
+- **With no such recipe,** the line does nothing.
+- **With names of pages or with `--base`,** the line does not run the recipe, because the recipe takes
+  no page and no base. It prints a line that says so. With `-v` only, it runs.
+- **In CI,** the recipe checks no API page. It looks only at the modules that changed since the last
+  commit, and a CI checkout is clean. So a pull request with a bad docstring passes the step in CI, until
+  the recipe takes a base as `check-changed` does.
+- **A failure** of `api-prose-check` or of `just --summary` fails the step, so the line `jlog step
+  prose-check` does not run.
+
 ### The check in CI
 
 A checkout in CI is clean, so it has no page that changed since the last commit. So in CI, `check-changed`
