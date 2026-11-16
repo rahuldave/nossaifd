@@ -86,7 +86,11 @@ def files():  # Every text file in the repository that git tracks or would add, 
     for name in listed:
         path = REPO / name
         if name and path.suffix in TEXT and path.is_file() and not name.startswith(('tests/', '.claude/')):
-            yield name, path.read_text(encoding='utf-8')
+            try:
+                text = path.read_text(encoding='utf-8')
+            except FileNotFoundError:           # a file that went away after the listing, such as a scratch file
+                continue
+            yield name, text
 
 
 class CreditTest(unittest.TestCase):

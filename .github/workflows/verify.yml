@@ -19,16 +19,49 @@ jobs:
       NOSSAIFD_NEED_JLOG: '1'
       NOSSAIFD_NEED_JAGT: '1'
       NOSSAIFD_NEED_JNTERFACES: '1'
+      # The commits of jlog and jagt that CI builds. The steps below and the key of the cache take them from here,
+      # so that a new pin changes the key and builds again. The commit 6fccbf9 is the tag v0.1.0 of jlog, and
+      # the commit 53e72b4 is the tag v0.6.0 of jagt
+      JLOG_REV: 6fccbf92d47a7b66f0e5b4dce7046c25c29a364a
+      JAGT_REV: 53e72b4ef6361bf0c11110e3e55cba0241cad465
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - uses: extractions/setup-just@v3
+      - name: Name the folder of jlog and jagt, and the image of the runner, for the cache
+        id: image
+        # cargo installs jlog and jagt into RUST_TOOLS, and the cache keeps that folder. A binary built on another
+        # image may not run here, so the name of the image is in the key of the cache too
+        run: |
+          test -n "$ImageOS"
+          echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+          echo "RUST_TOOLS=$HOME/.nossaifd-rust-tools" >> "$GITHUB_ENV"
+          echo "$HOME/.nossaifd-rust-tools/bin" >> "$GITHUB_PATH"
+      - name: Restore jlog and jagt, built before with the same pins on the same image
+        id: rust-tools
+        # v1 is the version of the build. Change it when the cargo command changes but the pins do not
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.RUST_TOOLS }}
+          key: rust-tools-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.image.outputs.os }}-jlog-${{ env.JLOG_REV }}-jagt-${{ env.JAGT_REV }}
       - name: Build jlog, which the step line of the role file needs
-        # The commit 6fccbf9 is the tag v0.1.0 of jlog.
-        run: cargo install --locked --git https://github.com/rahuldave/jlog --rev 6fccbf92d47a7b66f0e5b4dce7046c25c29a364a jlog
+        if: steps.rust-tools.outputs.cache-hit != 'true'
+        run: cargo install --locked --root "$RUST_TOOLS" --git https://github.com/rahuldave/jlog --rev "$JLOG_REV" jlog
       - name: Build jagt, which lints the example result of just prose
-        # The commit 53e72b4 is the tag v0.6.0 of jagt.
-        run: cargo install --locked --git https://github.com/rahuldave/jagt --rev 53e72b4ef6361bf0c11110e3e55cba0241cad465 jagt
+        if: steps.rust-tools.outputs.cache-hit != 'true'
+        run: cargo install --locked --root "$RUST_TOOLS" --git https://github.com/rahuldave/jagt --rev "$JAGT_REV" jagt
+      - name: Keep jlog and jagt in the cache, before the tests, so that a failed test does not lose the build
+        if: steps.rust-tools.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.RUST_TOOLS }}
+          key: ${{ steps.rust-tools.outputs.cache-primary-key }}
+      - name: Show which jlog and jagt run
+        run: |
+          test "$(command -v jlog)" = "$RUST_TOOLS/bin/jlog"
+          test "$(command -v jagt)" = "$RUST_TOOLS/bin/jagt"
+          jlog --version
+          jagt --version
       - name: Clone jnterfaces, whose lint of steps a test runs on the role file
         # The commit 4bfcb3f is on the main branch of jnterfaces and has scripts/lint_steps.py.
         run: |
