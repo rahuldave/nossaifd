@@ -301,14 +301,18 @@ class TurnTest(unittest.TestCase):
         self.assertIn('asks once', reason)
 
     def test_the_gate_leaves_nothing_in_git_status(self):
-        "It compares the folder of the scripts before and after, so a file that another tool left there is no fault"
-        before = listing(SKILL / 'scripts')
-        self.project.start()
-        self.project.write('README.md', MORE)
-        self.project.blocked()
-        self.assertEqual(self.project.record('README.md').returncode, 0)
-        self.assertEqual(self.project.git('status', '--porcelain'), ' M README.md\n')
-        self.assertEqual(listing(SKILL / 'scripts'), before)
+        """It compares the folder of the scripts before and after, so a file that another tool left there is no fault.
+        It runs a copy of the skill, because a just lint in this checkout at the same time writes __pycache__ into
+        the folder of the scripts here"""
+        with tempfile.TemporaryDirectory() as other, mock.patch(f'{__name__}.GATE', install_skill(other)) as gate:
+            before = listing(gate.parent)
+            self.project.start()
+            self.project.write('README.md', MORE)
+            self.assertIn('README.md', self.project.blocked())
+            self.assertEqual(self.project.record('README.md').returncode, 0)
+            self.assertEqual(self.project.git('status', '--porcelain'), ' M README.md\n')
+            self.assertEqual(listing(gate.parent), before)
+            self.assertNotIn('__pycache__', {p.name for p in gate.parent.parent.rglob('*')})
 
     def test_a_stale_pyc_of_another_tool_is_no_fault_and_the_gate_writes_none(self):
         with tempfile.TemporaryDirectory() as other:
@@ -625,28 +629,70 @@ class DiffFilterTest(unittest.TestCase):
     # The files that may differ: the code itself, and this file, which holds the pattern
     SKIP = {'.agents/skills/nossaifd/scripts/prose_gate.py', 'tests/test_prose_gate.py'}
 
-    def test_every_diff_filter_in_the_repository_is_the_filter_of_the_code(self):
-        code = page_filter()
-        self.assertRegex(code, r'^--diff-filter=[A-Z]+$')
-        out = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd=REPO,
+    @classmethod
+    def scan(cls, root, code):
+        """The files of a repository that show a diff filter, and each line with a stale one. git lists another
+        worktree inside this one as one folder, which the scan skips. While git or an agent removes a worktree under
+        .claude/, its files show one by one and go away, so the scan leaves .claude/ out, as files() of
+        test_credit.py does"""
+        out = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd=root,
                              capture_output=True, text=True, check=True)
         seen, wrong = set(), []
         for name in sorted(set(filter(None, out.stdout.split('\0')))):
-            path = REPO / name
+            path = root / name
             # books/ is left out on purpose. It has no copy here now, but a checkout may hold one
-            if name.startswith('books/') or name in self.SKIP or not path.is_file() or path.is_symlink():
+            if (name.startswith(('books/', '.claude/')) or name in cls.SKIP or not path.is_file()
+                    or path.is_symlink()):
                 continue
             try:
                 text = path.read_text(encoding='utf-8')
-            except UnicodeDecodeError:
+            except (UnicodeDecodeError, OSError):          # a file that went away after the listing
                 continue
             found = stale_filters(text, code)
             if found is not None:
                 seen.add(name)
                 wrong += [f'{name}:{line}' for line in found]
+        return seen, wrong
+
+    def test_every_diff_filter_in_the_repository_is_the_filter_of_the_code(self):
+        code = page_filter()
+        self.assertRegex(code, r'^--diff-filter=[A-Z]+$')
+        seen, wrong = self.scan(REPO, code)
         self.assertEqual(wrong, [], f'the code uses {code}')
         # the two pages that show the command must stay in the scan, or the test checks nothing
         self.assertLessEqual({'docs/flow.md', '.agents/skills/nossaifd/references/targets/prose.md'}, seen)
+
+    def test_the_scan_skips_a_worktree_under_dot_claude_while_it_goes_away(self):
+        """A worktree of an agent under .claude/worktrees loses its .git file before its other files when it is
+        removed. git then lists each of its files, which hold the code of another branch and vanish under the scan"""
+        with tempfile.TemporaryDirectory() as temp:
+            project = Project(temp)
+            project.write('docs/flow.md', 'git diff --diff-filter=AMT HEAD\n')
+            other = project.root / '.claude/worktrees/agent-x'
+            project.git('worktree', 'add', '-q', '-b', 'x', str(other))
+            (other / 'docs/stale.md').parent.mkdir(parents=True, exist_ok=True)
+            (other / 'docs/stale.md').write_text('git diff --diff-filter=AM HEAD\n')
+            (other / '.git').unlink()                    # the state in the middle of the removal
+            # with no global excludes, which may hold .claude/, so that git lists the file as in the removal
+            listed = project.git('-c', 'core.excludesFile=/dev/null', 'ls-files', '--others', '--exclude-standard')
+            self.assertIn('.claude/worktrees/agent-x/docs/stale.md', listed)
+            seen, wrong = self.scan(project.root, '--diff-filter=AMT')
+        self.assertEqual((seen, wrong), ({'docs/flow.md'}, []))
+
+    def test_the_scan_skips_a_file_that_goes_away_after_the_listing(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Project(temp)
+            project.write('docs/flow.md', 'git diff --diff-filter=AMT HEAD\n')
+            project.write('docs/gone.md', 'git diff --diff-filter=AM HEAD\n')
+            read = Path.read_text
+
+            def vanish(path, *args, **kwargs):
+                if path.name == 'gone.md':
+                    raise FileNotFoundError(path)
+                return read(path, *args, **kwargs)
+            with mock.patch.object(Path, 'read_text', vanish):
+                seen, wrong = self.scan(project.root, '--diff-filter=AMT')
+        self.assertEqual((seen, wrong), ({'docs/flow.md'}, []))
 
     def test_the_scan_finds_each_spelling_of_a_stale_filter(self):
         code = '--diff-filter=AMT'
@@ -2085,6 +2131,108 @@ def role_project(temp, justfiles):
     return project
 
 
+WORKFLOW = REPO / '.github/workflows/verify.yml'
+CACHE_KEY = re.compile(r'^ +key: (rust-tools-.*)$', re.M)
+
+
+def ci_build(text, tool):
+    """The commit of a Rust tool that the workflow builds. The step runs cargo install with --rev "$JLOG_REV" for
+    jlog, and the job sets that variable to the commit. It fails when the step or the variable is not there once."""
+    variable = f'{tool.upper()}_REV'
+    steps = re.findall(rf'^ +run: cargo install --locked --root "\$RUST_TOOLS" --git https://github.com/rahuldave/'
+                       rf'{tool} --rev "\${variable}" {tool}$', text, re.M)
+    if len(steps) != 1:
+        raise AssertionError(f'one cargo install of {tool} with --rev "${variable}", found {len(steps)}')
+    # every setting of the variable, so that a step that sets it again to a branch does not pass
+    pins = re.findall(rf'^ +{variable}: *(.*)$', text, re.M)
+    if len(pins) != 1 or not re.fullmatch(r'[0-9a-f]{40}', pins[0]):
+        raise AssertionError(f'one setting of {variable}, to a commit of 40 hex digits, found {pins}')
+    return pins[0]
+
+
+def ci_steps(text):
+    "Each step of the workflow, as its text from one '- name:' or '- uses:' to the next."
+    return re.split(r'\n(?=      - )', text.split('\n    steps:\n', 1)[1])
+
+
+class CiCacheTest(unittest.TestCase):
+    """CI keeps jlog and jagt in a cache, so that a run with the same pins skips the build and the download. The key
+    names both pins, so that a new pin of either builds again and a stale binary never runs"""
+
+    def setUp(self):
+        self.text = WORKFLOW.read_text()
+
+    def test_the_key_of_the_cache_names_both_pins_the_os_and_the_image(self):
+        keys = CACHE_KEY.findall(self.text)
+        self.assertEqual(len(keys), 1, keys)
+        # the version of the build: a change of the cargo command that keeps the pins changes it by hand
+        self.assertRegex(keys[0], r'^rust-tools-v\d+-')
+        for part in ('${{ env.JLOG_REV }}', '${{ env.JAGT_REV }}', '${{ runner.os }}', '${{ runner.arch }}',
+                     '${{ steps.image.outputs.os }}'):
+            self.assertIn(part, keys[0])
+        # each pin is set once, so that no step sets it again, by a line of env or by GITHUB_ENV
+        self.assertEqual(len(re.findall(r'\bJ(?:LOG|AGT)_REV\s*[:=]', self.text)), 2)
+        # the variables in the key are the ones that the builds use, with the pinned commits
+        self.assertEqual(ci_build(self.text, 'jlog'), '6fccbf92d47a7b66f0e5b4dce7046c25c29a364a')
+        self.assertEqual(ci_build(self.text, 'jagt'), '53e72b4ef6361bf0c11110e3e55cba0241cad465')
+
+    def test_a_new_pin_gives_a_new_key(self):
+        "The key that GitHub computes, for the two pins of the workflow and for a bump of each"
+        def key(text):
+            values = {'env.JLOG_REV': ci_build(text, 'jlog'), 'env.JAGT_REV': ci_build(text, 'jagt'),
+                      'runner.os': 'Linux', 'runner.arch': 'X64', 'steps.image.outputs.os': 'ubuntu24'}
+            return re.sub(r'\$\{\{ ([\w.]+) \}\}', lambda m: values[m.group(1)], CACHE_KEY.search(text).group(1))
+        now = key(self.text)
+        for tool, rev in (('JLOG', '6fccbf92d47a7b66f0e5b4dce7046c25c29a364a'),
+                          ('JAGT', '53e72b4ef6361bf0c11110e3e55cba0241cad465')):
+            with self.subTest(pin=tool):
+                bumped = self.text.replace(f'{tool}_REV: {rev}', f'{tool}_REV: {"0" * 40}')
+                self.assertNotEqual(bumped, self.text)
+                self.assertNotEqual(key(bumped), now)
+
+    def test_a_hit_skips_both_builds_and_a_miss_saves_the_build_before_the_tests(self):
+        steps = ci_steps(self.text)
+        names = [re.search(r'(?:name|uses): (.*)', step).group(1) for step in steps]
+        restore = next(i for i, s in enumerate(steps) if 'uses: actions/cache/restore@v4' in s)
+        save = next(i for i, s in enumerate(steps) if 'uses: actions/cache/save@v4' in s)
+        builds = [i for i, s in enumerate(steps) if 'run: cargo install' in s]
+        # each cargo install of the workflow, also one in a block of several lines, is one of the two builds
+        self.assertEqual(len(re.findall(r'^ +(?:run: )?cargo install', self.text, re.M)), 2)
+        check = next(i for i, s in enumerate(steps) if 'run: just check' in s)
+        self.assertEqual(len(builds), 2, names)
+        self.assertTrue(restore < min(builds) and max(builds) < save < check, names)
+        self.assertIn('id: rust-tools\n', steps[restore])
+        for i in [*builds, save]:
+            self.assertIn("if: steps.rust-tools.outputs.cache-hit != 'true'\n", steps[i], names[i])
+        # restore and save keep the same folder under the same key, and cargo installs into that folder
+        self.assertIn('path: ${{ env.RUST_TOOLS }}\n', steps[restore])
+        self.assertIn('path: ${{ env.RUST_TOOLS }}\n', steps[save])
+        self.assertIn('key: ${{ steps.rust-tools.outputs.cache-primary-key }}', steps[save])
+        self.assertNotIn('restore-keys', self.text)          # a near key would bring back a binary of another pin
+        # lookup-only restores nothing, and fail-on-cache-miss fails the first run of a new pin
+        for option in ('lookup-only', 'fail-on-cache-miss'):
+            self.assertNotIn(option, self.text)
+
+    def test_the_tests_run_the_cached_binaries(self):
+        steps = ci_steps(self.text)
+        image = next(i for i, s in enumerate(steps) if 'id: image\n' in s)
+        restore = next(i for i, s in enumerate(steps) if 'uses: actions/cache/restore@v4' in s)
+        check = next(i for i, s in enumerate(steps) if 'run: just check' in s)
+        self.assertLess(image, restore)
+        self.assertIn('echo "RUST_TOOLS=$HOME/.nossaifd-rust-tools" >> "$GITHUB_ENV"', steps[image])
+        self.assertIn('echo "$HOME/.nossaifd-rust-tools/bin" >> "$GITHUB_PATH"', steps[image])
+        self.assertIn('test -n "$ImageOS"', steps[image])
+        self.assertIn('echo "os=$ImageOS" >> "$GITHUB_OUTPUT"', steps[image])
+        shown = next(i for i, s in enumerate(steps) if 'command -v jlog' in s)
+        self.assertLess(shown, check)
+        # the check that the binaries come from the cache always runs, and its failure fails the run
+        for option in ('if:', 'continue-on-error'):
+            self.assertNotIn(option, steps[shown])
+        for tool in ('jlog', 'jagt'):
+            self.assertIn(f'test "$(command -v {tool})" = "$RUST_TOOLS/bin/{tool}"', steps[shown])
+            self.assertIn(f'{tool} --version', steps[shown])
+
+
 class RoleRecipeTest(unittest.TestCase):
     "The recipe of the prose role, which just install of jnterfaces imports into a project."
 
@@ -2196,9 +2344,8 @@ class RoleRecipeTest(unittest.TestCase):
 
     def test_ci_builds_jlog_so_that_the_jlog_test_runs_there(self):
         "The workflow builds jlog v0.1.0 and sets NOSSAIFD_NEED_JLOG, which turns the skip into a failure"
-        text = (REPO / '.github/workflows/verify.yml').read_text()
-        self.assertIn('cargo install --locked --git https://github.com/rahuldave/jlog --rev '
-                      '6fccbf92d47a7b66f0e5b4dce7046c25c29a364a jlog', text)
+        text = WORKFLOW.read_text()
+        self.assertEqual(ci_build(text, 'jlog'), '6fccbf92d47a7b66f0e5b4dce7046c25c29a364a')
         self.assertIn("NOSSAIFD_NEED_JLOG: '1'", text)
         # The lint of steps of jnterfaces runs on the role file in CI too, from a clone before just check
         self.assertIn("NOSSAIFD_NEED_JNTERFACES: '1'", text)
@@ -2603,9 +2750,8 @@ class ResultPacketTest(unittest.TestCase):
 
     def test_ci_builds_jagt_so_that_the_jagt_tests_run_there(self):
         "The workflow builds jagt v0.6.0 and sets NOSSAIFD_NEED_JAGT, which turns the skip into a failure"
-        text = (REPO / '.github/workflows/verify.yml').read_text()
-        self.assertIn('cargo install --locked --git https://github.com/rahuldave/jagt --rev '
-                      '53e72b4ef6361bf0c11110e3e55cba0241cad465 jagt', text)
+        text = WORKFLOW.read_text()
+        self.assertEqual(ci_build(text, 'jagt'), '53e72b4ef6361bf0c11110e3e55cba0241cad465')
         self.assertIn("NOSSAIFD_NEED_JAGT: '1'", text)
 
     def test_the_role_pattern_finds_each_form_of_a_role(self):
