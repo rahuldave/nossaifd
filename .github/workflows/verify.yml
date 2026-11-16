@@ -18,6 +18,7 @@ jobs:
     env:
       NOSSAIFD_NEED_JLOG: '1'
       NOSSAIFD_NEED_JAGT: '1'
+      NOSSAIFD_NEED_JNTERFACES: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -28,6 +29,12 @@ jobs:
       - name: Build jagt, which lints the example result of just prose
         # The commit 53e72b4 is the tag v0.6.0 of jagt.
         run: cargo install --locked --git https://github.com/rahuldave/jagt --rev 53e72b4ef6361bf0c11110e3e55cba0241cad465 jagt
+      - name: Clone jnterfaces, whose lint of steps a test runs on the role file
+        # The commit 4bfcb3f is on the main branch of jnterfaces and has scripts/lint_steps.py.
+        run: |
+          git clone --quiet https://github.com/rahuldave/jnterfaces "$RUNNER_TEMP/jnterfaces-lint"
+          git -C "$RUNNER_TEMP/jnterfaces-lint" checkout --quiet 4bfcb3f81f0008990383b51936889d3f5022a426
+          echo "JNTERFACES_DIR=$RUNNER_TEMP/jnterfaces-lint" >> "$GITHUB_ENV"
       - name: Check, test and check the prose
         run: just check
       - name: Check the links to skills of other packages with the jnterfaces checker
