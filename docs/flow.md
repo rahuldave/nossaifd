@@ -56,9 +56,19 @@ names at most 20 pages.
 The hook sees the working copy, not the agent. So when a person edits a page during a turn, or a second
 agent edits a page in the same working copy, that page counts for the turn.
 
-The record lives in the folder `.git/nossaifd`. Every worktree of the repository shares it, so a page
-that passed in one worktree passes in the others. It never shows in `git status`. The snapshots live in
-the folder of git of each worktree. Pages in a submodule are out of scope.
+The record lives in the file `.agents/log/nossaifd/passes.json` of the main checkout. Every worktree of
+the repository shares it, so a page that passed in one worktree passes in the others. The snapshots live
+in the folder `.agents/log/nossaifd/turns` of each worktree. The commit gates keep their logs in
+`.agents/log` too. The gate writes nothing in the folder `.git`.
+
+The gate gives `.agents/log` a file `.gitignore` with the line `*`, so the folder never shows in
+`git status`. When `.agents/log` already has a `.gitignore`, the gate keeps it, so that file must ignore
+the folder `nossaifd`. You can also add the line `.agents/log/` to the `.gitignore` of the project.
+
+The command `git clean -fdx` deletes the folder, and then the gate asks about a page again only when the
+page changes again. The gate never
+counts a file in `.agents` as a page. An older gate kept its files in `.git/nossaifd`. The gate does not
+read that folder now, so you can delete it. Pages in a submodule are out of scope.
 
 The hook skips these files, because they are not pages for a person:
 
@@ -302,7 +312,7 @@ gate stays beside the commit gates, and it has a different job:
 - **The `prose` record.** The steps of the skill, done by hand, record a page, so the hook lets the turn
   end. But a page pass is not a `prose` record. The commit gate needs the `prose` record of the tree, and
   only `just prose` gives it.
-- **The store of page passes.** One store in `.git/nossaifd` holds the passes, with or without the gates.
+- **The store of page passes.** One store in `.agents/log/nossaifd` of the main checkout holds the passes, with or without the gates.
   So a page that `just prose` passed in one worktree does not block a later turn in another worktree.
 - **The rule for pages.** The `@pages` of the commit gate take the pages from `prose_gate.py pages`. The
   step `prose-check` runs `prose_gate.py check-changed`, which keeps the pages by the same rule `is_page`.

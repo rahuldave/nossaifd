@@ -188,7 +188,7 @@ class TurnTest(unittest.TestCase):
             code, out = self.project.hook(cwd=elsewhere.root, project=self.project.root)
             self.assertIn('README.md', out['reason'])
             self.assertNotIn('a contraction', out['reason'])
-            self.assertFalse((elsewhere.root / '.git/nossaifd').exists())
+            self.assertFalse((elsewhere.root / '.agents/log').exists())
 
     def test_without_a_start_hook_a_page_is_asked_about_once(self):
         self.project.hook()                     # the first stop of the session keeps a snapshot
@@ -363,11 +363,105 @@ class TurnTest(unittest.TestCase):
     def test_the_start_hook_removes_snapshots_older_than_thirty_days(self):
         self.project.start('old')
         self.project.start('new')
-        turns = self.project.root / '.git/nossaifd/turns'
+        turns = self.project.root / '.agents/log/nossaifd/turns'
         month = time.time() - 31 * 86400
         os.utime(turns / 'old.json', (month, month))
         self.project.start('new')
         self.assertEqual(sorted(p.name for p in turns.iterdir()), ['new.json'])
+
+
+class StateTest(unittest.TestCase):
+    "Where the gate keeps its snapshots and its record: in .agents/log, never in the folder of git."
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        (Path(self.temp.name) / 'main').mkdir()
+        self.project = Project(Path(self.temp.name) / 'main')
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def turn(self, cwd=None):
+        "A turn that changes a page, records it and ends."
+        root = cwd or self.project.root
+        self.project.start(cwd=root)
+        (root / 'README.md').write_text(MORE)
+        self.assertEqual(self.project.record('README.md', cwd=root).returncode, 0)
+        self.assertEqual(self.project.hook(cwd=root)[0], 0)
+
+    def test_nothing_goes_in_the_folder_of_git(self):
+        before = set(listing(self.project.root / '.git'))
+        self.turn()
+        self.assertEqual(set(listing(self.project.root / '.git')), before)
+        log = self.project.root / '.agents/log'
+        self.assertTrue((log / 'nossaifd/turns/s1.json').is_file())
+        self.assertTrue((log / 'nossaifd/passes.json').is_file())
+        self.assertEqual((log / '.gitignore').read_text(), '*\n')
+        self.assertEqual(self.project.git('status', '--porcelain', '--untracked-files=all'), ' M README.md\n')
+
+    def test_a_worktree_keeps_its_snapshots_and_the_main_checkout_keeps_the_record(self):
+        other = Path(self.temp.name) / 'other'
+        self.project.git('worktree', 'add', '-q', '-b', 'feat', str(other))
+        before = set(listing(self.project.root / '.git'))
+        self.turn(cwd=other)
+        self.assertEqual(set(listing(self.project.root / '.git')), before)
+        self.assertTrue((other / '.agents/log/nossaifd/turns/s1.json').is_file())
+        self.assertFalse((other / '.agents/log/nossaifd/passes.json').exists())
+        self.assertTrue((self.project.root / '.agents/log/nossaifd/passes.json').is_file())
+        self.assertFalse((self.project.root / '.agents/log/nossaifd/turns').exists())
+        for root in (self.project.root, other):
+            self.assertEqual((root / '.agents/log/.gitignore').read_text(), '*\n')
+
+    def test_a_worktree_from_a_subfolder_finds_the_same_folders(self):
+        other = Path(self.temp.name) / 'other'
+        self.project.git('worktree', 'add', '-q', '-b', 'feat', str(other))
+        (other / 'docs').mkdir()
+        gate = load_gate()
+        self.assertEqual(gate.state(gate.git_root(other / 'docs')), (other / '.agents/log/nossaifd').resolve())
+        self.assertEqual(gate.state(gate.git_root(other / 'docs'), shared=True),
+                         (self.project.root / '.agents/log/nossaifd').resolve())
+
+    def test_the_files_of_the_gate_never_count_as_changed_pages(self):
+        self.turn()
+        log = self.project.root / '.agents/log'
+        (log / '.gitignore').unlink()                     # a log folder that git does not ignore
+        (log / 'nossaifd/notes.md').write_text(HARD)      # even a file with the name of a page
+        self.assertIn('?? .agents/', self.project.git('status', '--porcelain'))
+        gate = load_gate()
+        self.assertEqual(gate.git_changed(self.project.root), {'README.md'})
+        self.assertEqual(gate.changed_pages(self.project.root), ['README.md'])
+        self.project.start()
+        self.assertEqual((log / '.gitignore').read_text(), '*\n')    # the next write of the gate makes it again
+        (log / '.gitignore').unlink()
+        self.assertEqual(json.loads((log / 'nossaifd/turns/s1.json').read_text())['pages'], {'README.md': gate.blob(
+            self.project.root / 'README.md')})
+        (log / 'nossaifd/turns/later.md').write_text(HARD)          # a file of the log that the turn makes
+        self.assertIsNone(self.project.blocked())
+        out = subprocess.run([sys.executable, str(GATE), 'check-changed'], cwd=self.project.root,
+                             capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        self.assertNotIn('.agents/log', out.stdout + out.stderr)
+
+    def test_record_says_in_one_line_when_it_cannot_write_the_record(self):
+        self.project.write('.agents', 'a file, not a folder\n')
+        out = self.project.record('README.md')
+        self.assertEqual(out.returncode, 1)
+        self.assertNotIn('Traceback', out.stderr)
+        self.assertIn('prose_gate.py record: no page recorded, cannot write', out.stderr)
+
+    def test_a_gitignore_that_is_there_stays(self):
+        log = self.project.root / '.agents/log'
+        log.mkdir(parents=True)
+        (log / '.gitignore').write_text('*\n!keep\n')
+        self.turn()
+        self.assertEqual((log / '.gitignore').read_text(), '*\n!keep\n')
+
+    def test_a_repository_whose_git_folder_is_not_named_dot_git_keeps_the_record_in_the_worktree(self):
+        with tempfile.TemporaryDirectory() as temp:
+            work, store = Path(temp) / 'work', Path(temp) / 'store'
+            subprocess.run(['git', 'init', '-q', '--separate-git-dir', str(store), str(work)], check=True)
+            gate = load_gate()
+            self.assertEqual(gate.state(work.resolve(), shared=True), work.resolve() / '.agents/log/nossaifd')
 
 
 class RecordTest(unittest.TestCase):
@@ -804,7 +898,7 @@ class CommitGatesTest(unittest.TestCase):
         try:
             (other / 'README.md').write_text(MORE)
             self.assertEqual(self.project.record('README.md', cwd=other).returncode, 0)
-            self.assertTrue((self.project.root / '.git/nossaifd/passes.json').is_file())
+            self.assertTrue((self.project.root / '.agents/log/nossaifd/passes.json').is_file())
             self.project.start()
             self.project.write('README.md', MORE)
             self.assertIsNone(self.project.blocked())
@@ -1256,7 +1350,7 @@ class CheckChangedTest(unittest.TestCase):
         before = listing(self.project.root)
         self.assertEqual(self.check().returncode, 1)
         self.assertEqual(listing(self.project.root), before)
-        self.assertFalse((self.project.root / '.git/nossaifd').exists())
+        self.assertFalse((self.project.root / '.agents/log').exists())
 
     def test_a_repository_with_no_commit_checks_each_page(self):
         with tempfile.TemporaryDirectory() as temp:
